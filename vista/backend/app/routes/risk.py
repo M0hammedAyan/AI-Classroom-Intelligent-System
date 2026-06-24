@@ -104,6 +104,11 @@ def recompute_risk(
         db.refresh(flag)
     except Exception as exc:
         raise HTTPException(status_code=500, detail={"code": "RISK_COMPUTE_ERROR", "message": str(exc)})
+
+    from ..audit import log_action
+    log_action(db, _admin.id, "recompute_risk", "student", student_id)
+    db.commit()
+
     return _flag_dict(flag, student.name)
 
 

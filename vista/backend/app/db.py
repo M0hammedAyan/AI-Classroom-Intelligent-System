@@ -93,6 +93,148 @@ def seed_demo_data(db: Session) -> None:
 
     db.flush()
 
+    # --- Real test data: DSAIT college structure ---
+    from .models.organization import School, Department, ClassSection, MentorAssignment
+    from .models.organization import TeacherSubjectAssignment, Subject
+
+    school = School(
+        id="school-cse",
+        name="School of Computer Science and Engineering",
+        code="CSE",
+        is_active=True,
+        created_at=now,
+    )
+    db.add(school)
+
+    dept = Department(
+        id="dept-aiml",
+        school_id="school-cse",
+        name="Artificial Intelligence and Machine Learning",
+        code="AIML",
+        is_active=True,
+        created_at=now,
+    )
+    db.add(dept)
+
+    class_section = ClassSection(
+        id="class-aiml-4a",
+        department_id="dept-aiml",
+        name="AIML 4th Year A",
+        code="AIML-4A",
+        semester="7",
+        is_active=True,
+        created_at=now,
+    )
+    db.add(class_section)
+
+    # Users: HOS, HOP, Teacher, Mentor
+    hos_hash = bcrypt.hashpw(b"hos123", bcrypt.gensalt(rounds=12)).decode()
+    hos = User(
+        id=str(uuid.uuid4()),
+        name="Gowrishankar",
+        email="gowrishankar@vista.local",
+        password_hash=hos_hash,
+        role="hos",
+        school_id="school-cse",
+        is_active=True,
+        created_at=now,
+    )
+
+    hop_hash = bcrypt.hashpw(b"hop123", bcrypt.gensalt(rounds=12)).decode()
+    hop = User(
+        id=str(uuid.uuid4()),
+        name="Ajayprakash",
+        email="ajayprakash@vista.local",
+        password_hash=hop_hash,
+        role="hop",
+        school_id="school-cse",
+        department_id="dept-aiml",
+        is_active=True,
+        created_at=now,
+    )
+
+    teacher2_hash = bcrypt.hashpw(b"teacher123", bcrypt.gensalt(rounds=12)).decode()
+    teacher2 = User(
+        id=str(uuid.uuid4()),
+        name="Kushal",
+        email="kushal@vista.local",
+        password_hash=teacher2_hash,
+        role="teacher",
+        school_id="school-cse",
+        department_id="dept-aiml",
+        is_active=True,
+        created_at=now,
+    )
+
+    mentor_hash = bcrypt.hashpw(b"mentor123", bcrypt.gensalt(rounds=12)).decode()
+    mentor_user = User(
+        id=str(uuid.uuid4()),
+        name="Rajeshwari",
+        email="rajeshwari@vista.local",
+        password_hash=mentor_hash,
+        role="mentor",
+        school_id="school-cse",
+        department_id="dept-aiml",
+        is_active=True,
+        created_at=now,
+    )
+
+    db.add_all([hos, hop, teacher2, mentor_user])
+    db.flush()
+
+    # Real students
+    real_students = [
+        ("1DA24AI403", "Mohammed Ayan", "AIML-4A"),
+        ("1DA23AI043", "Saheel Pradhan", "AIML-4A"),
+        ("1DA23AI050", "Sujal Agrahari", "AIML-4A"),
+        ("1DA23AI009", "Aryan Raj Singh", "AIML-4A"),
+    ]
+    for sid, sname, cls in real_students:
+        db.add(Student(
+            student_id=sid,
+            name=sname,
+            class_=cls,
+            classroom_id="CSE-3A",
+            is_active=True,
+            enrolled_at="2024-08-01",
+            created_at=now,
+        ))
+
+    db.flush()
+
+    # Assign mentor to all real students
+    for sid, _, _ in real_students:
+        db.add(MentorAssignment(
+            id=str(uuid.uuid4()),
+            mentor_id=mentor_user.id,
+            student_id=sid,
+            assigned_at=now,
+            is_active=True,
+        ))
+
+    # Create subject and assign teacher
+    dsa_subject = Subject(
+        id="sub-dsa",
+        department_id="dept-aiml",
+        name="Data Structures and Algorithms",
+        code="DSA",
+        semester="7",
+        created_at=now,
+    )
+    db.add(dsa_subject)
+    db.flush()
+
+    db.add(TeacherSubjectAssignment(
+        id=str(uuid.uuid4()),
+        teacher_id=teacher2.id,
+        subject_id="sub-dsa",
+        class_section_id="class-aiml-4a",
+        assigned_at=now,
+        is_active=True,
+    ))
+
+    # --- End real test data setup ---
+
     # --- Seed attendance for the past 8 weeks (Mon-Fri, 5 days/week) ---
     rng = random.Random(42)
     from datetime import timedelta
@@ -106,6 +248,11 @@ def seed_demo_data(db: Session) -> None:
         "CS22B003": 0.48,   # At risk
         "CS22B004": 0.88,   # Good
         "CS22B005": 0.72,   # Borderline
+        # Real students
+        "1DA24AI403": 0.85,   # Mohammed Ayan - Good
+        "1DA23AI043": 0.72,   # Saheel - Borderline
+        "1DA23AI050": 0.52,   # Sujal - At risk
+        "1DA23AI009": 0.91,   # Aryan - Good
     }
 
     for day_offset in range(56):
@@ -141,6 +288,11 @@ def seed_demo_data(db: Session) -> None:
         "CS22B003": [42, 38, 32],
         "CS22B004": [72, 74, 76],
         "CS22B005": [68, 60, 54],
+        # Real students
+        "1DA24AI403": [72, 78, 75],
+        "1DA23AI043": [55, 48, 42],
+        "1DA23AI050": [38, 32, 28],
+        "1DA23AI009": [80, 82, 85],
     }
     assessment_dates = [
         (base_date + timedelta(days=14)).isoformat(),
@@ -164,7 +316,8 @@ def seed_demo_data(db: Session) -> None:
         from vista.ml.risk_engine import calculate_risk_from_metrics
         db.flush()
 
-        for sid, _ in students_data:
+        all_student_ids = [sid for sid, _ in students_data] + [sid for sid, _, _ in real_students]
+        for sid in all_student_ids:
             try:
                 metrics = get_student_metrics(sid, db)
                 result = calculate_risk_from_metrics(metrics)

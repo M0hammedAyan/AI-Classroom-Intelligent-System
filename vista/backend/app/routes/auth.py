@@ -101,6 +101,11 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
     user.last_login_at = datetime.now(timezone.utc).isoformat()
     db.commit()
 
+    # Audit log
+    from ..audit import log_action
+    log_action(db, user.id, "login", ip_address=request.client.host if request.client else None)
+    db.commit()
+
     return {
         "token": _make_jwt(user.id, user.role),
         "role": user.role,

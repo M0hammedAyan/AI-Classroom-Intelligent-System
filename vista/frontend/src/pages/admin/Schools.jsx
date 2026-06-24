@@ -1,37 +1,57 @@
-function AdminSchools() {
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const BASE_URL = '/api/v1';
+
+function SchoolsPage() {
+  const navigate = useNavigate();
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const token = JSON.parse(localStorage.getItem('vista_auth'))?.token;
+  const headers = { Authorization: `Bearer ${token}` };
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/admin/schools`, { headers })
+      .then(r => r.json())
+      .then(data => setSchools(data.schools || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="v-loading">Loading...</div>;
+
   return (
-    <div className="dashboard">
-      <div className="page-header">
-        <h2>School Management</h2>
-        <button className="btn btn-primary">+ Create School</button>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Total Schools</div>
-          <div className="stat-value">—</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Total Departments</div>
-          <div className="stat-value">—</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Total Students</div>
-          <div className="stat-value">—</div>
+    <div>
+      <div className="v-page-header">
+        <div>
+          <h2 className="v-page-title">Schools</h2>
+          <p className="v-page-subtitle">All schools in the institution</p>
         </div>
       </div>
 
-      <h3 className="section-title">Schools</h3>
-      <table className="data-table">
-        <thead>
-          <tr><th>School Name</th><th>Code</th><th>Departments</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          <tr><td colSpan="4" style={{ textAlign: 'center', color: '#64748b' }}>No schools found</td></tr>
-        </tbody>
-      </table>
+      {schools.length === 0 ? (
+        <div className="v-empty">No schools created yet.</div>
+      ) : (
+        <div className="v-table-container">
+          <table className="v-table">
+            <thead>
+              <tr><th>Code</th><th>Name</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              {schools.map(s => (
+                <tr key={s.id} onClick={() => navigate(`/admin/school/${s.id}`)}>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>{s.code}</td>
+                  <td>{s.name}</td>
+                  <td><button className="v-btn v-btn-sm v-btn-secondary">View Departments →</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
 
-export default AdminSchools;
+export default SchoolsPage;

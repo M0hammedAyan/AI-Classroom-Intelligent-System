@@ -100,6 +100,20 @@ def mark_attendance(
         }
 
     status = "present"
+
+    # Duplicate prevention: don't mark same student twice on same day
+    existing = (
+        db.query(Attendance)
+        .filter(
+            Attendance.student_id == student_id,
+            Attendance.session_date == body.session_date,
+            Attendance.status == "present",
+        )
+        .first()
+    )
+    if existing:
+        return _mark_response(existing, student_id, db, liveness_passed)
+
     att = Attendance(
         id=str(uuid.uuid4()),
         student_id=student_id,

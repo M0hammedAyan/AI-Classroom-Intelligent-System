@@ -648,3 +648,40 @@ def teacher_get_subjects(
         })
 
     return {"subjects": result, "total": len(result), "teacher": current_user.name}
+
+
+# ---------------------------------------------------------------------------
+# Audit Logs Viewer (Admin only)
+# ---------------------------------------------------------------------------
+
+@router.get("/audit-logs")
+def list_audit_logs(
+    limit: int = 50,
+    action: str | None = None,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_admin),
+):
+    """View recent audit logs. Admin only."""
+    from ..models.audit import AuditLog
+
+    query = db.query(AuditLog)
+    if action:
+        query = query.filter(AuditLog.action == action)
+    logs = query.order_by(AuditLog.created_at.desc()).limit(limit).all()
+
+    return {
+        "logs": [
+            {
+                "id": l.id,
+                "user_id": l.user_id,
+                "action": l.action,
+                "target_type": l.target_type,
+                "target_id": l.target_id,
+                "details": l.details,
+                "ip_address": l.ip_address,
+                "created_at": l.created_at,
+            }
+            for l in logs
+        ],
+        "total": len(logs),
+    }

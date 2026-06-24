@@ -26,15 +26,24 @@ logger = logging.getLogger(__name__)
 # Module-level matcher instance
 _matcher = FaceMatcher(threshold=0.55)
 
+# Gallery cache (avoid reloading from DB on every call)
+_gallery_cache: dict[str, list[float]] = {}
+_gallery_cache_time: float = 0.0
+_GALLERY_CACHE_TTL = 60.0  # seconds
+
 
 def _load_gallery() -> dict[str, list[float]]:
     """
     Load enrolled student embeddings from the database.
-    Returns dict mapping student_id → embedding (as list of floats).
-
-    Falls back to empty dict if DB is unavailable (vision module
-    should not depend on backend imports at import time).
+    Caches for 60 seconds to avoid repeated DB queries.
     """
+    import time
+    global _gallery_cache, _gallery_cache_time
+
+    now = time.time()
+    if _gallery_cache and (now - _gallery_cache_time) < _GALLERY_CACHE_TTL:
+        return _gallery_cache
+
     try:
         from vista.backend.app.db import SessionLocal
         from vista.backend.app.models.student import Student
@@ -52,12 +61,14 @@ def _load_gallery() -> dict[str, list[float]]:
                     emb = json.loads(s.embedding) if isinstance(s.embedding, str) else s.embedding
                     if isinstance(emb, list) and len(emb) == 512:
                         gallery[s.student_id] = emb
+            _gallery_cache = gallery
+            _gallery_cache_time = now
             return gallery
         finally:
             db.close()
     except Exception as exc:
         logger.warning(f"Could not load gallery from DB: {exc}")
-        return {}
+        return _gallery_cache or {}
 
 
 def recognize_all(image_path: str) -> list[dict]:
