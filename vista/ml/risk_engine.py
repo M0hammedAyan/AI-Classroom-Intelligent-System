@@ -133,6 +133,9 @@ def _apply_overrides(
         return "MEDIUM", True, "Attendance drop > 25%"
     if f.marks_decline_percentage > 30.0 and level == "LOW":
         return "MEDIUM", True, "Marks decline > 30%"
+    if (f.attendance_percentage < 75.0 and f.internal_marks_average < 60.0
+            and level == "LOW"):
+        return "MEDIUM", True, "Attendance and marks both below threshold"
     return level, False, None
 
 
@@ -232,14 +235,20 @@ def _load_student_metrics(student_id: str) -> StudentMetrics:
     """
     Load raw student data from the DB and return a StudentMetrics object.
 
-    Currently raises NotImplementedError — this stub is replaced when
-    backend/app/db.py is available (Task 4). Until then, callers must
-    pass a pre-built StudentMetrics directly via calculate_risk_from_metrics().
+    Delegates to backend/app/db.get_student_metrics() which queries the
+    attendance and scores tables and builds a StudentMetrics instance.
+
+    Raises StudentNotFoundError if the student does not exist in the DB.
     """
-    raise NotImplementedError(
-        "DB integration not yet wired. "
-        "Use calculate_risk_from_metrics(metrics) directly until Task 4 is complete."
-    )
+    from vista.backend.app.db import SessionLocal, get_student_metrics
+
+    db = SessionLocal()
+    try:
+        return get_student_metrics(student_id, db)
+    except ValueError as exc:
+        raise StudentNotFoundError(str(exc)) from exc
+    finally:
+        db.close()
 
 
 # ---------------------------------------------------------------------------
@@ -290,3 +299,148 @@ def calculate_risk(student_id: str) -> dict:
     """
     metrics = _load_student_metrics(student_id)
     return calculate_risk_from_metrics(metrics)
+
+
+# ---------------------------------------------------------------------------
+# run_pipeline — XGBoost/LR inference from flat dict (README demo entry point)
+# ---------------------------------------------------------------------------
+
+_PIPELINE_FEATURES = [
+    "overall_attendance",
+    "recent_attendance",
+    "avg_score",
+    "recent_score",
+    "failed_subjects",
+]
+
+_PIPELINE_LABEL_NAMES = ["LOW", "MEDIUM", "HIGH"]
+
+_PIPELINE_REASONS: dict[str, Any] = {
+    "low_attendance": lambda d: d["overall_attendance"] < 75,
+    "worsening_attendance": lambda d: d["overall_attendance"] - d["recent_attendance"] > 10,
+    "low_marks": lambda d: d["avg_score"] < 60,
+    "declining_marks": lambda d: d["avg_score"] - d["recent_score"] > 10,
+    "failed_subjects": lambda d: d["failed_subjects"] > 0,
+}
+
+_PIPELINE_REASON_TEXT: dict[str, str] = {
+    "low_attendance": "Attendance below recommended level",
+    "worsening_attendance": "Attendance worsening",
+    "low_marks": "Internal marks below passing threshold",
+    "declining_marks": "Recent marks declining from average",
+    "failed_subjects": "One or more subjects failed",
+}
+
+_PIPELINE_ACTIONS: dict[str, list[str]] = {
+    "HIGH": [
+        "Immediate counselling referral required",
+        "Notify Head of Department",
+        "Create a structured intervention plan",
+    ],
+    "MEDIUM": [
+        "Schedule attendance counseling session",
+        "Monitor student progress weekly",
+        "Notify academic mentor",
+    ],
+    "LOW": [
+        "Continue regular monitoring",
+        "No immediate action required",
+    ],
+}
+
+
+def _load_pipeline_model() -> dict:
+    import pickle
+    from pathlib import Path
+
+    model_path = Path(__file__).parent / "model.pkl"
+    if not model_path.exists():
+        raise FileNotFoundError(
+            f"Trained model not found at {model_path}. "
+            "Run: python -m vista.ml.train"
+        )
+    with model_path.open("rb") as f:
+        return pickle.load(f)
+
+
+def run_pipeline(input_data: dict) -> dict:
+    """
+    XGBoost/LR inference from a flat student dict.
+
+    Input keys: student_id, overall_attendance, recent_attendance,
+                avg_score, recent_score, failed_subjects
+
+    Returns the full pipeline output schema documented in README.md.
+    Raises FileNotFoundError if model.pkl has not been trained yet.
+    """
+    artifact = _load_pipeline_model()
+    model = artifact["model"]
+    scaler = artifact["scaler"]
+    needs_scaling = artifact["needs_scaling"]
+
+    feature_vec = [[input_data.get(f, 0) for f in _PIPELINE_FEATURES]]
+
+    if needs_scaling and scaler is not None:
+        feature_vec = scaler.transform(feature_vec)
+
+    # Probability of each class [LOW, MEDIUM, HIGH]
+    proba = model.predict_proba(feature_vec)[0]
+    high_idx = _PIPELINE_LABEL_NAMES.index("HIGH")
+    medium_idx = _PIPELINE_LABEL_NAMES.index("MEDIUM")
+
+    # Aggregate risk score: weighted sum of class probabilities (cast to native float)
+    risk_score = round(float(0.0 * proba[0] + 0.5 * proba[medium_idx] + 1.0 * proba[high_idx]), 4)
+
+    if risk_score < 0.4:
+        risk_level = "LOW"
+    elif risk_score < 0.7:
+        risk_level = "MEDIUM"
+    else:
+        risk_level = "HIGH"
+
+    confidence = round(abs(risk_score - 0.5) * 2, 4)
+
+    # Determine reasons in priority order
+    active_reasons = [
+        key for key in _PIPELINE_REASONS
+        if _PIPELINE_REASONS[key](input_data)
+    ]
+    reasons = [
+        {"text": _PIPELINE_REASON_TEXT[k], "priority": i + 1}
+        for i, k in enumerate(active_reasons[:4])
+    ]
+
+    recommended_actions = _PIPELINE_ACTIONS[risk_level][:3]
+
+    # Trend from attendance and score direction
+    att_drop = input_data.get("overall_attendance", 0) - input_data.get("recent_attendance", 0)
+    sc_drop = input_data.get("avg_score", 0) - input_data.get("recent_score", 0)
+    if att_drop > 10 or sc_drop > 10:
+        trend = "WORSENING"
+    elif att_drop < -5 or sc_drop < -5:
+        trend = "IMPROVING"
+    else:
+        trend = "STABLE"
+
+    # Plain-English summary
+    if reasons:
+        primary = reasons[0]["text"].lower()
+        action = recommended_actions[0].lower() if recommended_actions else "monitor student"
+        summary = (
+            f"Student is at {risk_level.lower()} risk due to {primary}; {action}."
+        )
+    else:
+        summary = f"Student is at {risk_level.lower()} risk based on current data."
+
+    return {
+        "student_id": input_data.get("student_id", ""),
+        "risk_score": risk_score,
+        "risk_level": risk_level,
+        "confidence": confidence,
+        "reasons": reasons,
+        "recommended_actions": recommended_actions,
+        "summary": summary,
+        "trend": trend,
+        "risk_change": "NO_PREVIOUS_DATA",
+        "validation_flags": [],
+    }

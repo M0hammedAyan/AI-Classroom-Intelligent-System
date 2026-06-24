@@ -1,0 +1,124 @@
+.risk-page {
+  max-width: 1200px;
+}
+
+.risk-page .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.risk-page .page-header h2 {
+  font-size: 1.5rem;
+  color: #1a1a2e;
+}
+
+.risk-page select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+}
+
+.risk-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.risk-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #e5e7eb;
+}
+
+.risk-card.high { border-left-color: #dc2626; }
+.risk-card.medium { border-left-color: #d97706; }
+.risk-card.low { border-left-color: #16a34a; }
+
+.risk-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.risk-card-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.risk-card-id {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.risk-reasons {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.risk-reasons li {
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+  color: #374151;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.risk-reasons li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #d97706;
+}
+
+.risk-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 0.75rem;
+}
+
+.confidence-tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  background: #f1f5f9;
+  border-radius: 6px;
+  color: #64748b;
+  text-transform: capitalize;
+}
+
+.computed-at {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.recompute-btn {
+  margin-left: auto;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #2563eb;
+  transition: all 0.2s;
+}
+
+.recompute-btn:hover:not(:disabled) {
+  background: #2563eb;
+  color: #fff;
+}
+
+.recompute-btn:disabled {
+  opacity: 0.5;
+}

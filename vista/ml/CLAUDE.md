@@ -72,41 +72,36 @@ snake_case for all Python files and function names.
 | `risk_engine.py` | Done | Rule-based engine, `calculate_risk()` public entry point, `calculate_risk_from_metrics()` for direct use |
 | `test_risk_engine.py` | Done | 7 test cases from `RISK_ENGINE_SPEC.md` — run with `python -m ml.test_risk_engine` |
 | `validate_uci.py` | Done | UCI dataset sanity checker — run with `python -m ml.validate_uci --file path/to/student-mat.csv` |
-| DB wiring (`_load_student_metrics`) | Pending | Blocked on `backend/app/db.py` — stub raises `NotImplementedError` until Member 2 delivers DB layer |
+| `train.py` | Done | Trains XGBoost + LR on synthetic data; XGBoost selected (macro F1 = 0.957) |
+| `data/generate_sample_data.py` | Done | 200-student synthetic dataset generator |
+| `__init__.py` | Done | Exports public API: `calculate_risk`, `calculate_risk_from_metrics`, `run_pipeline` |
+| DB wiring (`_load_student_metrics`) | Done | Calls `backend/app/db.get_student_metrics()` — fully functional when DB is available |
 
 ---
 
 ## Open Questions
 
-These were hit during implementation. Review before the next team sync.
+These were hit during implementation. All resolved as of 2026-06-22.
 
-**OQ-ML-1: `calculate_risk()` vs `calculate_risk_from_metrics()`**  
-The public contract function `calculate_risk(student_id)` currently raises `NotImplementedError`
-because `backend/app/db.py` does not exist yet. Tests and the backend route must use
-`calculate_risk_from_metrics(metrics)` until Task 4 (DB wiring) is complete.
-Member 2 needs to provide a `get_student_metrics(student_id)` helper in `backend/app/db.py`
-that returns a `StudentMetrics` object — then `_load_student_metrics()` in `risk_engine.py`
-can call it and `calculate_risk()` becomes fully functional.
+**OQ-ML-1: `calculate_risk()` vs `calculate_risk_from_metrics()` — RESOLVED**  
+`_load_student_metrics()` now calls `backend/app/db.get_student_metrics(student_id, db)`
+which builds a `StudentMetrics` object from the attendance and scores tables.
+`calculate_risk(student_id)` is fully functional when the DB is seeded.
 
-**OQ-ML-2: `consecutive_absences` field in `StudentMetrics`**  
-`StudentMetrics.consecutive_absences` is currently an integer passed in by the caller.
-When DB wiring happens, this needs to be computed from raw attendance rows (sequence of
-present/absent statuses) using `compute_consecutive_absences(attendance_sequence)` in
-`features.py`. The caller should not compute it manually — `_load_student_metrics()`
-should fetch the raw sequence and call that function internally.
+**OQ-ML-2: `consecutive_absences` field in `StudentMetrics` — RESOLVED**  
+`get_student_metrics()` in `backend/app/db.py` fetches raw attendance rows, extracts
+the status sequence, and calls `compute_consecutive_absences(attendance_sequence)` from
+`features.py` to derive the value. The caller does not compute it manually.
 
-**OQ-ML-3: `attendance_by_week` granularity**  
-The `attendance_by_week` field expects weekly attendance percentages. The `attendance`
-table stores per-session rows with a `session_date` column. The DB loader will need to
-group sessions by ISO week number and compute weekly attendance %. Confirm with Member 2
-that `session_date` is always a proper DATE type (not a string) so grouping works cleanly.
+**OQ-ML-3: `attendance_by_week` granularity — RESOLVED**  
+`get_student_metrics()` groups attendance rows by ISO week number using
+`datetime.strptime(session_date, "%Y-%m-%d").date().isocalendar()` and computes
+weekly attendance percentages. `session_date` is stored as `TEXT` in `YYYY-MM-DD` format.
 
-**OQ-ML-4: Assignment data availability**  
-`assignments_submitted` and `assignments_total` are typed as `int | None`. If the
-`scores` table does not include an assignment type label, these will always be `None`
-and `assignment_completion_rate` will always be excluded from the engagement score.
-Confirm with Member 2 whether assignment records are tracked separately or folded into
-the general `scores` table with a type field.
+**OQ-ML-4: Assignment data availability — RESOLVED (N/A for pilot)**  
+The `scores` table does not include a type field distinguishing assignments from exams.
+`assignments_submitted` and `assignments_total` are set to `None` in the DB loader.
+The engagement score uses attendance-only mode when assignment data is unavailable.
 
 ---
 

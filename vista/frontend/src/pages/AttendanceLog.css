@@ -1,0 +1,141 @@
+.attendance-page {
+  max-width: 1200px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-header h2 {
+  font-size: 1.5rem;
+  color: #1a1a2e;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-controls input[type="date"] {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.export-btn {
+  padding: 0.5rem 1rem;
+  background: #1a1a2e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+.export-btn:hover {
+  background: #16213e;
+}
+
+.att-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.att-stat {
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+}
+
+.att-stat.present { background: #dcfce7; color: #166534; }
+.att-stat.absent { background: #fee2e2; color: #991b1b; }
+.att-stat.failed { background: #fef3c7; color: #92400e; }
+.att-stat.total { background: #e0e7ff; color: #3730a3; }
+
+.table-wrap {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+.att-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.att-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.att-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+.att-table tr:last-child td {
+  border-bottom: none;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.present { background: #dcfce7; color: #166534; }
+.status-badge.absent { background: #fee2e2; color: #991b1b; }
+.status-badge.liveness_failed { background: #fef3c7; color: #92400e; }
+
+.override-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.65rem;
+  background: #e0e7ff;
+  color: #4338ca;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.override-btn {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.override-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.no-data-msg {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+}

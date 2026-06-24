@@ -96,10 +96,14 @@ a team sync logged in `docs/INTEGRATION_LOG.md`.
 
 ### `vista/ml/`
 - `features.py` — feature engineering (attendance %, drop, marks avg, decline, assignment completion, consecutive absences, trend, engagement score)
-- `risk_engine.py` — complete pipeline: XGBoost prediction (calibrated), SHAP explanation, `run_pipeline()` orchestrator
-- `test_risk_engine.py` — integration tests against 5 student profiles (low, medium, high, borderline, data-sparse)
-- `model.pkl` — trained model artifact (XGBoost selected by F1 over Logistic Regression)
-- `student_data.csv` — 200-student synthetic training dataset
+- `risk_engine.py` — complete pipeline: rule-based engine (`calculate_risk`, `calculate_risk_from_metrics`) + XGBoost inference (`run_pipeline`), DB-wired via `backend/app/db.get_student_metrics()`
+- `test_risk_engine.py` — integration tests against 7 student profiles (low, medium, high, override, data-sparse, zero-sessions, improving)
+- `train.py` — trains XGBoost + Logistic Regression; XGBoost selected (macro F1 = 0.957)
+- `validate_uci.py` — validates rule engine against UCI Student Performance dataset
+- `model.pkl` — trained XGBoost model artifact
+- `data/student_data.csv` — 200-student synthetic training dataset
+- `data/generate_sample_data.py` — reproducible dataset generator
+- `__init__.py` — exports public API (`calculate_risk`, `calculate_risk_from_metrics`, `run_pipeline`)
 
 ### `vista/docs/`
 - `API_CONTRACT.md` — 15 endpoints across auth / students / attendance / risk / reports
@@ -115,7 +119,6 @@ a team sync logged in `docs/INTEGRATION_LOG.md`.
 
 ### Not yet built
 - `vision/` — detect, embed, match, liveness, recognize (Member 1)
-- `backend/` — FastAPI routes, DB models, mock server (Member 2)
 - `frontend/` — Login, Dashboard, AttendanceLog, RiskFlags pages (Member 3)
 
 ---
