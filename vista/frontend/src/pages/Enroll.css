@@ -1,0 +1,52 @@
+.enroll-page { max-width: 600px; }
+.enroll-page h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.enroll-desc { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+.enroll-form {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.enroll-form .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.enroll-form label { font-size: 0.85rem; font-weight: 500; color: #374151; }
+
+.enroll-form select, .enroll-form input[type="file"] {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.file-count { font-size: 0.8rem; color: #64748b; }
+
+.enroll-btn {
+  padding: 0.75rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.enroll-btn:hover:not(:disabled) { background: #1d4ed8; }
+.enroll-btn:disabled { opacity: 0.6; }
+
+.enroll-result {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+}
+
+.enroll-result.success {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+}
+
+.enroll-result h3 { font-size: 1rem; color: #166534; margin-bottom: 0.5rem; }
+.enroll-result p { font-size: 0.85rem; color: #374151; margin: 0.2rem 0; }

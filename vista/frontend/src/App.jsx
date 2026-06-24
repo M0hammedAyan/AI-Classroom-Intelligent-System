@@ -4,6 +4,9 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import AttendanceLog from './pages/AttendanceLog';
 import RiskFlags from './pages/RiskFlags';
+import StudentDetail from './pages/StudentDetail';
+import Enroll from './pages/Enroll';
+import TestRecognition from './pages/TestRecognition';
 import Layout from './components/Layout';
 
 function App() {
@@ -46,6 +49,9 @@ function App() {
           <Route path="/" element={<Dashboard auth={auth} />} />
           <Route path="/attendance" element={<AttendanceLog auth={auth} />} />
           <Route path="/risk" element={<RiskFlags auth={auth} />} />
+          <Route path="/student/:studentId" element={<StudentDetail auth={auth} />} />
+          <Route path="/enroll" element={<Enroll auth={auth} />} />
+          <Route path="/test" element={<TestRecognition auth={auth} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

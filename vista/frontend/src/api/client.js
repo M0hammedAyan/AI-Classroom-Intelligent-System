@@ -120,3 +120,25 @@ export async function exportReport(classroomId, fromDate, toDate, format = 'csv'
     `/export/report?classroom_id=${encodeURIComponent(classroomId)}&from_date=${fromDate}&to_date=${toDate}&format=${format}`
   );
 }
+
+
+// --- Risk Explain (SHAP) ---
+
+export async function explainRisk(studentId) {
+  return request(`/students/${studentId}/risk/explain`);
+}
+
+// --- Attendance Stats ---
+
+export async function getAttendanceStats(classroomId, fromDate = null, toDate = null) {
+  let path = `/attendance/stats?classroom_id=${encodeURIComponent(classroomId)}`;
+  if (fromDate) path += `&from_date=${fromDate}`;
+  if (toDate) path += `&to_date=${toDate}`;
+  return request(path);
+}
+
+// --- Batch Risk Recompute ---
+
+export async function recomputeAllRisk() {
+  return request('/risk/recompute-all', { method: 'POST' });
+}

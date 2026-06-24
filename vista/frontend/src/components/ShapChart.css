@@ -1,0 +1,75 @@
+.shap-chart {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.shap-chart h4 { font-size: 1rem; color: #1a1a2e; margin-bottom: 0.25rem; }
+.shap-subtitle { font-size: 0.8rem; color: #64748b; margin-bottom: 1rem; }
+
+.shap-bars { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.shap-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 60px;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shap-label { font-size: 0.8rem; color: #374151; text-align: right; }
+
+.shap-bar-container {
+  position: relative;
+  height: 20px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.shap-bar-center {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #9ca3af;
+}
+
+.shap-bar {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.shap-bar.positive { background: #ef4444; }
+.shap-bar.negative { background: #22c55e; }
+
+.shap-value { font-size: 0.75rem; font-weight: 500; }
+.shap-value.pos { color: #dc2626; }
+.shap-value.neg { color: #16a34a; }
+
+.shap-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.legend-item.neg { color: #16a34a; }
+.legend-item.pos { color: #dc2626; }
+
+.shap-meta {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.shap-loading, .shap-error {
+  font-size: 0.85rem;
+  color: #64748b;
+  padding: 1rem;
+}

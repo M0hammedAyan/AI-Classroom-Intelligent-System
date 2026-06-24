@@ -39,6 +39,16 @@ function Layout({ auth, onLogout, children }) {
               Risk Flags
             </NavLink>
           </li>
+          <li>
+            <NavLink to="/enroll" className={({ isActive }) => isActive ? 'active' : ''}>
+              Enrollment
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/test" className={({ isActive }) => isActive ? 'active' : ''}>
+              Test Recognition
+            </NavLink>
+          </li>
         </ul>
 
         <div className="sidebar-footer">

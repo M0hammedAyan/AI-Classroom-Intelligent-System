@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getStudents, listRiskFlags, getAttendanceLog } from '../api/client';
+import { AttendanceTrend, RiskDistribution } from '../components/Charts';
 import './Dashboard.css';
 
 function Dashboard({ auth }) {
@@ -95,6 +97,11 @@ function Dashboard({ auth }) {
 
       {atRisk.length > 0 && (
         <>
+          <div className="charts-row">
+            <AttendanceTrend classroomId="CSE-3A" />
+            <RiskDistribution flags={riskFlags} />
+          </div>
+
           <h3 className="section-title">Students Requiring Attention</h3>
           <div className="risk-summary">
             {atRisk.map((flag) => (
@@ -103,7 +110,9 @@ function Dashboard({ auth }) {
                   {flag.risk_level}
                 </span>
                 <div className="risk-item-info">
-                  <div className="risk-item-name">{flag.student_name}</div>
+                  <Link to={`/student/${flag.student_id}`} className="risk-item-name">
+                    {flag.student_name}
+                  </Link>
                   <div className="risk-item-reason">
                     {flag.reasons.length > 0 ? flag.reasons[0] : 'No specific reason flagged'}
                   </div>
@@ -115,7 +124,13 @@ function Dashboard({ auth }) {
       )}
 
       {atRisk.length === 0 && !loading && (
-        <p style={{ color: '#64748b' }}>No students currently flagged. All clear.</p>
+        <>
+          <div className="charts-row">
+            <AttendanceTrend classroomId="CSE-3A" />
+            <RiskDistribution flags={riskFlags} />
+          </div>
+          <p style={{ color: '#64748b' }}>No students currently flagged. All clear.</p>
+        </>
       )}
     </div>
   );
