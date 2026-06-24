@@ -29,7 +29,7 @@ def get_db():
 
 
 def create_tables() -> None:
-    from .models import attendance, student, user, organization  # noqa: F401
+    from .models import attendance, student, user, organization, intervention, audit  # noqa: F401
     Base.metadata.create_all(bind=engine)
 
 
