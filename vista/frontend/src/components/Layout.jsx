@@ -49,6 +49,11 @@ function Layout({ auth, onLogout, children }) {
               Test Recognition
             </NavLink>
           </li>
+          <li>
+            <NavLink to="/lms" className={({ isActive }) => isActive ? 'active' : ''}>
+              LMS Portal
+            </NavLink>
+          </li>
         </ul>
 
         <div className="sidebar-footer">

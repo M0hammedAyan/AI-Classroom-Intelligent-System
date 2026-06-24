@@ -1,0 +1,27 @@
+# Backend
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+sqlalchemy>=2.0.0
+pyjwt>=2.8.0
+bcrypt>=4.1.0
+python-multipart>=0.0.9
+psycopg2-binary>=2.9.9
+reportlab>=5.0.0
+
+# ML
+scikit-learn>=1.9.0
+xgboost>=3.0.0
+pandas>=2.0.0
+numpy>=2.0.0
+shap>=0.51.0
+
+# Vision
+insightface>=1.0.0
+onnxruntime>=1.27.0
+opencv-python>=4.8.0
+
+# WebSocket
+websockets>=12.0
+
+# Scheduling
+apscheduler>=3.10.0

@@ -1,0 +1,52 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: vista-db
+    environment:
+      POSTGRES_DB: vista
+      POSTGRES_USER: vista
+      POSTGRES_PASSWORD: vista_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vista"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vista-backend
+    environment:
+      VISTA_DB_URL: postgresql://vista:vista_secret@db:5432/vista
+      VISTA_JWT_SECRET: change-this-in-production
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - model_cache:/root/.insightface
+    restart: unless-stopped
+
+  # React Frontend (production build served by nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vista-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  model_cache:

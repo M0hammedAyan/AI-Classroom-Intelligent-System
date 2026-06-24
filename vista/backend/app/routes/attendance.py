@@ -114,7 +114,116 @@ def mark_attendance(
     db.add(att)
     db.commit()
     db.refresh(att)
-    return _mark_response(att, student_id, db, liveness_passed)
+    response = _mark_response(att, student_id, db, liveness_passed)
+
+    # Broadcast real-time update
+    import asyncio
+    try:
+        from ..websocket import ws_manager
+        asyncio.get_event_loop().create_task(
+            ws_manager.broadcast({
+                "type": "attendance_marked",
+                "data": response,
+            })
+        )
+    except Exception:
+        pass
+
+    return response
+
+
+@router.post("/mark-batch")
+def mark_attendance_batch(
+    body: MarkRequest,
+    db: Session = Depends(get_db),
+    _current_user=Depends(get_current_user),
+):
+    """
+    Multi-face attendance: detect and recognize ALL faces in an image,
+    write one attendance row per recognized student.
+    """
+    # Decode and size-check image
+    try:
+        image_bytes = base64.b64decode(body.image)
+    except Exception:
+        raise HTTPException(status_code=400, detail={"code": "INVALID_IMAGE", "message": "Image must be valid base64."})
+    if len(image_bytes) > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 5 MB limit."})
+
+    # Write to temp file, call vision.recognize_all(), delete temp file
+    suffix = ".jpg"
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(image_bytes)
+            tmp_path = tmp.name
+
+        vision_results = _call_vision_all(tmp_path)
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+    if not vision_results:
+        raise HTTPException(status_code=400, detail={"code": "NO_FACE_DETECTED", "message": "No faces detected in image."})
+
+    now = datetime.now(timezone.utc).isoformat()
+    response_results = []
+
+    for vision_result in vision_results:
+        student_id = vision_result.get("student_id")
+        confidence = float(vision_result.get("confidence", 0.0))
+        liveness_passed = bool(vision_result.get("liveness_passed", False))
+
+        if not liveness_passed:
+            status = "liveness_failed"
+            att = Attendance(
+                id=str(uuid.uuid4()),
+                student_id=student_id,
+                classroom_id=body.classroom_id,
+                session_date=body.session_date,
+                timestamp=now,
+                status=status,
+                confidence=confidence,
+                is_manual_override=False,
+                created_at=now,
+            )
+            db.add(att)
+            db.commit()
+            db.refresh(att)
+            response_results.append(_mark_response(att, student_id, db, liveness_passed))
+            continue
+
+        if student_id is None:
+            # Unrecognized face — no row written
+            response_results.append({
+                "student_id": None,
+                "student_name": None,
+                "status": "unrecognized",
+                "confidence": confidence,
+                "liveness_passed": liveness_passed,
+                "attendance_id": None,
+                "marked_at": now,
+            })
+            continue
+
+        status = "present"
+        att = Attendance(
+            id=str(uuid.uuid4()),
+            student_id=student_id,
+            classroom_id=body.classroom_id,
+            session_date=body.session_date,
+            timestamp=now,
+            status=status,
+            confidence=confidence,
+            is_manual_override=False,
+            created_at=now,
+        )
+        db.add(att)
+        db.commit()
+        db.refresh(att)
+        response_results.append(_mark_response(att, student_id, db, liveness_passed))
+
+    return {"results": response_results, "faces_detected": len(vision_results)}
 
 
 @router.get("/log")
@@ -198,20 +307,81 @@ def patch_attendance(
 
 
 # ---------------------------------------------------------------------------
-# Vision integration shim
+# Vision integration
 # ---------------------------------------------------------------------------
 
 def _call_vision(image_path: str) -> dict | None:
     """
-    Call vision.recognize(image_path) if the vision module is available.
-    Falls back to a stub result so the backend runs independently during dev.
+    Call vision.recognize(image_path) for face detection + recognition.
+
+    Returns:
+        dict with {student_id, confidence, liveness_passed} if a face was processed.
+        None if no face was detected in the image.
+
+    The vision module handles:
+        - Face detection (SCRFD)
+        - Embedding extraction (ArcFace R50)
+        - Matching against enrolled students (cosine similarity)
+        - Liveness check (heuristic-based)
+
+    Falls back to a stub if InsightFace model is not available (first run / no model).
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     try:
-        from vista.vision.recognize import recognize  # type: ignore
-        return recognize(image_path)
+        from vista.vision.recognize import recognize
+        result = recognize(image_path)
+
+        # If confidence is 0 and no student matched, treat as no face detected
+        if result["confidence"] == 0.0 and result["student_id"] is None and not result["liveness_passed"]:
+            return None
+
+        return result
+
     except ImportError:
-        # Vision module not yet built — return a stub so the backend starts
+        logger.warning("Vision module not available — using stub (no face recognition)")
         return {"student_id": None, "confidence": 0.0, "liveness_passed": False}
+
+    except ValueError as exc:
+        # Image could not be read
+        logger.error(f"Vision error: {exc}")
+        return None
+
+    except Exception as exc:
+        logger.error(f"Unexpected vision error: {exc}")
+        return {"student_id": None, "confidence": 0.0, "liveness_passed": False}
+
+
+def _call_vision_all(image_path: str) -> list[dict]:
+    """
+    Call vision.recognize_all(image_path) for multi-face detection + recognition.
+
+    Returns:
+        List of dicts with {student_id, confidence, liveness_passed} for each face.
+        Empty list if no faces detected.
+
+    Falls back to a stub if InsightFace model is not available.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        from vista.vision.recognize import recognize_all
+        results = recognize_all(image_path)
+        return results
+
+    except ImportError:
+        logger.warning("Vision module not available — using stub (no face recognition)")
+        return []
+
+    except ValueError as exc:
+        logger.error(f"Vision error: {exc}")
+        return []
+
+    except Exception as exc:
+        logger.error(f"Unexpected vision error: {exc}")
+        return []
 
 
 def _mark_response(att: Attendance, student_id: str | None, db: Session, liveness_passed: bool) -> dict:
@@ -224,4 +394,222 @@ def _mark_response(att: Attendance, student_id: str | None, db: Session, livenes
         "liveness_passed": liveness_passed,
         "attendance_id": att.id,
         "marked_at": att.timestamp,
+    }
+
+
+@router.get("/stats")
+def attendance_stats(
+    classroom_id: str,
+    from_date: str | None = None,
+    to_date: str | None = None,
+    db: Session = Depends(get_db),
+    _current_user=Depends(get_current_user),
+):
+    """
+    Get attendance statistics for a classroom.
+    Returns overall, weekly, and per-student summary.
+    """
+    from collections import defaultdict
+
+    # Default: last 30 days
+    if not to_date:
+        to_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if not from_date:
+        from datetime import timedelta
+        d = datetime.now(timezone.utc) - timedelta(days=30)
+        from_date = d.strftime("%Y-%m-%d")
+
+    students = (
+        db.query(Student)
+        .filter(Student.classroom_id == classroom_id, Student.is_active == True)
+        .all()
+    )
+    att_rows = (
+        db.query(Attendance)
+        .filter(
+            Attendance.classroom_id == classroom_id,
+            Attendance.session_date >= from_date,
+            Attendance.session_date <= to_date,
+        )
+        .all()
+    )
+
+    # Unique session dates = total sessions held
+    session_dates = sorted({r.session_date for r in att_rows})
+    total_sessions = len(session_dates)
+
+    # Per-student attendance count
+    student_present: dict[str, int] = defaultdict(int)
+    for r in att_rows:
+        if r.student_id and r.status == "present":
+            student_present[r.student_id] += 1
+
+    # Weekly breakdown
+    week_data: dict[str, dict] = defaultdict(lambda: {"sessions": 0, "present_total": 0})
+    for d_str in session_dates:
+        try:
+            d = datetime.strptime(d_str, "%Y-%m-%d").date()
+            week_key = f"{d.isocalendar()[0]}-W{d.isocalendar()[1]:02d}"
+            week_data[week_key]["sessions"] += 1
+        except ValueError:
+            pass
+
+    for r in att_rows:
+        if r.status == "present":
+            try:
+                d = datetime.strptime(r.session_date, "%Y-%m-%d").date()
+                week_key = f"{d.isocalendar()[0]}-W{d.isocalendar()[1]:02d}"
+                week_data[week_key]["present_total"] += 1
+            except ValueError:
+                pass
+
+    weekly_summary = []
+    for week in sorted(week_data.keys()):
+        info = week_data[week]
+        expected = info["sessions"] * len(students)
+        avg_pct = (info["present_total"] / expected * 100) if expected > 0 else 0
+        weekly_summary.append({
+            "week": week,
+            "sessions": info["sessions"],
+            "avg_attendance_pct": round(avg_pct, 1),
+        })
+
+    # Per-student summary
+    student_summary = []
+    for s in students:
+        present = student_present.get(s.student_id, 0)
+        pct = (present / total_sessions * 100) if total_sessions > 0 else 0
+        student_summary.append({
+            "student_id": s.student_id,
+            "name": s.name,
+            "sessions_attended": present,
+            "total_sessions": total_sessions,
+            "attendance_pct": round(pct, 1),
+        })
+
+    student_summary.sort(key=lambda x: x["attendance_pct"])
+
+    # Overall
+    total_expected = total_sessions * len(students)
+    total_present = sum(student_present.values())
+    overall_pct = (total_present / total_expected * 100) if total_expected > 0 else 0
+
+    return {
+        "classroom_id": classroom_id,
+        "from_date": from_date,
+        "to_date": to_date,
+        "total_sessions": total_sessions,
+        "total_students": len(students),
+        "overall_attendance_pct": round(overall_pct, 1),
+        "weekly_summary": weekly_summary,
+        "student_summary": student_summary,
+    }
+
+
+@router.post("/mark-video")
+async def mark_attendance_video(
+    body: MarkRequest,
+    db: Session = Depends(get_db),
+    _current_user=Depends(get_current_user),
+):
+    """
+    Process a video frame sequence for multi-face tracked attendance.
+    Accepts a single frame (same as mark-batch) but integrates with
+    the ByteTrack-style tracker for temporal consistency.
+
+    For true video streaming, use the WebSocket endpoint /ws/attendance-stream.
+    This endpoint provides a simpler request/response model.
+    """
+    # Decode image
+    try:
+        image_bytes = base64.b64decode(body.image)
+    except Exception:
+        raise HTTPException(status_code=400, detail={"code": "INVALID_IMAGE", "message": "Image must be valid base64."})
+    if len(image_bytes) > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 5 MB limit."})
+
+    suffix = ".jpg"
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(image_bytes)
+            tmp_path = tmp.name
+
+        # Use recognize_all for multi-face
+        vision_results = _call_vision_all(tmp_path)
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+    if not vision_results:
+        raise HTTPException(status_code=400, detail={"code": "NO_FACE_DETECTED", "message": "No faces detected."})
+
+    # Feed to tracker for temporal consistency
+    try:
+        from vista.vision.tracker import FaceTracker
+        tracker = FaceTracker(confirmation_frames=1)  # Single frame = immediate
+        tracker.update(vision_results)
+        confirmed = tracker.get_confirmed_attendees()
+    except ImportError:
+        # Fallback: use raw results
+        confirmed = [
+            {"student_id": r["student_id"], "confidence": r["confidence"]}
+            for r in vision_results
+            if r.get("student_id") and r.get("liveness_passed", True)
+        ]
+
+    # Write attendance for confirmed students
+    now = datetime.now(timezone.utc).isoformat()
+    marked = []
+    for entry in confirmed:
+        student_id = entry["student_id"]
+        if not student_id:
+            continue
+        # Skip if already marked today
+        existing = (
+            db.query(Attendance)
+            .filter(
+                Attendance.student_id == student_id,
+                Attendance.session_date == body.session_date,
+                Attendance.status == "present",
+            )
+            .first()
+        )
+        if existing:
+            continue
+
+        att = Attendance(
+            id=str(uuid.uuid4()),
+            student_id=student_id,
+            classroom_id=body.classroom_id,
+            session_date=body.session_date,
+            timestamp=now,
+            status="present",
+            confidence=entry["confidence"],
+            is_manual_override=False,
+            created_at=now,
+        )
+        db.add(att)
+        marked.append({"student_id": student_id, "confidence": entry["confidence"]})
+
+    db.commit()
+
+    # Broadcast via WebSocket
+    try:
+        import asyncio
+        from ..websocket import ws_manager
+        asyncio.get_event_loop().create_task(
+            ws_manager.broadcast({
+                "type": "batch_attendance",
+                "data": {"marked": marked, "total_faces": len(vision_results)},
+            })
+        )
+    except Exception:
+        pass
+
+    return {
+        "faces_detected": len(vision_results),
+        "students_marked": len(marked),
+        "marked": marked,
+        "duplicates_skipped": len(confirmed) - len(marked),
     }

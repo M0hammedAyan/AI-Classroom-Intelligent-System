@@ -444,3 +444,74 @@ def run_pipeline(input_data: dict) -> dict:
         "risk_change": "NO_PREVIOUS_DATA",
         "validation_flags": [],
     }
+
+
+# ---------------------------------------------------------------------------
+# SHAP-enhanced pipeline — Milestone 4
+# ---------------------------------------------------------------------------
+
+def run_pipeline_with_shap(input_data: dict) -> dict:
+    """
+    XGBoost inference with SHAP-based explanations.
+
+    Same input/output as run_pipeline(), but replaces template-based reasons
+    with SHAP-generated per-prediction explanations.
+
+    Requires: `shap` library installed.
+    Falls back to run_pipeline() if SHAP is unavailable.
+    """
+    try:
+        from .explainer import explain_prediction
+    except ImportError:
+        # SHAP not installed — fall back to template reasons
+        return run_pipeline(input_data)
+
+    # First get the base pipeline result
+    base_result = run_pipeline(input_data)
+
+    # Extract feature values in the correct order
+    feature_values = [input_data.get(f, 0) for f in _PIPELINE_FEATURES]
+
+    # Get predicted class index
+    class_idx = _PIPELINE_LABEL_NAMES.index(base_result["risk_level"])
+
+    # Generate SHAP explanation
+    try:
+        explanation = explain_prediction(
+            feature_values=feature_values,
+            predicted_class_idx=class_idx,
+            max_reasons=4,
+        )
+
+        # Replace template reasons with SHAP reasons
+        if explanation["reasons"]:
+            base_result["reasons"] = [
+                {"text": r, "priority": i + 1, "source": "shap"}
+                for i, r in enumerate(explanation["reasons"])
+            ]
+
+        # Add SHAP metadata
+        base_result["explainability"] = {
+            "method": "SHAP_TreeExplainer",
+            "shap_values": explanation["shap_values"],
+            "base_value": explanation["base_value"],
+            "model_confidence": explanation["confidence"],
+        }
+
+        # Update summary with SHAP-informed primary reason
+        if explanation["reasons"]:
+            primary = explanation["reasons"][0].lower()
+            action = base_result["recommended_actions"][0].lower() if base_result["recommended_actions"] else "monitor student"
+            base_result["summary"] = (
+                f"Student is at {base_result['risk_level'].lower()} risk: {primary}. "
+                f"Recommended: {action}."
+            )
+
+    except Exception as exc:
+        # SHAP computation failed — keep template reasons, add error note
+        base_result["explainability"] = {
+            "method": "template_fallback",
+            "error": str(exc),
+        }
+
+    return base_result

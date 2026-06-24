@@ -61,7 +61,7 @@ def export_report(
     if format == "csv":
         return _csv_response(students, lookup, dates_in_data, classroom_id, from_date, to_date)
     else:
-        raise HTTPException(status_code=400, detail={"code": "PDF_NOT_IMPLEMENTED", "message": "PDF export is not yet implemented. Use format=csv."})
+        return _pdf_response(students, lookup, dates_in_data, classroom_id, from_date, to_date)
 
 
 def _csv_response(students, lookup, dates, classroom_id, from_date, to_date):
@@ -79,5 +79,73 @@ def _csv_response(students, lookup, dates, classroom_id, from_date, to_date):
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+def _pdf_response(students, lookup, dates, classroom_id, from_date, to_date):
+    """Generate a PDF attendance report using ReportLab."""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), topMargin=1.5*cm, bottomMargin=1.5*cm)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # Title
+    elements.append(Paragraph(f"Attendance Report — {classroom_id}", styles["Title"]))
+    elements.append(Paragraph(f"Period: {from_date} to {to_date}", styles["Normal"]))
+    elements.append(Spacer(1, 0.5*cm))
+
+    # Build table data
+    # Limit columns to avoid overflow — show max 10 dates per page
+    display_dates = dates[:15] if len(dates) > 15 else dates
+    header = ["ID", "Name"] + [d[5:] for d in display_dates]  # Show MM-DD only
+    table_data = [header]
+
+    for s in students:
+        row = [s.student_id, s.name[:20]]
+        for d in display_dates:
+            status = lookup.get(s.student_id, {}).get(d, "absent")
+            row.append("P" if status == "present" else "A" if status == "absent" else "L")
+        table_data.append(row)
+
+    # Create table
+    col_widths = [2.5*cm, 4*cm] + [1.2*cm] * len(display_dates)
+    table = Table(table_data, colWidths=col_widths)
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a1a2e")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f5f7fa")]),
+    ]))
+    elements.append(table)
+
+    # Summary
+    elements.append(Spacer(1, 0.5*cm))
+    total_sessions = len(display_dates)
+    for s in students:
+        present_count = sum(1 for d in display_dates if lookup.get(s.student_id, {}).get(d, "absent") == "present")
+        pct = (present_count / total_sessions * 100) if total_sessions > 0 else 0
+        elements.append(Paragraph(
+            f"{s.student_id} {s.name}: {present_count}/{total_sessions} ({pct:.0f}%)",
+            styles["Normal"]
+        ))
+
+    doc.build(elements)
+
+    filename = f"attendance_{classroom_id}_{from_date}_{to_date}.pdf"
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import AttendanceLog from './pages/AttendanceLog';
-import RiskFlags from './pages/RiskFlags';
-import StudentDetail from './pages/StudentDetail';
-import Enroll from './pages/Enroll';
-import TestRecognition from './pages/TestRecognition';
-import Layout from './components/Layout';
+
+// Role-specific layouts
+import AdminLayout from './layouts/AdminLayout';
+import HOSLayout from './layouts/HOSLayout';
+import HOPLayout from './layouts/HOPLayout';
+import MentorLayout from './layouts/MentorLayout';
+import TeacherLayout from './layouts/TeacherLayout';
 
 function App() {
   const [auth, setAuth] = useState(() => {
@@ -23,13 +23,8 @@ function App() {
     }
   }, [auth]);
 
-  const handleLogin = (data) => {
-    setAuth(data);
-  };
-
-  const handleLogout = () => {
-    setAuth(null);
-  };
+  const handleLogin = (data) => setAuth(data);
+  const handleLogout = () => setAuth(null);
 
   if (!auth) {
     return (
@@ -42,19 +37,32 @@ function App() {
     );
   }
 
+  // Role-based redirect after login
+  const roleHome = {
+    admin: '/admin',
+    hos: '/hos',
+    hop: '/hop',
+    mentor: '/mentor',
+    teacher: '/teacher',
+  };
+
+  const home = roleHome[auth.role] || '/teacher';
+
   return (
     <BrowserRouter>
-      <Layout auth={auth} onLogout={handleLogout}>
-        <Routes>
-          <Route path="/" element={<Dashboard auth={auth} />} />
-          <Route path="/attendance" element={<AttendanceLog auth={auth} />} />
-          <Route path="/risk" element={<RiskFlags auth={auth} />} />
-          <Route path="/student/:studentId" element={<StudentDetail auth={auth} />} />
-          <Route path="/enroll" element={<Enroll auth={auth} />} />
-          <Route path="/test" element={<TestRecognition auth={auth} />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        {/* Role-specific route groups */}
+        <Route path="/admin/*" element={<AdminLayout auth={auth} onLogout={handleLogout} />} />
+        <Route path="/hos/*" element={<HOSLayout auth={auth} onLogout={handleLogout} />} />
+        <Route path="/hop/*" element={<HOPLayout auth={auth} onLogout={handleLogout} />} />
+        <Route path="/mentor/*" element={<MentorLayout auth={auth} onLogout={handleLogout} />} />
+        <Route path="/teacher/*" element={<TeacherLayout auth={auth} onLogout={handleLogout} />} />
+
+        {/* Default redirect to role home */}
+        <Route path="/" element={<Navigate to={home} replace />} />
+        <Route path="/login" element={<Navigate to={home} replace />} />
+        <Route path="*" element={<Navigate to={home} replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }

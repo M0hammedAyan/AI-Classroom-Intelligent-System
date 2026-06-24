@@ -95,3 +95,19 @@ def logout(request: Request, current_user: User = Depends(get_current_user)):
     token = request.headers["Authorization"].split(" ", 1)[1]
     _blocklist.add(token)
     return {"message": "Logged out."}
+
+
+@router.get("/me")
+def get_me(current_user: User = Depends(get_current_user)):
+    """Return current user profile with role, permissions, and scope."""
+    from ..permissions import get_user_permissions
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "role": current_user.role,
+        "school_id": current_user.school_id,
+        "department_id": current_user.department_id,
+        "permissions": get_user_permissions(current_user),
+        "is_active": current_user.is_active,
+    }
