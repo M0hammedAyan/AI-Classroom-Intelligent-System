@@ -5,6 +5,7 @@ import MentorStudents from '../pages/mentor/Students';
 import MentorWatchlist from '../pages/mentor/Watchlist';
 import MentorInterventions from '../pages/mentor/Interventions';
 import MentorReports from '../pages/mentor/Reports';
+import StudentProfile from '../pages/shared/StudentProfile';
 
 const NAV_ITEMS = [
   { path: '/mentor', label: 'Dashboard', icon: '📊', exact: true },
@@ -25,6 +26,7 @@ function MentorLayout({ auth, onLogout }) {
         <Route path="watchlist" element={<MentorWatchlist />} />
         <Route path="interventions" element={<MentorInterventions />} />
         <Route path="reports" element={<MentorReports />} />
+        <Route path="student/:studentId" element={<StudentProfile auth={auth} />} />
       </Routes>
     </RoleLayout>
   );

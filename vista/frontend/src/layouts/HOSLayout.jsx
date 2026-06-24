@@ -6,6 +6,7 @@ import HOSStaff from '../pages/hos/Staff';
 import HOSStudents from '../pages/hos/Students';
 import HOSAnalytics from '../pages/hos/Analytics';
 import HOSReports from '../pages/hos/Reports';
+import StudentProfile from '../pages/shared/StudentProfile';
 
 const NAV_ITEMS = [
   { path: '/hos', label: 'Dashboard', icon: '📊', exact: true },
@@ -28,6 +29,7 @@ function HOSLayout({ auth, onLogout }) {
         <Route path="students" element={<HOSStudents />} />
         <Route path="analytics" element={<HOSAnalytics />} />
         <Route path="reports" element={<HOSReports />} />
+        <Route path="student/:studentId" element={<StudentProfile auth={auth} />} />
       </Routes>
     </RoleLayout>
   );

@@ -6,6 +6,7 @@ import TeacherAttendance from '../pages/teacher/Attendance';
 import TeacherMarks from '../pages/teacher/Marks';
 import TeacherAssignments from '../pages/teacher/Assignments';
 import TeacherReports from '../pages/teacher/Reports';
+import StudentProfile from '../pages/shared/StudentProfile';
 
 const NAV_ITEMS = [
   { path: '/teacher', label: 'Dashboard', icon: '📊', exact: true },
@@ -28,6 +29,7 @@ function TeacherLayout({ auth, onLogout }) {
         <Route path="marks" element={<TeacherMarks />} />
         <Route path="assignments" element={<TeacherAssignments />} />
         <Route path="reports" element={<TeacherReports />} />
+        <Route path="student/:studentId" element={<StudentProfile auth={auth} />} />
       </Routes>
     </RoleLayout>
   );

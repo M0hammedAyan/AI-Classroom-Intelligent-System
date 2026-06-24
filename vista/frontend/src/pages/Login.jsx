@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { login } from '../api/client';
-import './Login.css';
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -12,68 +11,42 @@ function Login({ onLogin }) {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const data = await login(email, password);
       onLogin(data);
     } catch (err) {
-      setError(err.message || 'Login failed. Check your credentials.');
+      setError(err.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>VISTA</h1>
-          <p>Visual Intelligence System for Tracking & Analysis</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f8fa' }}>
+      <div style={{ width: '100%', maxWidth: '320px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 600 }}>VISTA</h1>
+          <p style={{ fontSize: '13px', color: '#656d76', marginTop: '4px' }}>Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@vista.local"
-              required
-              autoComplete="email"
-            />
+        <form onSubmit={handleSubmit} style={{ border: '1px solid #d1d5db', borderRadius: '6px', padding: '20px', background: '#fff' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <label className="v-label">Email address</label>
+            <input className="v-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              required
-              autoComplete="current-password"
-            />
+          <div style={{ marginBottom: '16px' }}>
+            <label className="v-label">Password</label>
+            <input className="v-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
           </div>
-
-          {error && (
-            <div className="error-msg" role="alert">
-              {error}
-            </div>
-          )}
-
-          <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+          {error && <p style={{ fontSize: '12px', color: '#cf222e', marginBottom: '12px' }}>{error}</p>}
+          <button className="v-btn v-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '8px' }} disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
-        <div className="login-hint">
-          <p>Demo accounts:</p>
-          <code>admin@vista.local / admin123</code>
-          <code>teacher@vista.local / teacher123</code>
-        </div>
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#8b949e', marginTop: '16px' }}>
+          Demo: admin@vista.local / admin123
+        </p>
       </div>
     </div>
   );

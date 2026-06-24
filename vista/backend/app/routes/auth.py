@@ -87,6 +87,8 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
         "role": user.role,
         "user_id": user.id,
         "name": user.name,
+        "school_id": getattr(user, 'school_id', None),
+        "department_id": getattr(user, 'department_id', None),
     }
 
 

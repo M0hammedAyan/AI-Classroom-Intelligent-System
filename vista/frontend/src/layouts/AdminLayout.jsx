@@ -6,6 +6,7 @@ import DepartmentsPage from '../pages/admin/Departments';
 import UsersPage from '../pages/admin/Users';
 import AnalyticsPage from '../pages/admin/Analytics';
 import ReportsPage from '../pages/admin/Reports';
+import StudentProfile from '../pages/shared/StudentProfile';
 
 const NAV_ITEMS = [
   { path: '/admin', label: 'Dashboard', icon: '📊', exact: true },
@@ -28,6 +29,7 @@ function AdminLayout({ auth, onLogout }) {
         <Route path="users" element={<UsersPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="student/:studentId" element={<StudentProfile auth={auth} />} />
       </Routes>
     </RoleLayout>
   );

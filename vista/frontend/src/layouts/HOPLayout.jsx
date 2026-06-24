@@ -7,6 +7,7 @@ import HOPSubjects from '../pages/hop/Subjects';
 import HOPRiskCenter from '../pages/hop/RiskCenter';
 import HOPAnalytics from '../pages/hop/Analytics';
 import HOPReports from '../pages/hop/Reports';
+import StudentProfile from '../pages/shared/StudentProfile';
 
 const NAV_ITEMS = [
   { path: '/hop', label: 'Dashboard', icon: '📊', exact: true },
@@ -31,6 +32,7 @@ function HOPLayout({ auth, onLogout }) {
         <Route path="risk-center" element={<HOPRiskCenter />} />
         <Route path="analytics" element={<HOPAnalytics />} />
         <Route path="reports" element={<HOPReports />} />
+        <Route path="student/:studentId" element={<StudentProfile auth={auth} />} />
       </Routes>
     </RoleLayout>
   );

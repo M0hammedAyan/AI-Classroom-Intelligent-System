@@ -1,11 +1,10 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import '../components/Layout.css';
 
 /**
- * Shared layout shell for all roles.
- * Each role passes its own title, navigation items, and accent color.
+ * Enterprise Layout Shell — Dark theme, role-specific accent.
+ * Uses VISTA Design System (v-* classes).
  */
-function RoleLayout({ auth, onLogout, title, subtitle, navItems, accentColor, children }) {
+function RoleLayout({ auth, onLogout, title, subtitle, navItems, children }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,33 +13,32 @@ function RoleLayout({ auth, onLogout, title, subtitle, navItems, accentColor, ch
   };
 
   return (
-    <div className="layout">
-      <nav className="sidebar" aria-label="Main navigation" style={{ background: accentColor || '#1a1a2e' }}>
-        <div className="sidebar-brand">
+    <div className="v-layout">
+      <nav className="v-sidebar" aria-label="Main navigation">
+        <div className="v-sidebar-brand">
           <h1>VISTA</h1>
-          <span className="sidebar-subtitle">{subtitle || title}</span>
+          <span className="v-subtitle">{subtitle || title}</span>
         </div>
 
-        <ul className="sidebar-nav">
+        <ul className="v-sidebar-nav">
           {navItems.map((item) => (
             <li key={item.path}>
               <NavLink to={item.path} end={item.exact} className={({ isActive }) => isActive ? 'active' : ''}>
-                {item.icon} {item.label}
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
               </NavLink>
             </li>
           ))}
         </ul>
 
-        <div className="sidebar-footer">
-          <div className="user-info">
-            <span className="user-name">{auth.name}</span>
-            <span className="user-role">{auth.role.toUpperCase()}</span>
-          </div>
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+        <div className="v-sidebar-footer">
+          <div className="v-user-name">{auth.name}</div>
+          <div className="v-user-role">{auth.role}</div>
+          <button className="v-logout-btn" onClick={handleLogout}>Sign Out</button>
         </div>
       </nav>
 
-      <main className="main-content">
+      <main className="v-main">
         {children}
       </main>
     </div>
