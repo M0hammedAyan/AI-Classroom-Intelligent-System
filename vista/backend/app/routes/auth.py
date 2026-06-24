@@ -16,6 +16,11 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 # In-memory token blocklist (pilot only — single process)
 _blocklist: set[str] = set()
 
+# Rate limiting for login (IP → [timestamps])
+_login_attempts: dict[str, list[float]] = {}
+MAX_LOGIN_ATTEMPTS = 5
+LOGIN_WINDOW_SECONDS = 300  # 5 minutes
+
 
 class LoginRequest(BaseModel):
     email: str
@@ -70,13 +75,27 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
 
 
 @router.post("/login")
-def login(body: LoginRequest, db: Session = Depends(get_db)):
+def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    import time as _time
+
+    # Rate limiting by IP
+    client_ip = request.client.host if request.client else "unknown"
+    now = _time.time()
+    attempts = _login_attempts.get(client_ip, [])
+    attempts = [t for t in attempts if now - t < LOGIN_WINDOW_SECONDS]
+    if len(attempts) >= MAX_LOGIN_ATTEMPTS:
+        raise HTTPException(status_code=429, detail={"code": "RATE_LIMITED", "message": "Too many login attempts. Try again in 5 minutes."})
+
     user = db.query(User).filter(User.email == body.email).first()
     if not user:
+        attempts.append(now)
+        _login_attempts[client_ip] = attempts
         raise HTTPException(status_code=401, detail={"code": "INVALID_CREDENTIALS", "message": "Invalid email or password."})
     if not user.is_active:
         raise HTTPException(status_code=403, detail={"code": "ACCOUNT_DISABLED", "message": "Account is disabled."})
     if not bcrypt.checkpw(body.password.encode(), user.password_hash.encode()):
+        attempts.append(now)
+        _login_attempts[client_ip] = attempts
         raise HTTPException(status_code=401, detail={"code": "INVALID_CREDENTIALS", "message": "Invalid email or password."})
 
     user.last_login_at = datetime.now(timezone.utc).isoformat()

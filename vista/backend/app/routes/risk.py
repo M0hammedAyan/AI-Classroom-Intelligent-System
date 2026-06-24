@@ -68,24 +68,13 @@ def list_risk(
     return {"flags": flags, "total": total, "page": page, "page_size": page_size}
 
 
-@router.post("/students/{student_id}/risk/recompute")
-def recompute_risk(
-    student_id: str,
-    db: Session = Depends(get_db),
-    _admin=Depends(require_admin),
-):
-    student = db.query(Student).filter(Student.student_id == student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"No student with id {student_id}."})
+def _compute_and_save_risk(student_id: str, db: Session) -> RiskFlag:
+    """Shared helper: compute risk for one student and save to DB."""
+    from vista.ml.risk_engine import calculate_risk_from_metrics
+    from ..db import get_student_metrics
 
-    try:
-        from vista.ml.risk_engine import calculate_risk_from_metrics
-        from ..db import get_student_metrics
-        metrics = get_student_metrics(student_id, db)
-        result = calculate_risk_from_metrics(metrics)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail={"code": "RISK_COMPUTE_ERROR", "message": str(exc)})
-
+    metrics = get_student_metrics(student_id, db)
+    result = calculate_risk_from_metrics(metrics)
     now = datetime.now(timezone.utc).isoformat()
     flag = RiskFlag(
         id=str(uuid.uuid4()),
@@ -97,8 +86,24 @@ def recompute_risk(
         created_at=now,
     )
     db.add(flag)
-    db.commit()
-    db.refresh(flag)
+    return flag
+
+
+@router.post("/students/{student_id}/risk/recompute")
+def recompute_risk(
+    student_id: str,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_admin),
+):
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"No student with id {student_id}."})
+    try:
+        flag = _compute_and_save_risk(student_id, db)
+        db.commit()
+        db.refresh(flag)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail={"code": "RISK_COMPUTE_ERROR", "message": str(exc)})
     return _flag_dict(flag, student.name)
 
 
@@ -112,28 +117,13 @@ def recompute_all_risk(
     if not students:
         return {"recomputed": 0, "results": []}
 
-    from vista.ml.risk_engine import calculate_risk_from_metrics
-    from ..db import get_student_metrics
-
     results = []
     errors = []
-    now = datetime.now(timezone.utc).isoformat()
 
     for student in students:
         try:
-            metrics = get_student_metrics(student.student_id, db)
-            result = calculate_risk_from_metrics(metrics)
-            flag = RiskFlag(
-                id=str(uuid.uuid4()),
-                student_id=student.student_id,
-                risk_level=result["risk_level"].lower(),
-                reasons=json.dumps(result["reasons"]),
-                confidence=result["confidence"],
-                calculated_at=now,
-                created_at=now,
-            )
-            db.add(flag)
-            results.append({"student_id": student.student_id, "risk_level": result["risk_level"]})
+            _compute_and_save_risk(student.student_id, db)
+            results.append({"student_id": student.student_id, "status": "ok"})
         except Exception as exc:
             errors.append({"student_id": student.student_id, "error": str(exc)})
 

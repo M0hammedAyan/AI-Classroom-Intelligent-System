@@ -9,6 +9,20 @@ from .websocket import ws_manager
 
 app = FastAPI(title="VISTA API", version="1.0.0")
 
+# ── Request logging middleware ──
+import time as _time
+import logging
+_logger = logging.getLogger("vista.requests")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    start = _time.time()
+    response = await call_next(request)
+    duration = round((_time.time() - start) * 1000)
+    _logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration}ms)")
+    return response
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:5173"],
@@ -29,6 +43,14 @@ app.include_router(admin.router)
 
 @app.on_event("startup")
 def on_startup():
+    import os
+    import logging
+    logger = logging.getLogger("vista")
+
+    # Warn if using default JWT secret
+    if os.getenv("VISTA_JWT_SECRET") is None:
+        logger.warning("⚠️  VISTA_JWT_SECRET not set — using insecure default. Set in production!")
+
     create_tables()
     db = SessionLocal()
     try:
@@ -49,7 +71,16 @@ def on_shutdown():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    """Health check with DB connectivity test."""
+    from sqlalchemy import text as sa_text
+    try:
+        db = SessionLocal()
+        db.execute(sa_text("SELECT 1"))
+        db.close()
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {e}"
+    return {"status": "ok", "database": db_status}
 
 
 # ---------------------------------------------------------------------------
@@ -62,15 +93,23 @@ from fastapi import WebSocket, WebSocketDisconnect
 async def websocket_dashboard(websocket: WebSocket):
     """
     Real-time updates for the dashboard.
-    Clients receive events when:
-    - Attendance is marked
-    - Risk is recomputed
-    - Alerts fire for HIGH risk students
+    Requires valid JWT token as query param: /ws/dashboard?token=xxx
     """
+    # Auth check
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=4001, reason="Missing token")
+        return
+    try:
+        from .routes.auth import decode_token
+        decode_token(token)
+    except Exception:
+        await websocket.close(code=4003, reason="Invalid token")
+        return
+
     await ws_manager.connect(websocket)
     try:
         while True:
-            # Keep connection alive; listen for client pings
             data = await websocket.receive_text()
             if data == "ping":
                 await ws_manager.send_personal(websocket, {"type": "pong"})
