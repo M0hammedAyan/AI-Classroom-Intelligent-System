@@ -9,18 +9,51 @@ from .websocket import ws_manager
 
 app = FastAPI(title="VISTA API", version="1.0.0")
 
-# ── Request logging middleware ──
+# ── Monitoring setup ──
+from .monitoring import setup_logging, metrics, Metrics
+setup_logging()
+
+# ── Request logging + metrics middleware ──
 import time as _time
+import uuid as _uuid
 import logging
 _logger = logging.getLogger("vista.requests")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 @app.middleware("http")
-async def log_requests(request, call_next):
+async def observe_requests(request, call_next):
+    request_id = str(_uuid.uuid4())[:8]
     start = _time.time()
     response = await call_next(request)
-    duration = round((_time.time() - start) * 1000)
-    _logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration}ms)")
+    duration = round((_time.time() - start) * 1000, 1)
+
+    # Record metrics
+    metrics.record_request(request.method, request.url.path, response.status_code, duration)
+
+    # Structured log
+    _logger.info(
+        f"{request.method} {request.url.path} → {response.status_code} ({duration}ms)",
+        extra={"request_id": request_id, "method": request.method, "path": request.url.path, "status": response.status_code, "latency_ms": duration},
+    )
+
+    # Track errors
+    if response.status_code >= 500:
+        metrics.record_error("server_error", f"{request.method} {request.url.path}", request.url.path)
+
+    # Add request ID to response
+    response.headers["X-Request-ID"] = request_id
+    return response
+
+
+# ── Secure headers middleware ──
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Cache-Control"] = "no-store"
     return response
 
 app.add_middleware(
@@ -73,8 +106,9 @@ def on_shutdown():
 
 @app.get("/health")
 def health():
-    """Health check with DB connectivity test."""
+    """Health check with DB connectivity + system metrics."""
     from sqlalchemy import text as sa_text
+    import psutil
     try:
         db = SessionLocal()
         db.execute(sa_text("SELECT 1"))
@@ -82,7 +116,33 @@ def health():
         db_status = "connected"
     except Exception as e:
         db_status = f"error: {e}"
-    return {"status": "ok", "database": db_status}
+
+    try:
+        memory = psutil.virtual_memory()
+        mem_pct = memory.percent
+    except Exception:
+        mem_pct = None
+
+    return {
+        "status": "ok",
+        "database": db_status,
+        "memory_pct": mem_pct,
+        "uptime_seconds": round(_time.time() - metrics.start_time),
+        "total_requests": metrics.request_count,
+    }
+
+
+@app.get("/metrics")
+def prometheus_metrics():
+    """Prometheus-compatible metrics endpoint."""
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(metrics.to_prometheus(), media_type="text/plain")
+
+
+@app.get("/metrics/json")
+def json_metrics():
+    """JSON metrics for internal dashboard."""
+    return metrics.to_json()
 
 
 # ---------------------------------------------------------------------------

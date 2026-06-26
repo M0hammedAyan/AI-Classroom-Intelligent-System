@@ -17,25 +17,61 @@ services:
       timeout: 5s
       retries: 5
 
-  # FastAPI Backend
+  # Redis (caching + Celery broker + token blocklist)
+  redis:
+    image: redis:7-alpine
+    container_name: vista-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # FastAPI Backend (Gunicorn multi-worker)
   backend:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: vista-backend
+    command: gunicorn vista.backend.app.main:app -c vista/gunicorn.conf.py
     environment:
       VISTA_DB_URL: postgresql://vista:vista_secret@db:5432/vista
-      VISTA_JWT_SECRET: change-this-in-production
+      VISTA_REDIS_URL: redis://redis:6379/0
+      VISTA_JWT_SECRET: change-this-in-production-use-a-long-secret
+      VISTA_WORKERS: "4"
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - model_cache:/root/.insightface
     restart: unless-stopped
 
-  # React Frontend (production build served by nginx)
+  # Celery Worker (async face recognition + batch tasks)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vista-worker
+    command: celery -A vista.backend.app.tasks worker --loglevel=info --concurrency=2
+    environment:
+      VISTA_DB_URL: postgresql://vista:vista_secret@db:5432/vista
+      VISTA_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - model_cache:/root/.insightface
+    restart: unless-stopped
+
+  # React Frontend (Nginx)
   frontend:
     build:
       context: ./frontend

@@ -86,6 +86,11 @@ def _compute_and_save_risk(student_id: str, db: Session) -> RiskFlag:
         created_at=now,
     )
     db.add(flag)
+
+    # Alert if HIGH risk
+    from ..monitoring import alert_high_risk_student
+    alert_high_risk_student(student_id, student_id, result["risk_level"], result.get("reasons", []))
+
     return flag
 
 
@@ -117,22 +122,104 @@ def recompute_all_risk(
     db: Session = Depends(get_db),
     _admin=Depends(require_admin),
 ):
-    """Recompute risk for all active students. Admin only."""
+    """Recompute risk for all active students. Bulk-optimized."""
+    from ..models.attendance import Attendance, Score
+    from vista.ml.risk_engine import calculate_risk_from_metrics
+    from vista.ml.features import StudentMetrics, compute_consecutive_absences
+    from collections import defaultdict
+
     students = db.query(Student).filter(Student.is_active == True).all()
     if not students:
         return {"recomputed": 0, "results": []}
 
+    student_ids = [s.student_id for s in students]
+
+    # Bulk fetch all attendance and scores (eliminates N+1)
+    all_attendance = db.query(Attendance).filter(Attendance.student_id.in_(student_ids)).all()
+    all_scores = db.query(Score).filter(Score.student_id.in_(student_ids)).all()
+
+    # Group by student
+    att_by_student = defaultdict(list)
+    for a in all_attendance:
+        att_by_student[a.student_id].append(a)
+
+    scores_by_student = defaultdict(list)
+    for s in all_scores:
+        scores_by_student[s.student_id].append(s)
+
+    # All unique session dates = total sessions
+    all_session_dates = {a.session_date for a in all_attendance}
+    total_sessions = len(all_session_dates)
+
     results = []
     errors = []
+    now = datetime.now(timezone.utc).isoformat()
 
     for student in students:
         try:
-            _compute_and_save_risk(student.student_id, db)
-            results.append({"student_id": student.student_id, "status": "ok"})
+            sid = student.student_id
+            att_rows = att_by_student.get(sid, [])
+            score_rows = sorted(scores_by_student.get(sid, []), key=lambda x: x.date)
+
+            sessions_attended = sum(1 for a in att_rows if a.status == "present")
+            present_dates = {a.session_date for a in att_rows if a.status == "present"}
+
+            # Build attendance sequence for consecutive absences
+            att_seq = []
+            for d in sorted(all_session_dates):
+                att_seq.append("present" if d in present_dates else "absent")
+
+            consecutive = compute_consecutive_absences(att_seq)
+
+            # Weekly attendance
+            from datetime import datetime as dt
+            week_buckets = defaultdict(list)
+            for d_str in sorted(all_session_dates):
+                try:
+                    d = dt.strptime(d_str, "%Y-%m-%d").date()
+                    wk = f"{d.isocalendar()[0]}-W{d.isocalendar()[1]:02d}"
+                    week_buckets[wk].append("present" if d_str in present_dates else "absent")
+                except ValueError:
+                    pass
+
+            att_by_week = []
+            for wk in sorted(week_buckets.keys()):
+                statuses = week_buckets[wk]
+                pct = (statuses.count("present") / len(statuses)) * 100.0
+                att_by_week.append(round(pct, 2))
+
+            metrics = StudentMetrics(
+                student_id=sid,
+                total_sessions=total_sessions if total_sessions > 0 else len(att_rows),
+                sessions_attended=sessions_attended,
+                attendance_by_week=att_by_week,
+                consecutive_absences=consecutive,
+                assessment_scores=[r.score for r in score_rows],
+                assessment_max_scores=[r.max_score for r in score_rows],
+                assignments_submitted=None,
+                assignments_total=None,
+            )
+
+            result = calculate_risk_from_metrics(metrics)
+            db.add(RiskFlag(
+                id=str(uuid.uuid4()),
+                student_id=sid,
+                risk_level=result["risk_level"].lower(),
+                reasons=json.dumps(result["reasons"]),
+                confidence=result["confidence"],
+                calculated_at=now,
+                created_at=now,
+            ))
+            results.append({"student_id": sid, "risk_level": result["risk_level"]})
         except Exception as exc:
             errors.append({"student_id": student.student_id, "error": str(exc)})
 
     db.commit()
+
+    from ..audit import log_action
+    log_action(db, _admin.id, "recompute_all_risk", details=f"{len(results)} computed")
+    db.commit()
+
     return {"recomputed": len(results), "errors": len(errors), "results": results}
 
 

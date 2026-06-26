@@ -46,8 +46,14 @@ def mark_attendance(
     if len(image_bytes) > MAX_IMAGE_BYTES:
         raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 5 MB limit."})
 
+    # Validate file magic bytes (JPEG or PNG only)
+    JPEG_MAGIC = b'\xff\xd8\xff'
+    PNG_MAGIC = b'\x89PNG'
+    if not (image_bytes[:3] == JPEG_MAGIC or image_bytes[:4] == PNG_MAGIC):
+        raise HTTPException(status_code=400, detail={"code": "INVALID_IMAGE", "message": "File must be JPEG or PNG (invalid magic bytes)."})
+
     # Write to temp file, call vision.recognize(), delete temp file
-    suffix = ".jpg"
+    suffix = ".jpg" if image_bytes[:3] == JPEG_MAGIC else ".png"
     tmp_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:

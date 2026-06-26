@@ -1,12 +1,17 @@
 # Backend
 fastapi>=0.111.0
 uvicorn[standard]>=0.29.0
+gunicorn>=23.0.0
 sqlalchemy>=2.0.0
 pyjwt>=2.8.0
 bcrypt>=4.1.0
 python-multipart>=0.0.9
 psycopg2-binary>=2.9.9
 reportlab>=5.0.0
+
+# Caching & Queues
+redis>=5.0.0
+celery>=5.4.0
 
 # ML
 scikit-learn>=1.9.0

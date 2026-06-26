@@ -37,6 +37,9 @@ class EnrollRequest(BaseModel):
     images: list[str]  # List of base64-encoded JPEG/PNG images (1-5)
 
 
+# Rate limiting: max 10 enrollments per 10 minutes per user
+_enroll_attempts: dict[str, list[float]] = {}
+
 @router.post("/{student_id}/enroll")
 def enroll_student(
     student_id: str,
@@ -48,6 +51,17 @@ def enroll_student(
     Enroll a student's face by providing 1-5 base64-encoded images.
     Extracts embeddings, averages them, and stores in the students table.
     """
+    import time as _time
+    # Rate limit check
+    user_id = _user.id
+    now = _time.time()
+    attempts = _enroll_attempts.get(user_id, [])
+    attempts = [t for t in attempts if now - t < 600]  # 10 min window
+    if len(attempts) >= 10:
+        raise HTTPException(status_code=429, detail={"code": "RATE_LIMITED", "message": "Too many enrollment attempts. Try again in 10 minutes."})
+    attempts.append(now)
+    _enroll_attempts[user_id] = attempts
+
     # Validate student exists
     student = db.query(Student).filter(Student.student_id == student_id).first()
     if not student:

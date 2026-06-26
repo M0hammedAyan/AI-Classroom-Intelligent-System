@@ -33,7 +33,7 @@ def _make_jwt(user_id: str, role: str) -> str:
     import time
     import jwt
 
-    secret = os.getenv("VISTA_JWT_SECRET", "vista-dev-secret-change-in-prod")
+    secret = os.getenv("VISTA_JWT_SECRET", "vista-dev-secret-CHANGE-in-production-32x!")
     payload = {
         "sub": user_id,
         "role": role,
@@ -49,7 +49,7 @@ def decode_token(token: str) -> dict:
 
     if token in _blocklist:
         raise ValueError("Token revoked")
-    secret = os.getenv("VISTA_JWT_SECRET", "vista-dev-secret-change-in-prod")
+    secret = os.getenv("VISTA_JWT_SECRET", "vista-dev-secret-CHANGE-in-production-32x!")
     return jwt.decode(token, secret, algorithms=["HS256"])
 
 

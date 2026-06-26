@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Text
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Index, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from ..db import Base
@@ -8,6 +8,12 @@ from ..db import Base
 
 class Attendance(Base):
     __tablename__ = "attendance"
+    __table_args__ = (
+        Index("ix_attendance_student_date", "student_id", "session_date"),
+        Index("ix_attendance_classroom_date", "classroom_id", "session_date"),
+        UniqueConstraint("student_id", "session_date", "status", name="uq_attendance_student_day_status",
+                         sqlite_on_conflict="IGNORE"),
+    )
 
     id = Column(Text, primary_key=True)
     student_id = Column(Text, ForeignKey("students.student_id"), nullable=True)
@@ -25,6 +31,9 @@ class Attendance(Base):
 
 class Score(Base):
     __tablename__ = "scores"
+    __table_args__ = (
+        Index("ix_scores_student_date", "student_id", "date"),
+    )
 
     id = Column(Text, primary_key=True)
     student_id = Column(Text, ForeignKey("students.student_id"), nullable=False)
@@ -39,6 +48,9 @@ class Score(Base):
 
 class RiskFlag(Base):
     __tablename__ = "risk_flags"
+    __table_args__ = (
+        Index("ix_risk_student_calc", "student_id", "calculated_at"),
+    )
 
     id = Column(Text, primary_key=True)
     student_id = Column(Text, ForeignKey("students.student_id"), nullable=False)
