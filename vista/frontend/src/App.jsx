@@ -1,13 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Login from './pages/Login';
-
-// Role-specific layouts
-import AdminLayout from './layouts/AdminLayout';
-import HOSLayout from './layouts/HOSLayout';
-import HOPLayout from './layouts/HOPLayout';
-import MentorLayout from './layouts/MentorLayout';
-import TeacherLayout from './layouts/TeacherLayout';
+import RoleLayout from './layouts/RoleLayout';
+import Dashboard from './pages/Dashboard';
+import StudentsPage from './pages/Students';
+import AttendancePage from './pages/Attendance';
+import RiskPage from './pages/Risk';
+import StudentProfile from './pages/shared/StudentProfile';
+import EnrollPage from './pages/Enroll';
+import TestRecognition from './pages/TestRecognition';
 
 function App() {
   const [auth, setAuth] = useState(() => {
@@ -16,53 +17,49 @@ function App() {
   });
 
   useEffect(() => {
-    if (auth) {
-      localStorage.setItem('vista_auth', JSON.stringify(auth));
-    } else {
-      localStorage.removeItem('vista_auth');
-    }
+    if (auth) localStorage.setItem('vista_auth', JSON.stringify(auth));
+    else localStorage.removeItem('vista_auth');
   }, [auth]);
-
-  const handleLogin = (data) => setAuth(data);
-  const handleLogout = () => setAuth(null);
 
   if (!auth) {
     return (
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="/login" element={<Login onLogin={setAuth} />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
     );
   }
 
-  // Role-based redirect after login
-  const roleHome = {
-    admin: '/admin',
-    hos: '/hos',
-    hop: '/hop',
-    mentor: '/mentor',
-    teacher: '/teacher',
-  };
+  const navItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
+    { path: '/students', label: 'Students', icon: '🎓' },
+    { path: '/attendance', label: 'Attendance', icon: '✅' },
+    { path: '/risk', label: 'Risk Flags', icon: '⚠️' },
+  ];
 
-  const home = roleHome[auth.role] || '/teacher';
+  // Add role-specific items
+  if (['admin', 'hos'].includes(auth.role)) {
+    navItems.push({ path: '/enroll', label: 'Enrollment', icon: '📸' });
+  }
+  navItems.push({ path: '/test', label: 'Test Recognition', icon: '🔍' });
 
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Role-specific route groups */}
-        <Route path="/admin/*" element={<AdminLayout auth={auth} onLogout={handleLogout} />} />
-        <Route path="/hos/*" element={<HOSLayout auth={auth} onLogout={handleLogout} />} />
-        <Route path="/hop/*" element={<HOPLayout auth={auth} onLogout={handleLogout} />} />
-        <Route path="/mentor/*" element={<MentorLayout auth={auth} onLogout={handleLogout} />} />
-        <Route path="/teacher/*" element={<TeacherLayout auth={auth} onLogout={handleLogout} />} />
-
-        {/* Default redirect to role home */}
-        <Route path="/" element={<Navigate to={home} replace />} />
-        <Route path="/login" element={<Navigate to={home} replace />} />
-        <Route path="*" element={<Navigate to={home} replace />} />
-      </Routes>
+      <RoleLayout auth={auth} onLogout={() => setAuth(null)} title={auth.role.toUpperCase()} subtitle="VISTA Platform" navItems={navItems}>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard auth={auth} />} />
+          <Route path="/students" element={<StudentsPage auth={auth} />} />
+          <Route path="/attendance" element={<AttendancePage auth={auth} />} />
+          <Route path="/risk" element={<RiskPage auth={auth} />} />
+          <Route path="/enroll" element={<EnrollPage auth={auth} />} />
+          <Route path="/test" element={<TestRecognition auth={auth} />} />
+          <Route path="/student/:studentId" element={<StudentProfile auth={auth} />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </RoleLayout>
     </BrowserRouter>
   );
 }

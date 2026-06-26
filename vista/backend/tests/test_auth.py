@@ -32,12 +32,15 @@ def test_protected_route_invalid_token(client):
 
 
 def test_logout(client):
-    # Get a dedicated token for this test
+    # Get a dedicated token for this test (not shared)
+    from vista.backend.app.routes.auth import _login_attempts, _blocklist
+    _login_attempts.clear()
+    _blocklist.clear()
     res = client.post("/api/v1/auth/login", json={"email": "admin@vista.local", "password": "admin123"})
     token = res.json()["token"]
     res = client.post("/api/v1/auth/logout", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 200
-    # Token should be revoked
+    # Token should be revoked now
     res2 = client.get("/api/v1/students", headers={"Authorization": f"Bearer {token}"})
     assert res2.status_code == 401
 

@@ -4,7 +4,7 @@ Student Face Enrollment API
 Accepts base64-encoded face images and registers the student's embedding.
 
 Endpoint: POST /api/v1/students/{student_id}/enroll
-Auth: Admin only
+Auth: Admin or HOS
 """
 from __future__ import annotations
 
@@ -20,9 +20,17 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..models.student import Student
-from ..routes.auth import require_admin
+from ..models.user import User
+from ..routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/v1/students", tags=["enrollment"])
+
+
+def _require_enroll_access(current_user: User = Depends(get_current_user)) -> User:
+    """Admin or HOS can enroll faces."""
+    if current_user.role not in ("admin", "hos"):
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin or HOS role required for enrollment."})
+    return current_user
 
 
 class EnrollRequest(BaseModel):
@@ -34,7 +42,7 @@ def enroll_student(
     student_id: str,
     body: EnrollRequest,
     db: Session = Depends(get_db),
-    _admin=Depends(require_admin),
+    _user=Depends(_require_enroll_access),
 ):
     """
     Enroll a student's face by providing 1-5 base64-encoded images.
