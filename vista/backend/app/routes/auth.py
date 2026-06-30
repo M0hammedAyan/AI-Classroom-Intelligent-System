@@ -113,6 +113,7 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
         "name": user.name,
         "school_id": getattr(user, 'school_id', None),
         "department_id": getattr(user, 'department_id', None),
+        "theme": user.theme_preference or "light",
     }
 
 
@@ -136,4 +137,85 @@ def get_me(current_user: User = Depends(get_current_user)):
         "department_id": current_user.department_id,
         "permissions": get_user_permissions(current_user),
         "is_active": current_user.is_active,
+    }
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@router.post("/change-password")
+def change_password(body: ChangePasswordRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Change own password. Any authenticated user."""
+    if not bcrypt.checkpw(body.current_password.encode(), current_user.password_hash.encode()):
+        raise HTTPException(status_code=400, detail={"code": "WRONG_PASSWORD", "message": "Current password is incorrect."})
+    if len(body.new_password) < 6:
+        raise HTTPException(status_code=400, detail={"code": "WEAK_PASSWORD", "message": "Password must be at least 6 characters."})
+
+    current_user.password_hash = bcrypt.hashpw(body.new_password.encode(), bcrypt.gensalt(rounds=12)).decode()
+    db.commit()
+    return {"message": "Password changed successfully."}
+
+
+# ---------------------------------------------------------------------------
+# Profile Edit (all roles) + Theme Preference
+# ---------------------------------------------------------------------------
+
+class UpdateProfileRequest(BaseModel):
+    name: str | None = None
+    phone: str | None = None
+
+
+@router.patch("/profile")
+def update_profile(
+    body: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update own profile (all roles). Name and phone editable."""
+    if body.name is not None:
+        current_user.name = body.name.strip()
+    if body.phone is not None:
+        current_user.phone = body.phone.strip()
+    db.commit()
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "phone": current_user.phone,
+        "theme": current_user.theme_preference or "light",
+    }
+
+
+class ThemeRequest(BaseModel):
+    theme: str  # "light" | "dark"
+
+
+@router.patch("/theme")
+def update_theme(
+    body: ThemeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Set theme preference (light/dark)."""
+    if body.theme not in ("light", "dark"):
+        raise HTTPException(status_code=400, detail={"code": "INVALID_THEME", "message": "Theme must be 'light' or 'dark'."})
+    current_user.theme_preference = body.theme
+    db.commit()
+    return {"theme": body.theme}
+
+
+@router.get("/profile")
+def get_profile(current_user: User = Depends(get_current_user)):
+    """Get own profile details."""
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "role": current_user.role,
+        "phone": current_user.phone,
+        "school_id": current_user.school_id,
+        "department_id": current_user.department_id,
+        "theme": current_user.theme_preference or "light",
     }

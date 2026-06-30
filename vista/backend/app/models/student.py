@@ -27,6 +27,12 @@ class Student(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(Text, nullable=False)
 
+    # Profile fields
+    usn = Column(Text, nullable=True)                  # University Seat Number (editable once)
+    usn_updated = Column(Boolean, nullable=False, default=False)  # True after first USN update
+    phone = Column(Text, nullable=True)
+    extracurricular = Column(Text, nullable=True)      # JSON array of activities
+
     classroom = relationship("Classroom", back_populates="students")
     attendance_records = relationship("Attendance", back_populates="student")
     scores = relationship("Score", back_populates="student")

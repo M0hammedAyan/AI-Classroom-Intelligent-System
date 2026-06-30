@@ -11,13 +11,15 @@ class Attendance(Base):
     __table_args__ = (
         Index("ix_attendance_student_date", "student_id", "session_date"),
         Index("ix_attendance_classroom_date", "classroom_id", "session_date"),
-        UniqueConstraint("student_id", "session_date", "status", name="uq_attendance_student_day_status",
+        Index("ix_attendance_subject", "subject_id", "session_date"),
+        UniqueConstraint("student_id", "session_date", "subject_id", "status", name="uq_attendance_student_day_subject_status",
                          sqlite_on_conflict="IGNORE"),
     )
 
     id = Column(Text, primary_key=True)
     student_id = Column(Text, ForeignKey("students.student_id"), nullable=True)
     classroom_id = Column(Text, ForeignKey("classrooms.classroom_id"), nullable=False)
+    subject_id = Column(Text, ForeignKey("subjects.id"), nullable=True)  # Per-subject attendance
     session_date = Column(Text, nullable=False)   # YYYY-MM-DD
     timestamp = Column(Text, nullable=False)      # ISO 8601 UTC
     status = Column(Text, nullable=False)         # present | liveness_failed | absent

@@ -14,7 +14,7 @@ import tempfile
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -136,4 +136,74 @@ def enroll_student(
         "images_failed": result["images_failed"],
         "embedding_quality": result["embedding_quality"],
         "enrolled_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.post("/bulk-enroll")
+async def bulk_enroll(
+    files: list[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+    _user=Depends(_require_enroll_access),
+):
+    """
+    Bulk face enrollment — upload multiple images.
+    Filename convention: {student_id}_1.jpg, {student_id}_2.jpg, etc.
+    Or: {student_id}.jpg (single image per student)
+    
+    Groups images by student_id prefix (before underscore or dot), enrolls each.
+    """
+    from collections import defaultdict
+    import tempfile
+
+    # Group files by student_id
+    student_files: dict[str, list[str]] = defaultdict(list)
+    temp_paths = []
+
+    try:
+        for f in files:
+            # Extract student_id from filename: "1DA23AI043_1.jpg" → "1DA23AI043"
+            name = f.filename.rsplit('.', 1)[0]  # remove extension
+            sid = name.split('_')[0].split(' ')[0].strip()  # take part before underscore/space
+            if not sid:
+                continue
+
+            # Save to temp
+            content = await f.read()
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
+            tmp.write(content)
+            tmp.close()
+            temp_paths.append(tmp.name)
+            student_files[sid].append(tmp.name)
+
+        # Enroll each student
+        from vista.vision.enroll import enroll_student as vision_enroll
+
+        results = []
+        for sid, img_paths in student_files.items():
+            # Verify student exists
+            student = db.query(Student).filter(Student.student_id == sid).first()
+            if not student:
+                results.append({"student_id": sid, "enrolled": False, "error": "Student not found"})
+                continue
+
+            result = vision_enroll(sid, img_paths[:5])  # Max 5 images per student
+            results.append({
+                "student_id": sid,
+                "enrolled": result["enrolled"],
+                "images_processed": result["images_processed"],
+                "quality": result["embedding_quality"],
+                "error": result.get("error"),
+            })
+
+    finally:
+        for p in temp_paths:
+            if os.path.exists(p):
+                os.remove(p)
+
+    enrolled_count = sum(1 for r in results if r["enrolled"])
+    return {
+        "total_students": len(student_files),
+        "enrolled": enrolled_count,
+        "failed": len(results) - enrolled_count,
+        "results": results,
     }

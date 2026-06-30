@@ -1,0 +1,69 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual Environment ──
+.venv/
+venv/
+ENV/
+
+# ── Database ──
+*.db
+*.sqlite3
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Secrets ──
+.env
+.env.local
+.env.production
+*.pem
+*.key
+
+# ── Node ──
+node_modules/
+vista/frontend/node_modules/
+vista/frontend/dist/
+
+# ── Uploads ──
+vista/backend/uploads/
+
+# ── ML artifacts ──
+vista/ml/models/*.pkl
+vista/ml/models/*.joblib
+vista/ml/data/generated/
+
+# ── Vision embeddings ──
+vista/vision/embeddings/
+vista/vision/models/
+
+# ── Test artifacts ──
+.pytest_cache/
+.coverage
+htmlcov/
+test_folders/
+
+# ── Docker ──
+*.log
+
+# ── Misc ──
+.claude/
+.kiro/
+
+terminal.txt

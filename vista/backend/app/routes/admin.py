@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime, timezone
 
 import bcrypt
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -60,11 +60,12 @@ def create_user(
     """
     # Who can create whom
     creation_rules = {
-        "admin": ["admin", "hos", "hop", "mentor", "teacher"],
-        "hos": ["hop", "mentor", "teacher"],
-        "hop": ["mentor", "teacher"],
+        "admin": ["admin", "hos", "hop", "mentor", "teacher", "student"],
+        "hos": ["hop", "mentor", "teacher", "student"],
+        "hop": ["mentor", "teacher", "student"],
         "mentor": [],
         "teacher": [],
+        "student": [],
     }
 
     allowed_roles = creation_rules.get(current_user.role, [])
@@ -87,7 +88,7 @@ def create_user(
         body.department_id = body.department_id or current_user.department_id
 
     # Validate role
-    valid_roles = ["admin", "hos", "hop", "mentor", "teacher"]
+    valid_roles = ["admin", "hos", "hop", "mentor", "teacher", "student"]
     if body.role not in valid_roles:
         raise HTTPException(status_code=400, detail={"code": "INVALID_ROLE", "message": f"Role must be one of: {valid_roles}"})
 
@@ -271,6 +272,123 @@ def list_departments(
         query = query.filter(Department.school_id == school_id)
     depts = query.all()
     return {"departments": [{"id": d.id, "name": d.name, "code": d.code, "school_id": d.school_id} for d in depts]}
+
+
+# ---------------------------------------------------------------------------
+# Class Sections
+# ---------------------------------------------------------------------------
+
+class CreateClassSectionRequest(BaseModel):
+    department_id: str
+    name: str
+    code: str
+    semester: str | None = None
+
+
+@router.post("/class-sections")
+def create_class_section(
+    body: CreateClassSectionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Create a class section. Admin/HOS/HOP."""
+    if current_user.role not in ("admin", "hos", "hop"):
+        raise HTTPException(status_code=403, detail="Only Admin/HOS/HOP can create class sections")
+    if current_user.role == "hop" and current_user.department_id != body.department_id:
+        raise HTTPException(status_code=403, detail="HOP can only create classes in their department")
+
+    now = datetime.now(timezone.utc).isoformat()
+    cs = ClassSection(
+        id=f"class-{body.code.lower().replace(' ', '-')}",
+        department_id=body.department_id,
+        name=body.name,
+        code=body.code.upper(),
+        semester=body.semester,
+        is_active=True,
+        created_at=now,
+    )
+    db.add(cs)
+    db.commit()
+    return {"id": cs.id, "name": cs.name, "code": cs.code, "department_id": cs.department_id}
+
+
+@router.get("/class-sections")
+def list_class_sections(
+    department_id: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = db.query(ClassSection).filter(ClassSection.is_active == True)
+    if department_id:
+        query = query.filter(ClassSection.department_id == department_id)
+    sections = query.all()
+    return {
+        "class_sections": [
+            {"id": s.id, "name": s.name, "code": s.code, "department_id": s.department_id, "semester": s.semester}
+            for s in sections
+        ]
+    }
+
+
+# ---------------------------------------------------------------------------
+# Full Organization Tree (Admin dashboard)
+# ---------------------------------------------------------------------------
+
+@router.get("/org-tree")
+def get_org_tree(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Full organization hierarchy for admin dashboard.
+    Returns schools → departments → classes → subjects + users per level.
+    """
+    if current_user.role not in ("admin", "hos", "hop"):
+        raise HTTPException(status_code=403, detail="Insufficient access")
+
+    schools_q = db.query(School).filter(School.is_active == True)
+    if current_user.role == "hos":
+        schools_q = schools_q.filter(School.id == current_user.school_id)
+
+    schools = schools_q.all()
+    tree = []
+
+    for school in schools:
+        depts_q = db.query(Department).filter(Department.school_id == school.id, Department.is_active == True)
+        if current_user.role == "hop":
+            depts_q = depts_q.filter(Department.id == current_user.department_id)
+        departments = depts_q.all()
+
+        dept_list = []
+        for dept in departments:
+            classes = db.query(ClassSection).filter(ClassSection.department_id == dept.id, ClassSection.is_active == True).all()
+            subjects = db.query(Subject).filter(Subject.department_id == dept.id).all()
+            users = db.query(User).filter(User.department_id == dept.id, User.is_active == True, User.role != "student").all()
+
+            dept_list.append({
+                "id": dept.id,
+                "name": dept.name,
+                "code": dept.code,
+                "classes": [{"id": c.id, "name": c.name, "code": c.code, "semester": c.semester} for c in classes],
+                "subjects": [{"id": s.id, "name": s.name, "code": s.code, "semester": s.semester} for s in subjects],
+                "users": [{"id": u.id, "name": u.name, "role": u.role, "email": u.email} for u in users],
+            })
+
+        # School-level users (HOS users assigned to this school but no specific dept)
+        school_users = db.query(User).filter(
+            User.school_id == school.id, User.department_id.is_(None),
+            User.is_active == True, User.role != "student",
+        ).all()
+
+        tree.append({
+            "id": school.id,
+            "name": school.name,
+            "code": school.code,
+            "users": [{"id": u.id, "name": u.name, "role": u.role, "email": u.email} for u in school_users],
+            "departments": dept_list,
+        })
+
+    return {"tree": tree}
 
 
 # ---------------------------------------------------------------------------
@@ -651,6 +769,102 @@ def teacher_get_subjects(
 
 
 # ---------------------------------------------------------------------------
+# Subject Management — HOS/HOP create subjects for their school/dept
+# ---------------------------------------------------------------------------
+
+class CreateSubjectRequest(BaseModel):
+    name: str
+    code: str
+    department_id: str
+    semester: str | None = None
+
+
+@router.post("/subjects")
+def create_subject(
+    body: CreateSubjectRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Create a subject. Admin/HOS/HOP can create.
+    HOS: can create for any dept in their school.
+    HOP: can create only in their department.
+    """
+    if current_user.role not in ("admin", "hos", "hop"):
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Only Admin/HOS/HOP can create subjects."})
+
+    # Scope enforcement
+    if current_user.role == "hop" and current_user.department_id != body.department_id:
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "HOP can only create subjects in their own department."})
+
+    if current_user.role == "hos":
+        dept = db.query(Department).filter(Department.id == body.department_id).first()
+        if dept and dept.school_id != current_user.school_id:
+            raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "HOS can only create subjects within their school."})
+
+    # Check if subject code already exists
+    existing = db.query(Subject).filter(Subject.code == body.code.upper()).first()
+    if existing:
+        raise HTTPException(status_code=400, detail={"code": "SUBJECT_EXISTS", "message": f"Subject with code {body.code} already exists."})
+
+    now = datetime.now(timezone.utc).isoformat()
+    subject = Subject(
+        id=f"sub-{body.code.lower().replace(' ', '-')}",
+        department_id=body.department_id,
+        name=body.name,
+        code=body.code.upper(),
+        semester=body.semester,
+        created_at=now,
+    )
+    db.add(subject)
+    db.commit()
+
+    return {
+        "id": subject.id,
+        "name": subject.name,
+        "code": subject.code,
+        "department_id": subject.department_id,
+        "semester": subject.semester,
+    }
+
+
+@router.get("/subjects")
+def list_subjects(
+    department_id: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    List subjects. Scoped by role:
+    - Admin: all subjects
+    - HOS: subjects in their school's departments
+    - HOP: subjects in their department only
+    - Teacher/Mentor/Student: subjects in their department
+    """
+    query = db.query(Subject)
+
+    if current_user.role == "hos":
+        # Get all department IDs in this school
+        dept_ids = [d.id for d in db.query(Department).filter(Department.school_id == current_user.school_id).all()]
+        query = query.filter(Subject.department_id.in_(dept_ids))
+    elif current_user.role in ("hop", "mentor", "teacher", "student"):
+        if current_user.department_id:
+            query = query.filter(Subject.department_id == current_user.department_id)
+
+    if department_id:
+        query = query.filter(Subject.department_id == department_id)
+
+    subjects = query.all()
+    return {
+        "subjects": [
+            {"id": s.id, "name": s.name, "code": s.code, "department_id": s.department_id, "semester": s.semester}
+            for s in subjects
+        ],
+        "total": len(subjects),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Audit Logs Viewer (Admin only)
 # ---------------------------------------------------------------------------
 
@@ -684,4 +898,112 @@ def list_audit_logs(
             for l in logs
         ],
         "total": len(logs),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Bulk Student Import (CSV)
+# ---------------------------------------------------------------------------
+
+@router.post("/import-students")
+async def import_students(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Bulk import students from CSV.
+    Admin, HOS, or HOP can import.
+
+    CSV format:
+        student_id,name,class,department_id,school_id
+        1DA24AI001,Rahul Kumar,AIML-4A,dept-aiml,school-cse
+    """
+    import csv
+    import io
+
+    if current_user.role not in ("admin", "hos", "hop"):
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin/HOS/HOP required."})
+
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail={"code": "INVALID_FORMAT", "message": "File must be .csv"})
+
+    content = await file.read()
+    text = content.decode("utf-8")
+    reader = csv.DictReader(io.StringIO(text))
+
+    required = {"student_id", "name", "class"}
+    if not required.issubset(set(reader.fieldnames or [])):
+        raise HTTPException(status_code=400, detail={"code": "INVALID_COLUMNS", "message": f"CSV must have columns: {required}. Optional: department_id, school_id"})
+
+    now = datetime.now(timezone.utc).isoformat()
+    imported = 0
+    skipped = 0
+    errors = []
+
+    for i, row in enumerate(reader, start=2):
+        sid = row.get("student_id", "").strip()
+        name = row.get("name", "").strip()
+        cls = row.get("class", "").strip()
+
+        if not sid or not name:
+            errors.append({"row": i, "error": "Missing student_id or name"})
+            continue
+
+        # Check if already exists
+        existing = db.query(Student).filter(Student.student_id == sid).first()
+        if existing:
+            skipped += 1
+            continue
+
+        db.add(Student(
+            student_id=sid,
+            name=name,
+            class_=cls,
+            classroom_id="CSE-3A",  # Default classroom FK
+            is_active=True,
+            enrolled_at=now[:10],
+            created_at=now,
+        ))
+        imported += 1
+
+    db.commit()
+
+    # Also create student user accounts for login
+    import bcrypt
+    student_pw = bcrypt.hashpw(b"student123", bcrypt.gensalt(rounds=12)).decode()
+    # Re-read to create user accounts
+    reader2 = csv.DictReader(io.StringIO(text))
+    accounts_created = 0
+    for row in reader2:
+        sid = row.get("student_id", "").strip()
+        name = row.get("name", "").strip()
+        if not sid or not name:
+            continue
+        # Check if user account exists
+        email = f"{sid.lower()}@vista.local"
+        existing_user = db.query(User).filter(User.email == email).first()
+        if existing_user:
+            continue
+        db.add(User(
+            id=f"student-{sid}",
+            name=name,
+            email=email,
+            password_hash=student_pw,
+            role="student",
+            school_id=row.get("school_id", "").strip() or None,
+            department_id=row.get("department_id", "").strip() or None,
+            is_active=True,
+            created_at=now,
+        ))
+        accounts_created += 1
+
+    db.commit()
+
+    return {
+        "imported": imported,
+        "skipped": skipped,
+        "accounts_created": accounts_created,
+        "errors": len(errors),
+        "error_details": errors[:10],
     }

@@ -1,96 +1,93 @@
-import { useState, useEffect } from 'react';
-import { getAttendanceStats } from '../api/client';
-import './Charts.css';
-
 /**
- * Attendance Trend Chart — simple bar chart showing weekly attendance %
+ * Lightweight CSS-only chart components (no external library).
+ * Supports: BarChart, DonutChart, TrendLine
  */
-export function AttendanceTrend({ classroomId = 'CSE-3A' }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getAttendanceStats(classroomId)
-      .then(setData)
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
-  }, [classroomId]);
-
-  if (loading) return <div className="chart-loading">Loading trend...</div>;
-  if (!data || !data.weekly_summary || data.weekly_summary.length === 0) {
-    return <div className="chart-empty">No attendance data for trend</div>;
-  }
-
-  const weeks = data.weekly_summary;
-  const maxPct = 100;
+export function BarChart({ data, labelKey = 'label', valueKey = 'value', color = 'var(--primary)' }) {
+  if (!data || data.length === 0) return null;
+  const max = Math.max(...data.map(d => d[valueKey] || 0), 1);
 
   return (
-    <div className="chart-container">
-      <h4>Weekly Attendance Trend</h4>
-      <div className="bar-chart">
-        {weeks.map((w) => (
-          <div className="bar-column" key={w.week}>
-            <div className="bar-wrapper">
-              <div
-                className="bar-fill"
-                style={{ height: `${(w.avg_attendance_pct / maxPct) * 100}%` }}
-                title={`${w.avg_attendance_pct}%`}
-              />
-            </div>
-            <div className="bar-label">{w.week.split('-W')[1] ? `W${w.week.split('-W')[1]}` : w.week}</div>
-            <div className="bar-value">{w.avg_attendance_pct}%</div>
+    <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+      {data.map((d, i) => (
+        <div key={i} style={{display:'flex',alignItems:'center',gap:'var(--s3)'}}>
+          <span style={{fontSize:'11px',color:'var(--text-muted)',minWidth:'80px',textAlign:'right'}}>{d[labelKey]}</span>
+          <div style={{flex:1,height:'18px',background:'var(--bg-secondary)',borderRadius:'3px',overflow:'hidden'}}>
+            <div style={{
+              height:'100%',width:`${(d[valueKey] / max) * 100}%`,
+              background: color,borderRadius:'3px',
+              transition:'width 0.6s ease',
+            }} />
+          </div>
+          <span style={{fontSize:'11px',fontWeight:600,color:'var(--text-secondary)',minWidth:'36px'}}>{d[valueKey]}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function DonutChart({ data, colors = ['var(--danger)', 'var(--warning)', 'var(--success)'] }) {
+  if (!data || data.length === 0) return null;
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  if (total === 0) return null;
+
+  let cumulative = 0;
+  const segments = data.map((d, i) => {
+    const pct = (d.value / total) * 100;
+    const start = cumulative;
+    cumulative += pct;
+    return { ...d, pct, start, color: colors[i % colors.length] };
+  });
+
+  const gradient = segments.map(s => `${s.color} ${s.start}% ${s.start + s.pct}%`).join(', ');
+
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:'var(--s4)'}}>
+      <div style={{
+        width:'80px',height:'80px',borderRadius:'50%',
+        background: `conic-gradient(${gradient})`,
+        position:'relative',
+      }}>
+        <div style={{
+          position:'absolute',inset:'18px',borderRadius:'50%',
+          background:'var(--surface)',display:'flex',alignItems:'center',justifyContent:'center',
+          fontSize:'14px',fontWeight:700,color:'var(--text)',
+        }}>{total}</div>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
+        {segments.map((s, i) => (
+          <div key={i} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px'}}>
+            <div style={{width:'8px',height:'8px',borderRadius:'2px',background:s.color}} />
+            <span style={{color:'var(--text-secondary)'}}>{s.label}: {s.value} ({s.pct.toFixed(0)}%)</span>
           </div>
         ))}
-      </div>
-      <div className="chart-footer">
-        Overall: <strong>{data.overall_attendance_pct}%</strong> · {data.total_sessions} sessions · {data.total_students} students
       </div>
     </div>
   );
 }
 
-/**
- * Risk Distribution — pie/donut chart showing LOW/MEDIUM/HIGH counts
- */
-export function RiskDistribution({ flags = [] }) {
-  const high = flags.filter((f) => f.risk_level === 'high').length;
-  const medium = flags.filter((f) => f.risk_level === 'medium').length;
-  const low = flags.filter((f) => f.risk_level === 'low').length;
-  const total = flags.length || 1;
+export function TrendLine({ data, valueKey = 'value', height = 60 }) {
+  if (!data || data.length < 2) return null;
+  const values = data.map(d => d[valueKey]);
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const range = max - min || 1;
 
-  const segments = [
-    { label: 'High', count: high, color: '#dc2626', pct: (high / total) * 100 },
-    { label: 'Medium', count: medium, color: '#d97706', pct: (medium / total) * 100 },
-    { label: 'Low', count: low, color: '#16a34a', pct: (low / total) * 100 },
-  ];
-
-  // Create conic-gradient for pie chart
-  let cumulative = 0;
-  const gradientParts = segments.map((s) => {
-    const start = cumulative;
-    cumulative += s.pct;
-    return `${s.color} ${start}% ${cumulative}%`;
-  });
-  const gradient = `conic-gradient(${gradientParts.join(', ')})`;
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * 100;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
 
   return (
-    <div className="chart-container">
-      <h4>Risk Distribution</h4>
-      <div className="pie-chart-wrapper">
-        <div className="pie-chart" style={{ background: total > 0 ? gradient : '#e5e7eb' }}>
-          <div className="pie-center">
-            <span className="pie-total">{flags.length}</span>
-            <span className="pie-label">students</span>
-          </div>
-        </div>
-        <div className="pie-legend">
-          {segments.map((s) => (
-            <div className="legend-item" key={s.label}>
-              <span className="legend-dot" style={{ background: s.color }} />
-              <span className="legend-text">{s.label}: {s.count} ({s.pct.toFixed(0)}%)</span>
-            </div>
-          ))}
-        </div>
+    <div style={{position:'relative',height:`${height}px`,width:'100%'}}>
+      <svg width="100%" height={height} viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" style={{overflow:'visible'}}>
+        <polyline points={points} fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <div style={{display:'flex',justifyContent:'space-between',marginTop:'4px'}}>
+        {data.map((d, i) => (
+          <span key={i} style={{fontSize:'9px',color:'var(--text-muted)'}}>{d.label || ''}</span>
+        ))}
       </div>
     </div>
   );

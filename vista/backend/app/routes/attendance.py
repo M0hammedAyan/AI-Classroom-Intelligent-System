@@ -25,6 +25,7 @@ class MarkRequest(BaseModel):
     image: str           # base64-encoded JPEG or PNG
     classroom_id: str
     session_date: str    # YYYY-MM-DD
+    subject_id: str | None = None  # Optional: for per-subject attendance
 
 
 class PatchRequest(BaseModel):
@@ -81,6 +82,7 @@ def mark_attendance(
             id=str(uuid.uuid4()),
             student_id=student_id,   # may be None
             classroom_id=body.classroom_id,
+            subject_id=body.subject_id,
             session_date=body.session_date,
             timestamp=now,
             status=status,
@@ -124,6 +126,7 @@ def mark_attendance(
         id=str(uuid.uuid4()),
         student_id=student_id,
         classroom_id=body.classroom_id,
+        subject_id=body.subject_id,
         session_date=body.session_date,
         timestamp=now,
         status=status,
@@ -200,6 +203,7 @@ def mark_attendance_batch(
                 id=str(uuid.uuid4()),
                 student_id=student_id,
                 classroom_id=body.classroom_id,
+                subject_id=body.subject_id,
                 session_date=body.session_date,
                 timestamp=now,
                 status=status,
@@ -231,6 +235,7 @@ def mark_attendance_batch(
             id=str(uuid.uuid4()),
             student_id=student_id,
             classroom_id=body.classroom_id,
+            subject_id=body.subject_id,
             session_date=body.session_date,
             timestamp=now,
             status=status,
@@ -632,4 +637,107 @@ async def mark_attendance_video(
         "students_marked": len(marked),
         "marked": marked,
         "duplicates_skipped": len(confirmed) - len(marked),
+    }
+
+
+@router.get("/by-subject/{student_id}")
+def attendance_by_subject(
+    student_id: str,
+    db: Session = Depends(get_db),
+    _current_user=Depends(get_current_user),
+):
+    """
+    Per-subject attendance breakdown for a student.
+    Returns attendance percentage grouped by subject.
+    If attendance rows don't have subject_id (legacy data), falls back to overall attendance.
+    """
+    from ..models.organization import Subject, TeacherSubjectAssignment, ClassSection
+
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    # Get all subjects for the student's class
+    class_section = (
+        db.query(ClassSection)
+        .filter(ClassSection.code == student.class_)
+        .first()
+    )
+
+    subjects = []
+    if class_section:
+        # Find subjects assigned to this class section via teacher assignments
+        assignments = (
+            db.query(TeacherSubjectAssignment)
+            .filter(TeacherSubjectAssignment.class_section_id == class_section.id, TeacherSubjectAssignment.is_active == True)
+            .all()
+        )
+        subject_ids = list(set(a.subject_id for a in assignments))
+        if subject_ids:
+            subjects = db.query(Subject).filter(Subject.id.in_(subject_ids)).all()
+
+    # Get attendance rows with subject_id for this student
+    att_with_subject = (
+        db.query(Attendance)
+        .filter(
+            Attendance.student_id == student_id,
+            Attendance.subject_id.isnot(None),
+        )
+        .all()
+    )
+
+    # Get all attendance (for overall calculation)
+    all_att = (
+        db.query(Attendance)
+        .filter(Attendance.student_id == student_id)
+        .all()
+    )
+
+    # All session dates for overall
+    all_sessions = (
+        db.query(Attendance.session_date)
+        .filter(Attendance.classroom_id == student.classroom_id)
+        .distinct()
+        .all()
+    )
+    total_sessions = len(all_sessions)
+    total_present = sum(1 for a in all_att if a.status == "present")
+    overall_pct = (total_present / total_sessions * 100) if total_sessions > 0 else 0
+
+    # Group attendance by subject
+    from collections import defaultdict
+    subject_att = defaultdict(lambda: {"present": 0, "total": 0})
+
+    # Count subject-specific attendance
+    subject_sessions = defaultdict(set)  # subject_id -> set of session_dates
+    for a in att_with_subject:
+        subject_sessions[a.subject_id].add(a.session_date)
+        if a.status == "present":
+            subject_att[a.subject_id]["present"] += 1
+
+    # Build per-subject breakdown
+    breakdown = []
+    for subj in subjects:
+        total = len(subject_sessions.get(subj.id, set()))
+        present = subject_att[subj.id]["present"]
+        pct = (present / total * 100) if total > 0 else None  # None = no data yet
+
+        breakdown.append({
+            "subject_id": subj.id,
+            "subject_name": subj.name,
+            "subject_code": subj.code,
+            "sessions_attended": present,
+            "total_sessions": total,
+            "attendance_pct": round(pct, 1) if pct is not None else None,
+        })
+
+    return {
+        "student_id": student_id,
+        "student_name": student.name,
+        "overall": {
+            "sessions_attended": total_present,
+            "total_sessions": total_sessions,
+            "attendance_pct": round(overall_pct, 1),
+        },
+        "by_subject": breakdown,
     }

@@ -12,7 +12,7 @@ class User(Base):
     name = Column(Text, nullable=False)
     email = Column(Text, unique=True, nullable=False)
     password_hash = Column(Text, nullable=False)
-    role = Column(Text, nullable=False)           # admin | hos | hop | mentor | teacher
+    role = Column(Text, nullable=False)           # admin | hos | hop | mentor | teacher | student
     is_active = Column(Boolean, nullable=False, default=True)
     last_login_at = Column(Text, nullable=True)
     created_at = Column(Text, nullable=False)
@@ -21,6 +21,10 @@ class User(Base):
     school_id = Column(Text, ForeignKey("schools.id"), nullable=True)
     department_id = Column(Text, ForeignKey("departments.id"), nullable=True)
 
+    # Profile fields
+    phone = Column(Text, nullable=True)
+    profile_photo_url = Column(Text, nullable=True)
+    theme_preference = Column(Text, nullable=True, default="light")  # light | dark
+
     # Custom permissions (JSON array of permission strings)
-    # e.g., ["view_attendance", "manage_scores", "recompute_risk"]
     custom_permissions = Column(Text, nullable=True)  # JSON

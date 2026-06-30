@@ -91,6 +91,12 @@ def _compute_and_save_risk(student_id: str, db: Session) -> RiskFlag:
     from ..monitoring import alert_high_risk_student
     alert_high_risk_student(student_id, student_id, result["risk_level"], result.get("reasons", []))
 
+    # In-app notification for HIGH risk
+    from ..routes.notifications import notify_high_risk
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    student_name = student.name if student else student_id
+    notify_high_risk(db, student_id, student_name, result["risk_level"].lower(), result.get("reasons", []))
+
     return flag
 
 

@@ -29,7 +29,7 @@ def get_db():
 
 
 def create_tables() -> None:
-    from .models import attendance, student, user, organization, intervention, audit  # noqa: F401
+    from .models import attendance, student, user, organization, intervention, audit, notification, timetable  # noqa: F401
     Base.metadata.create_all(bind=engine)
 
 
@@ -92,6 +92,27 @@ def seed_demo_data(db: Session) -> None:
         ))
 
     db.flush()
+
+    # --- Student user accounts (students can login to view own data) ---
+    student_password = bcrypt.hashpw(b"student123", bcrypt.gensalt(rounds=12)).decode()
+    student_users = [
+        ("1DA24AI403", "Mohammed Ayan", "ayan@vista.local"),
+        ("1DA23AI043", "Saheel Pradhan", "saheel@vista.local"),
+        ("1DA23AI050", "Sujal Agrahari", "sujal@vista.local"),
+        ("1DA23AI009", "Aryan Raj Singh", "aryan@vista.local"),
+    ]
+    for sid, sname, email in student_users:
+        db.add(User(
+            id=f"student-{sid}",
+            name=sname,
+            email=email,
+            password_hash=student_password,
+            role="student",
+            school_id="school-cse",
+            department_id="dept-aiml",
+            is_active=True,
+            created_at=now,
+        ))
 
     # --- Real test data: DSAIT college structure ---
     from .models.organization import School, Department, ClassSection, MentorAssignment
@@ -232,6 +253,137 @@ def seed_demo_data(db: Session) -> None:
         assigned_at=now,
         is_active=True,
     ))
+
+    # --- Additional subjects ---
+    ml_subject = Subject(
+        id="sub-ml101",
+        department_id="dept-aiml",
+        name="Machine Learning",
+        code="ML101",
+        semester="7",
+        created_at=now,
+    )
+    dbms_subject = Subject(
+        id="sub-dbms",
+        department_id="dept-aiml",
+        name="Database Management Systems",
+        code="DBMS",
+        semester="7",
+        created_at=now,
+    )
+    cn_subject = Subject(
+        id="sub-cn",
+        department_id="dept-aiml",
+        name="Computer Networks",
+        code="CN",
+        semester="7",
+        created_at=now,
+    )
+    os_subject = Subject(
+        id="sub-os",
+        department_id="dept-aiml",
+        name="Operating Systems",
+        code="OS",
+        semester="7",
+        created_at=now,
+    )
+    se_subject = Subject(
+        id="sub-se",
+        department_id="dept-aiml",
+        name="Software Engineering",
+        code="SE",
+        semester="7",
+        created_at=now,
+    )
+    db.add_all([ml_subject, dbms_subject, cn_subject, os_subject, se_subject])
+    db.flush()
+
+    # Assign all new subjects to teacher (Kushal) for class-aiml-4a
+    for subj_id in ["sub-ml101", "sub-dbms", "sub-cn", "sub-os", "sub-se"]:
+        db.add(TeacherSubjectAssignment(
+            id=str(uuid.uuid4()),
+            teacher_id=teacher2.id,
+            subject_id=subj_id,
+            class_section_id="class-aiml-4a",
+            assigned_at=now,
+            is_active=True,
+        ))
+    db.flush()
+
+    # --- Timetable slots for class-aiml-4a (Mon-Fri, 6 periods/day) ---
+    from .models.timetable import TimetableSlot
+
+    period_times = [
+        ("09:00", "10:00"),
+        ("10:00", "11:00"),
+        ("11:15", "12:15"),
+        ("12:15", "13:15"),
+        ("14:00", "15:00"),
+        ("15:00", "16:00"),
+    ]
+
+    # Weekly timetable: day_of_week -> list of (subject_id, room) per period
+    weekly_schedule = {
+        0: [  # Monday
+            ("sub-dsa", "Room 301"),
+            ("sub-ml101", "Lab 201"),
+            ("sub-dbms", "Room 302"),
+            ("sub-cn", "Room 301"),
+            ("sub-os", "Lab 202"),
+            ("sub-se", "Room 303"),
+        ],
+        1: [  # Tuesday
+            ("sub-ml101", "Lab 201"),
+            ("sub-os", "Room 301"),
+            ("sub-dsa", "Room 302"),
+            ("sub-se", "Room 303"),
+            ("sub-cn", "Lab 202"),
+            ("sub-dbms", "Room 301"),
+        ],
+        2: [  # Wednesday
+            ("sub-cn", "Room 301"),
+            ("sub-dbms", "Lab 201"),
+            ("sub-ml101", "Lab 201"),
+            ("sub-dsa", "Room 302"),
+            ("sub-se", "Room 303"),
+            ("sub-os", "Lab 202"),
+        ],
+        3: [  # Thursday
+            ("sub-os", "Lab 202"),
+            ("sub-se", "Room 303"),
+            ("sub-cn", "Room 301"),
+            ("sub-ml101", "Lab 201"),
+            ("sub-dsa", "Room 302"),
+            ("sub-dbms", "Room 301"),
+        ],
+        4: [  # Friday
+            ("sub-se", "Room 303"),
+            ("sub-dsa", "Room 301"),
+            ("sub-os", "Lab 202"),
+            ("sub-dbms", "Room 302"),
+            ("sub-ml101", "Lab 201"),
+            ("sub-cn", "Room 301"),
+        ],
+    }
+
+    slot_counter = 0
+    for day, periods in weekly_schedule.items():
+        for period_idx, (subj_id, room) in enumerate(periods):
+            start_time, end_time = period_times[period_idx]
+            slot_counter += 1
+            db.add(TimetableSlot(
+                id=f"slot-{slot_counter:03d}",
+                class_section_id="class-aiml-4a",
+                subject_id=subj_id,
+                teacher_id=teacher2.id,
+                day_of_week=day,
+                start_time=start_time,
+                end_time=end_time,
+                room=room,
+                is_active=True,
+                created_at=now,
+            ))
+    db.flush()
 
     # --- End real test data setup ---
 

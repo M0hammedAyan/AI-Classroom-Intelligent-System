@@ -124,3 +124,106 @@ def teacher_dashboard(db: Session = Depends(get_db), current_user: User = Depend
         "present_today": present_today,
         "assignments": len(assignments),
     }
+
+
+# ===========================================================================
+# CHART DATA — For frontend visualizations
+# ===========================================================================
+
+@router.get("/charts/attendance-trend")
+def attendance_trend(
+    weeks: int = 8,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Weekly attendance trend for charts. Returns last N weeks of data."""
+    from collections import defaultdict
+    from datetime import timedelta
+
+    today = datetime.now(timezone.utc).date()
+    start_date = today - timedelta(weeks=weeks)
+
+    rows = (
+        db.query(Attendance)
+        .filter(Attendance.session_date >= start_date.isoformat())
+        .all()
+    )
+
+    # Group by week
+    week_data = defaultdict(lambda: {"present": 0, "total": 0})
+    for r in rows:
+        try:
+            d = datetime.strptime(r.session_date, "%Y-%m-%d").date()
+            wk = f"W{d.isocalendar()[1]}"
+            week_data[wk]["total"] += 1
+            if r.status == "present":
+                week_data[wk]["present"] += 1
+        except ValueError:
+            pass
+
+    # Build sorted chart data
+    chart = []
+    for wk in sorted(week_data.keys()):
+        d = week_data[wk]
+        pct = round(d["present"] / d["total"] * 100, 1) if d["total"] > 0 else 0
+        chart.append({"week": wk, "attendance_pct": pct, "sessions": d["total"]})
+
+    return {"trend": chart, "weeks": weeks}
+
+
+@router.get("/charts/risk-distribution")
+def risk_distribution(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Risk level distribution for pie/donut chart."""
+    from sqlalchemy import func
+
+    # Latest risk per student
+    subq = (
+        db.query(RiskFlag.student_id, func.max(RiskFlag.calculated_at).label("latest"))
+        .group_by(RiskFlag.student_id)
+        .subquery()
+    )
+    flags = (
+        db.query(RiskFlag)
+        .join(subq, (RiskFlag.student_id == subq.c.student_id) & (RiskFlag.calculated_at == subq.c.latest))
+        .all()
+    )
+
+    distribution = {"high": 0, "medium": 0, "low": 0}
+    for f in flags:
+        if f.risk_level in distribution:
+            distribution[f.risk_level] += 1
+
+    total = sum(distribution.values())
+    return {
+        "distribution": distribution,
+        "total_students": total,
+        "percentages": {k: round(v / total * 100, 1) if total > 0 else 0 for k, v in distribution.items()},
+    }
+
+
+@router.get("/charts/subject-performance")
+def subject_performance(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Average score by subject for bar chart."""
+    from collections import defaultdict
+
+    scores = db.query(Score).all()
+    subject_data = defaultdict(lambda: {"total": 0, "count": 0})
+
+    for s in scores:
+        pct = (s.score / s.max_score * 100) if s.max_score > 0 else 0
+        subject_data[s.subject]["total"] += pct
+        subject_data[s.subject]["count"] += 1
+
+    chart = []
+    for subj, data in subject_data.items():
+        avg = round(data["total"] / data["count"], 1) if data["count"] > 0 else 0
+        chart.append({"subject": subj, "average_pct": avg, "students": data["count"]})
+
+    chart.sort(key=lambda x: x["average_pct"])
+    return {"subjects": chart}

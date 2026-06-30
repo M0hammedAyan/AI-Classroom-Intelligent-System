@@ -9,10 +9,14 @@ function StudentsPage({ auth }) {
   const [flags, setFlags] = useState([]);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
 
   const headers = { Authorization: `Bearer ${auth.token}` };
 
-  useEffect(() => {
+  useEffect(() => { loadData(); }, []);
+
+  function loadData() {
+    setLoading(true);
     Promise.all([
       fetch(`${BASE_URL}/students`, { headers }).then(r => r.ok ? r.json() : { students: [] }),
       fetch(`${BASE_URL}/risk`, { headers }).then(r => r.ok ? r.json() : { flags: [] }),
@@ -20,7 +24,31 @@ function StudentsPage({ auth }) {
       setStudents(s.students || []);
       setFlags(r.flags || []);
     }).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  }
+
+  async function handleImportCSV(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImporting(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch(`${BASE_URL}/admin/import-students`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${auth.token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Imported ${data.imported} students, ${data.accounts_created} accounts created, ${data.skipped} skipped.`);
+        loadData();
+      } else {
+        alert(data.detail?.message || 'Import failed');
+      }
+    } catch {}
+    setImporting(false);
+    e.target.value = '';
+  }
 
   if (loading) return <div className="v-loading">Loading...</div>;
 
@@ -42,6 +70,12 @@ function StudentsPage({ auth }) {
           <h2 className="v-page-title">Students ({students.length})</h2>
           <p className="v-page-subtitle">Click any student to view full profile</p>
         </div>
+        {['admin', 'hos', 'hop'].includes(auth.role) && (
+          <label className="v-btn v-btn-secondary" style={{cursor:'pointer'}}>
+            {importing ? 'Importing...' : '📥 Import CSV'}
+            <input type="file" accept=".csv" onChange={handleImportCSV} style={{display:'none'}} />
+          </label>
+        )}
       </div>
 
       <div style={{ marginBottom: '16px' }}>

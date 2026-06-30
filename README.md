@@ -1,79 +1,111 @@
 # VISTA — AI Classroom Intelligent System
 
-End-to-end student risk prediction, face-recognition attendance, and teacher dashboard.
+AI-powered academic monitoring: face recognition attendance + ML risk prediction + 6-role dashboard.
 
-## Module Overview
+**Status:** Pilot-ready | **Features:** 50+ | **Endpoints:** 85+ | **Tables:** 24
 
-| Folder | Purpose |
-|---|---|
-| `vision/` | Face detection, embedding, matching, liveness, recognition |
-| `backend/` | FastAPI app — auth, attendance, students, risk routes |
-| `frontend/` | React dashboard — login, attendance log, risk flags |
-| `ml/` | Risk engine: feature engineering, prediction, SHAP explanation |
-| `docs/` | API contract, DB schema, integration log |
+---
 
-## ML Quick Start
+## Quick Start
 
-Install dependencies:
+```bash
+# Backend
+cd vista/backend
+pip install -r requirements.txt
+uvicorn app.main:app --port 8002 --reload
 
-```powershell
-pip install numpy pandas scikit-learn xgboost shap
+# Frontend
+cd vista/frontend
+npm install && npm run dev
 ```
 
-Generate training data, train, and test from the project root:
+Login: `admin@vista.local` / `admin123`
 
-```powershell
-python ml/data/generate_sample_data.py
-python -m ml.train
-python -m ml.test_risk_engine
-```
+---
 
-One-shot prediction demo:
+## What VISTA Does
 
-```python
-from ml.risk_engine import run_pipeline
-import json
+| Module | Function |
+|--------|----------|
+| **Vision** | Identify students from classroom photos (InsightFace ArcFace, 100% accuracy) |
+| **ML** | Predict dropout risk from attendance + scores (XGBoost F1=0.957, SHAP) |
+| **Platform** | 6-role dashboard for Admin, HOS, HOP, Mentor, Teacher, Student |
+| **Alerts** | Auto-notify mentors + parents when student crosses HIGH risk |
 
-result = run_pipeline({
-    "student_id": "S001",
-    "overall_attendance": 68,
-    "recent_attendance": 54,
-    "avg_score": 52,
-    "recent_score": 45,
-    "failed_subjects": 2,
-})
-print(json.dumps(result, indent=2))
-```
+---
 
-## Risk Levels
+## Key Features
 
-| Level | Score range |
-|---|---|
-| LOW | < 0.4 |
-| MEDIUM | 0.4 – 0.7 |
-| HIGH | ≥ 0.7 |
+- Face attendance (single/batch/video) — one photo marks entire class
+- Per-subject attendance + marks tracking
+- Risk prediction with SHAP explainability
+- Timetable, assignments, study materials, announcements
+- Parent SMS/email alerts
+- Student PDF reports
+- Dark/light mode for all users (ocean green accent dark theme)
+- Real-time WebSocket dashboard updates
+- Role-specific dashboards (Teacher, Mentor, Student, Admin)
+- Organization tree management (Admin creates Schools → Depts → Classes → Subjects → Users)
+- Docker production deployment
+- Clean build (zero warnings)
 
-Confidence: `abs(risk_score - 0.5) * 2`, clamped to `[0, 1]`.
+---
 
-## Pipeline Output Schema
+## Tech Stack
 
-```json
-{
-  "student_id": "S001",
-  "risk_score": 0.61,
-  "risk_level": "MEDIUM",
-  "confidence": 0.22,
-  "reasons": [
-    {"text": "Attendance below recommended level", "priority": 1},
-    {"text": "Attendance worsening", "priority": 2}
-  ],
-  "recommended_actions": [
-    "Schedule attendance counseling session",
-    "Monitor student progress weekly"
-  ],
-  "summary": "Student is at medium risk due to attendance below recommended level; schedule attendance counseling session.",
-  "trend": "WORSENING",
-  "risk_change": "NO_PREVIOUS_DATA",
-  "validation_flags": []
-}
-```
+| Layer | Tech |
+|-------|------|
+| Vision | InsightFace (SCRFD + ArcFace R50) |
+| ML | XGBoost + SHAP + Rule Engine |
+| Backend | FastAPI, SQLAlchemy, JWT |
+| Frontend | React 18 + Vite |
+| Database | SQLite (dev) / PostgreSQL (prod) |
+| Infra | Docker Compose + Nginx + Redis + Celery |
+
+---
+
+## Roles
+
+| Role | Access |
+|------|--------|
+| Admin | Everything — full system control |
+| HOS | School-wide — create depts, users, subjects |
+| HOP | Department — create users, manage subjects, view dept students |
+| Teacher | Own classes — mark attendance, enter marks, assignments |
+| Mentor | Assigned students — watchlist, interventions, risk tracking |
+| Student | Own data — attendance, scores, risk, materials, timetable |
+
+---
+
+## Documentation
+
+- [Technical Report](vista/docs/PROJECT_REPORT.md) — Full system documentation
+- [IEEE Paper Draft](vista/docs/IEEE_PAPER.md) — Research paper
+- [Plan B Roadmap](vista/PLANB.md) — Pilot → Publication → Product plan
+- [Pitch Deck](vista/docs/PITCH_DECK.md) — 10-slide presentation for college management
+- [Pilot Proposal](vista/docs/PILOT_PROPOSAL.md) — 1-page permission request
+- [Consent Form](vista/docs/CONSENT_FORM.md) — Student face data collection consent
+- [Demo Script](vista/docs/DEMO_SCRIPT.md) — 5-minute video recording guide
+
+---
+
+## Screenshots
+
+Login as any role to see role-specific dashboards:
+- **Admin**: Organization tree (Schools → Departments → Classes → Subjects → Users)
+- **Teacher**: My subjects, at-risk students, quick actions (mark attendance, enter marks)
+- **Mentor**: Watchlist, assigned students, risk alerts
+- **Student**: Today's timetable, attendance heatmap, assignments, notices
+
+---
+
+## Team
+
+| Member | Role |
+|--------|------|
+| Mohammed Ayan | Tech Lead — architecture, ML, paper |
+| Saheel Pradhan | Vision — face recognition, enrollment |
+| Sujal Agrahari | Backend — API, database, data |
+| Aryan Raj Singh | Frontend — dashboard, UX |
+
+**Institution:** DSATM, Bangalore | School of CSE | AIML Department
