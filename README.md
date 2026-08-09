@@ -105,7 +105,7 @@ Login as any role to see role-specific dashboards:
 |--------|------|
 | Mohammed Ayan | Tech Lead — architecture, ML, paper |
 | Saheel Pradhan | Vision — face recognition, enrollment |
-| Sujal Agrahari | Backend — API, database, data |
-| Aryan Raj Singh | Frontend — dashboard, UX |
+| Aryan Raj Singh | Backend — API, database, data |
+| Sujal Agrahari | Frontend — dashboard, UX |
 
 **Institution:** DSATM, Bangalore | School of CSE | AIML Department
