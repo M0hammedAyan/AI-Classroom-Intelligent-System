@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "reticle:daemon": "npx @reticlehq/server mcp --port 4460",
+    "reticle:verify": "npx @reticlehq/server verify http://localhost:5173 --headed --timeout 60000",
+    "reticle:test": "echo 'Start daemon in another terminal: npm run reticle:daemon' && echo 'Then run: npm run reticle:verify'",
+    "reticle:smoke": "node C:\\Users\\moham\\AppData\\Local\\Temp\\opencode\\full-suite.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -14,6 +18,8 @@
     "react-router-dom": "^6.23.1"
   },
   "devDependencies": {
+    "@reticlehq/react": "^2.2.0",
+    "@reticlehq/vite-plugin": "^2.2.0",
     "@tailwindcss/vite": "^4.3.1",
     "@vitejs/plugin-react": "^4.3.0",
     "tailwindcss": "^4.3.1",

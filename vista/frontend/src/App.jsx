@@ -52,7 +52,7 @@ function App() {
 
   if (!auth) {
     return (
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/login" element={<Login onLogin={setAuth} />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
@@ -140,7 +140,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <RoleLayout auth={auth} onLogout={() => setAuth(null)} title={auth.role.toUpperCase()} subtitle="VISTA Platform" navItems={navItems}>
         <Routes>
           <Route path="/dashboard" element={

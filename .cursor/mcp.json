@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "reticle": {
+      "command": "npx",
+      "args": ["@reticlehq/server", "mcp"]
+    }
+  }
+}

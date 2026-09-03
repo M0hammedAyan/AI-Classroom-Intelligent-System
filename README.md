@@ -108,4 +108,4 @@ Login as any role to see role-specific dashboards:
 | Sujal Agrahari | Backend — API, database, data |
 | Aryan Raj Singh | Frontend — dashboard, UX |
 
-**Institution:** DSATM, Bangalore | School of CSE | AIML Department
+**Institution:** DRAIT, Bangalore | School of CSE | AIML Department

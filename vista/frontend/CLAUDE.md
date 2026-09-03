@@ -61,3 +61,15 @@ After completing any task in this module, always end your response with this blo
 **Next:** [1–2 specific actionable next steps for this module]
 
 Keep it short. One short paragraph maximum per section. No long summaries unless the user explicitly asks for one.
+
+<!-- reticle:begin (managed by `reticle init` — edit outside these markers) -->
+## Verifying with Reticle
+
+This app is instrumented by **Reticle** — an in-app verification layer exposed as `reticle_*` MCP tools and the `reticle` CLI. Verifying is part of "done", not an optional extra.
+
+- **When:** after you build or change any user-facing feature, flow, or UI, verify it with Reticle **before** telling the user it is complete. Reading the code or passing unit tests is not enough — drive the real running app.
+- **How:** drive the actual flow (`reticle_act` / `reticle_act_and_wait`), then read the observable effect (`reticle_assert`, `reticle_snapshot`, `reticle_state`, `reticle_network`). Confirm the change produced the effect it was meant to, with no new console errors or failed requests.
+- **Covered flows:** run `reticle gate` — it reports which recorded flows the changed files affect and whether they still pass.
+- **Never weaken a check to make it green.** Downgrading, skipping, or deleting an assertion is a finding, not a fix.
+- **If Reticle can't run** (no daemon, or this is not a running web app), say so — do not skip verification silently.
+<!-- reticle:end -->

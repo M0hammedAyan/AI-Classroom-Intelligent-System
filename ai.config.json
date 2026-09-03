@@ -1,0 +1,73 @@
+{
+  "aios_version": "1.0.0",
+  "project": {
+    "name": "AI-Classroom-Intelligent-System",
+    "type": "pilot",
+    "engineering_mode": "pilot",
+    "tech_stack": {
+      "backend": ["python", "fastapi", "sqlalchemy"],
+      "frontend": ["typescript", "react", "vite", "tailwind"],
+      "database": ["postgresql", "redis", "sqlite"],
+      "infrastructure": ["docker"],
+      "cv": ["insightface", "opencv"],
+      "ml": ["xgboost", "scikit-learn", "shap"],
+      "task_queue": ["celery"],
+      "auth": ["jwt", "rbac"],
+      "testing": ["pytest"],
+      "monitoring": ["prometheus"]
+    },
+    "graphify_location": "graphify-out/",
+    "documentation_location": "vista/",
+    "claude": "vista/CLAUDE.md"
+  },
+  "agents": {
+    "always_active": [
+      "executive-director", "program-manager", "technical-architect",
+      "repository-intelligence", "graph-intelligence", "context-manager", "memory-manager"
+    ],
+    "enabled": [
+      "backend-lead", "api-engineer", "database-engineer", "auth-engineer",
+      "frontend-lead", "ui-engineer",
+      "vision-engineer", "face-recognition-engineer", "image-processing-engineer",
+      "ml-engineer", "data-engineer", "model-evaluation-specialist",
+      "docker-engineer",
+      "security-engineer",
+      "reviewer", "qa-engineer", "test-automation-engineer",
+      "documentation-engineer", "technical-writer"
+    ],
+    "disabled": [
+      "ux-engineer", "accessibility-engineer", "frontend-lead",
+      "devops-engineer", "kubernetes-engineer", "cicd-engineer",
+      "compliance-engineer", "privacy-engineer",
+      "performance-engineer",
+      "release-manager", "deployment-manager",
+      "ai-engineer", "prompt-engineer", "llm-engineer",
+      "feature-engineering-specialist",
+      "video-processing-engineer",
+      "research-writer"
+    ]
+  },
+  "quality_gates": {
+    "implementation": true,
+    "testing": true,
+    "documentation": true,
+    "security": true,
+    "performance": false,
+    "coverage_threshold": 70
+  },
+  "workflows": {
+    "enabled": ["feature-development", "testing", "planning", "task-assignment", "security-review", "documentation"]
+  },
+  "bootstrap": {
+    "graphify_first": true,
+    "memory_init": true,
+    "agent_activation": "profile-based",
+    "project_isolation": true
+  },
+  "commands": {
+    "test": "cd vista/backend && python -m pytest tests/ -v",
+    "lint": "cd vista/backend && ruff check . && cd ../frontend && npx tsc --noEmit",
+    "build": "docker-compose -f vista/docker-compose.yml build",
+    "dev": "docker-compose -f vista/docker-compose.yml up -d"
+  }
+}

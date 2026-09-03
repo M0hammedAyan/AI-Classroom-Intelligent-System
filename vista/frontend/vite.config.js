@@ -2,8 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
+import { reticle } from '@reticlehq/vite-plugin';
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [reticle({ port: 4460 }), react(), tailwindcss()],
   server: {
     port: 5173,
     proxy: {
