@@ -13,6 +13,9 @@ build/
 venv/
 ENV/
 
+# ── Python ──
+.venv/
+
 # ── Database ──
 *.db
 *.sqlite3
