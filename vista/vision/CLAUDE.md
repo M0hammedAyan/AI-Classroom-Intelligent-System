@@ -29,11 +29,12 @@ def recognize(image_path: str) -> dict:
 ```
 
 ## Pipeline
-- `detect.py` — face detection (RetinaFace or MTCNN, pretrained)
-- `embed.py` — embeddings (FaceNet or ArcFace, pretrained — do NOT train from scratch)
+- `detect.py` — face detection (SCRFD via InsightFace buffalo_l)
+- `embed.py` — embedding utilities (normalize, average, serialize)
 - `match.py` — cosine similarity against stored student embeddings, threshold-based
 - `liveness.py` — basic check (blink/head-turn), not depth-based
 - `recognize.py` — wires the above into the single entry point above
+- `facial_pipeline.py` — **NEW**: End-to-end batch pipeline (30 images → 600 augmented → 512-dim embeddings)
 - `test_recognize.py` — must test against real captured classroom photos, not synthetic/clean data
 
 ## Hard Rules

@@ -24,6 +24,7 @@ shap>=0.51.0
 insightface>=1.0.0
 onnxruntime>=1.27.0
 opencv-python>=4.8.0
+albumentations>=1.4.0
 
 # WebSocket
 websockets>=12.0

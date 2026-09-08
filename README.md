@@ -109,3 +109,37 @@ Login as any role to see role-specific dashboards:
 | Sujal Agrahari | Frontend — dashboard, UX |
 
 **Institution:** DRAIT, Bangalore | School of CSE | AIML Department
+
+---
+
+## Facial Pipeline (New Addition)
+
+### ✅ Completed
+- **End-to-end facial pipeline script** (`vista/vision/facial_pipeline.py`) with structured nested-loop architecture
+- **Dataset support**: Reads 21 student subfolders from `dataset/` (reg numbers as labels)
+- **Face Extraction**: InsightFace SCRFD detector + ArcFace R50 recognizer (buffalo_l model pack)
+- **Data Preprocessing**: Uniform resize to 160×160 with edge-case handling (bbox clamping)
+- **Data Augmentation**: Albumentations pipeline with 30 variants/face (HorizontalFlip, RandomBrightnessContrast, Rotate ±15°, GaussNoise)
+- **Feature Extraction**: Batch processing through ArcFace R50 → 512-dim embeddings
+- **Global Compilation**: Master arrays for ~21K images, embeddings, labels, metadata
+- **Robust Error Handling**: Skips corrupted images, missing faces; detailed progress logging
+- **Results Persistence**: Compressed `.npz` output with all arrays and metadata
+- **Per-student breakdown**: Individual stats per student folder (faces detected, augmentations, embeddings)
+- **Dependencies Added**: `albumentations>=1.4.0` to requirements.txt
+
+### 📋 Todo
+- [ ] Run pipeline on Python 3.11/3.12 (onnxruntime wheels not yet available for Python 3.14)
+- [ ] Verify output shapes match expected (~21K samples)
+- [ ] Integrate pipeline output with enrollment system (`vista/vision/enroll.py`)
+- [ ] Add unit tests for each pipeline stage
+- [ ] Validate face detection rate across all 21 students
+
+### 🔮 Future Suggestions
+- **Multi-face support**: Extend to process group photos (classroom attendance) using `recognize_all()`
+- **Advanced augmentations**: Add CutMix, MixUp, or face-specific augmentations (eyes/mouth masking)
+- **Quality assessment**: Integrate face quality scores (blur, pose, illumination) before augmentation
+- **Distributed processing**: Use multiprocessing/ray for parallel image processing
+- **Incremental updates**: Support adding new students without reprocessing entire dataset
+- **Embedding visualization**: t-SNE/UMAP projection of 512-dim embeddings for cluster analysis
+- **ONNX export**: Export ArcFace R50 to ONNX for faster inference in production
+- **Pipeline monitoring**: Add Prometheus metrics for processing time, success rates, queue depth
