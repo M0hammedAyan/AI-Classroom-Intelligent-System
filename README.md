@@ -143,3 +143,9 @@ Login as any role to see role-specific dashboards:
 - **Embedding visualization**: t-SNE/UMAP projection of 512-dim embeddings for cluster analysis
 - **ONNX export**: Export ArcFace R50 to ONNX for faster inference in production
 - **Pipeline monitoring**: Add Prometheus metrics for processing time, success rates, queue depth
+
+
+run command for pipelines
+
+cd D:\MDA\AI-Classroom-Intelligent-System
+C:\Users\Admin\AppData\Local\Programs\Python\Python312\python.exe vista\vision\facial_pipeline.py
