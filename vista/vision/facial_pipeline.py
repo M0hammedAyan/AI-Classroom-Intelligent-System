@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 # CONSTANTS & CONFIGURATION
 # =============================================================================
 
-INPUT_DIR = Path(r"D:\MDA\AI-Classroom-Intelligent-System\dataset")  # Dataset with student subfolders
+INPUT_DIR = Path(r"D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\dataset")  # Dataset with student subfolders
 TARGET_SIZE = (160, 160)                     # Target face crop size
 EMBEDDING_DIM = 512                          # ArcFace R50 embedding dimension
 AUGMENTATIONS_PER_FACE = 30                  # Number of augmented variants per face
@@ -747,10 +747,10 @@ def save_results_from_arrays(results: dict[str, Any], output_dir: Path = Path("d
     logger.info(f"File size: {output_path.stat().st_size / 1024 / 1024:.2f} MB")
 
 
-def save_augmented_from_arrays(results: dict[str, Any], output_dir: Path = Path("data/augmented")) -> None:
+def save_augmented_from_arrays(results: dict[str, Any], output_dir: Path = Path("agumented data")) -> None:
     """
     Export every augmented face as an individual .jpg, organised as
-    data/augmented/<student_id>/<source_image_stem>/aug_<index>.jpg
+    agumented data/<student_id>/<source_image_stem>/aug_<index>.jpg
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     saved = 0

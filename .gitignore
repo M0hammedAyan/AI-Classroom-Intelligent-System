@@ -57,6 +57,10 @@ vista/ml/data/generated/
 vista/vision/embeddings/
 vista/vision/models/
 
+# ── Generated facial pipeline outputs ──
+data/processed/
+agumented data/
+
 # ── Test artifacts ──
 .pytest_cache/
 .coverage
