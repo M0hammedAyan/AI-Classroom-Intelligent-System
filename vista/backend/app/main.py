@@ -94,6 +94,8 @@ def on_startup():
     db = SessionLocal()
     try:
         seed_demo_data(db)
+        from .db import sync_dataset_students
+        sync_dataset_students(db)
     finally:
         db.close()
 
