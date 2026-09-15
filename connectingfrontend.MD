@@ -55,13 +55,13 @@ The frontend already sends the photo to the backend. The integration work belong
 
 ### Validation
 
-- [ ] Add unit tests for checkpoint loading and class-name loading.
-- [ ] Add inference tests for output shape, confidence range, and unknown threshold behavior.
-- [ ] Run the existing vision tests.
-- [ ] Run backend attendance tests.
+- [x] Add unit tests for checkpoint loading and class-name loading.
+- [x] Add inference tests for output shape, confidence range, and unknown threshold behavior.
+- [x] Run the existing vision tests.
+- [x] Run backend attendance tests.
 - [ ] Test one real image through the HTTP endpoint.
-- [ ] Compare live predictions against the recorded 70:15:15 test accuracy of 89.11%.
-- [ ] Retrain on the current artifact before claiming final production metrics: the current NPZ has 20 classes and 20,130 samples, while the saved training report was generated from an older 21-class and 21,210-sample artifact.
+- [x] Compare the retrained model against the earlier 70:15:15 result; current test accuracy is 90.10% versus 89.11%.
+- [x] Retrain on the current artifact before claiming final production metrics: the current NPZ has 20 classes and 20,130 samples.
 
 ## Important Model Boundary
 
