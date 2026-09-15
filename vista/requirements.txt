@@ -25,6 +25,8 @@ insightface>=1.0.0
 onnxruntime>=1.27.0
 opencv-python>=4.8.0
 albumentations>=1.4.0
+torch>=2.0.0
+torchvision>=0.15.0
 
 # WebSocket
 websockets>=12.0

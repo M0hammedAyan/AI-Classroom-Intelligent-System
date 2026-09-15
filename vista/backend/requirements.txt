@@ -9,6 +9,7 @@ reportlab>=4.0.0
 pydantic>=2.0.0
 python-multipart>=0.0.6
 psutil>=5.9.0
+pytest>=8.0.0
 
 # ML / Vision
 numpy>=1.24.0
@@ -21,6 +22,8 @@ shap>=0.42.0
 # insightface>=0.7.3
 # onnxruntime>=1.15.0
 pillow>=10.0.0
+torch>=2.0.0
+torchvision>=0.15.0
 
 # Production (optional)
 # gunicorn>=21.0.0
