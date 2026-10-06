@@ -26,6 +26,8 @@ export const updateStudent = (id, body) => request(`/admin/students/${id}`, { me
 export const deleteStudent = (id) => request(`/admin/students/${id}`, { method: 'DELETE' });
 export const createStudent = (body) => request('/admin/students', { method: 'POST', body: JSON.stringify(body) });
 export const getAdminSubjects = () => request('/admin/subjects');
+export const getAdminClasses = () => request('/admin/class-sections');
+export const createAdminClass = (body) => request('/admin/class-sections', { method: 'POST', body: JSON.stringify(body) });
 export const createSubject = (body) => request('/admin/subjects', { method: 'POST', body: JSON.stringify(body) });
 export const updateSubject = (id, body) => request(`/admin/subjects/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
 export const deleteSubject = (id) => request(`/admin/subjects/${id}`, { method: 'DELETE' });
