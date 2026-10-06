@@ -155,8 +155,29 @@ def test_embeddings() -> bool:
     return ok1 and ok2 and ok3
 
 
+def test_db_gallery_match_preferred() -> bool:
+    _section("Test 5 — DB Gallery Matching")
+    import importlib
+    rec = importlib.import_module("vista.vision.recognize")
+
+    known = np.random.randn(512).astype(np.float32)
+    known = known / np.linalg.norm(known)
+
+    def fake_classify(face_rgb):
+        return {"student_id": None, "confidence": 0.0}
+
+    rec._load_student_gallery = lambda: {"CS22B001": known.astype(float).tolist()}
+    rec.classify_face = fake_classify
+
+    face = {"bbox": [10, 20, 200, 220], "embedding": known}
+    result = rec._classify_detected_face("ignored.jpg", face)
+    ok1 = _check(result["student_id"] == "CS22B001", f"DB-gallery match selects CS22B001: {result['student_id']}")
+    ok2 = _check(result["confidence"] >= 0.55, f"DB-gallery confidence is high enough: {result['confidence']:.4f}")
+    return ok1 and ok2
+
+
 # ---------------------------------------------------------------------------
-# Test 5: Liveness heuristics
+# Test 6: Liveness heuristics
 # ---------------------------------------------------------------------------
 
 def test_liveness() -> bool:
@@ -213,6 +234,7 @@ def main() -> None:
         ("Cosine Similarity", test_cosine_similarity),
         ("Face Matcher", test_matcher),
         ("Embedding Utils", test_embeddings),
+        ("DB Gallery Matching", test_db_gallery_match_preferred),
         ("Liveness Heuristics", test_liveness),
         ("Model Loading", test_model_loading),
     ]

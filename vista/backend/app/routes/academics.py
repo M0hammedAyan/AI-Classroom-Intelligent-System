@@ -136,6 +136,29 @@ class CreateResultRequest(BaseModel):
     result: str  # "pass" | "fail" | "absent"
 
 
+def _check_result_scope(db: Session, current_user: User, student_id: str, subject_id: str):
+    if current_user.role == "teacher":
+        student = db.query(Student).filter(Student.student_id == student_id, Student.is_active == True).first()
+        assignment = (
+            db.query(TeacherSubjectAssignment)
+            .filter(
+                TeacherSubjectAssignment.teacher_id == current_user.id,
+                TeacherSubjectAssignment.subject_id == subject_id,
+                TeacherSubjectAssignment.is_active == True,
+            )
+            .all()
+        )
+        class_codes = {
+            section.code
+            for assignment_row in assignment
+            for section in db.query(ClassSection).filter(ClassSection.id == assignment_row.class_section_id).all()
+        }
+        if not student or student.class_ not in class_codes:
+            raise HTTPException(status_code=403, detail="Teachers can only edit marks for their assigned subject classes.")
+    elif current_user.role == "student":
+        raise HTTPException(status_code=403, detail="Student accounts are read-only.")
+
+
 @router.post("/semester-results")
 def add_semester_result(
     body: CreateResultRequest,
@@ -143,8 +166,9 @@ def add_semester_result(
     current_user: User = Depends(get_current_user),
 ):
     """Add semester result. Admin/HOS/HOP."""
-    if current_user.role not in ("admin", "hos", "hop"):
-        raise HTTPException(status_code=403, detail="Only Admin/HOS/HOP can add results")
+    if current_user.role not in ("admin", "hos", "hop", "teacher"):
+        raise HTTPException(status_code=403, detail="Only administrators and assigned teachers can add results")
+    _check_result_scope(db, current_user, body.student_id, body.subject_id)
 
     now = datetime.now(timezone.utc).isoformat()
     result = SemesterResult(
@@ -164,6 +188,34 @@ def add_semester_result(
     db.add(result)
     db.commit()
     return {"id": result.id, "status": "added"}
+
+
+class UpdateResultRequest(BaseModel):
+    marks_obtained: float | None = None
+    max_marks: float | None = None
+    grade: str | None = None
+    result: str | None = None
+
+
+@router.patch("/semester-results/{result_id}")
+def update_semester_result(
+    result_id: str,
+    body: UpdateResultRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    row = db.query(SemesterResult).filter(SemesterResult.id == result_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Result not found")
+    _check_result_scope(db, current_user, row.student_id, row.subject_id)
+    if current_user.role not in ("admin", "hos", "hop", "teacher"):
+        raise HTTPException(status_code=403, detail="Student accounts are read-only.")
+    for field in ("marks_obtained", "max_marks", "grade", "result"):
+        value = getattr(body, field)
+        if value is not None:
+            setattr(row, field, value)
+    db.commit()
+    return {"id": row.id, "status": "updated"}
 
 
 @router.post("/semester-results/bulk")

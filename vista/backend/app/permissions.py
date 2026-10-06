@@ -3,9 +3,6 @@ Role-Based Access Control (RBAC) — Permission System
 =====================================================
 Hierarchical permission checks:
   admin → full access everywhere
-  hos   → full access within their school
-  hop   → full access within their department
-  mentor → access to assigned students only
   teacher → access to their subjects/classes only
 
 Usage:
@@ -26,9 +23,6 @@ from .models.organization import MentorAssignment, TeacherSubjectAssignment
 # Role hierarchy (higher number = more access)
 ROLE_HIERARCHY = {
     "admin": 100,
-    "hos": 80,
-    "hop": 60,
-    "mentor": 40,
     "teacher": 30,
 }
 
@@ -39,20 +33,6 @@ DEFAULT_PERMISSIONS = {
         "manage_students", "manage_scores", "manage_attendance",
         "recompute_risk", "view_all", "export_reports",
         "approve_requests", "manage_enrollment",
-    ],
-    "hos": [
-        "manage_departments", "manage_students", "manage_scores",
-        "manage_attendance", "recompute_risk", "view_school",
-        "export_reports", "approve_requests", "manage_enrollment",
-    ],
-    "hop": [
-        "manage_students", "manage_scores", "manage_attendance",
-        "recompute_risk", "view_department", "export_reports",
-        "approve_requests",
-    ],
-    "mentor": [
-        "view_assigned_students", "view_attendance",
-        "view_risk", "request_access",
     ],
     "teacher": [
         "view_subject_students", "manage_subject_scores",

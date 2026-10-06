@@ -28,8 +28,8 @@ router = APIRouter(prefix="/api/v1/students", tags=["enrollment"])
 
 def _require_enroll_access(current_user: User = Depends(get_current_user)) -> User:
     """Admin or HOS can enroll faces."""
-    if current_user.role not in ("admin", "hos"):
-        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin or HOS role required for enrollment."})
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin role required for enrollment."})
     return current_user
 
 

@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..models.attendance import Attendance
 from ..models.student import Student
+from ..models.organization import TeacherSubjectAssignment, Subject, ClassSection
 from ..routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/v1/attendance", tags=["attendance"])
@@ -33,12 +34,53 @@ class PatchRequest(BaseModel):
     note: str | None = None
 
 
+class ManualAttendanceRequest(BaseModel):
+    student_id: str
+    classroom_id: str
+    session_date: str
+    subject_id: str | None = None
+    status: str
+    note: str | None = None
+
+
+def _check_attendance_scope(db: Session, current_user, classroom_id: str, subject_id: str | None):
+    if current_user.role == "student":
+        raise HTTPException(status_code=403, detail={"code": "READ_ONLY", "message": "Student accounts cannot edit attendance."})
+    if current_user.role != "teacher":
+        return
+    assignment = (
+        db.query(TeacherSubjectAssignment)
+        .join(Subject, Subject.id == TeacherSubjectAssignment.subject_id)
+        .join(ClassSection, ClassSection.id == TeacherSubjectAssignment.class_section_id)
+        .filter(
+            TeacherSubjectAssignment.teacher_id == current_user.id,
+            TeacherSubjectAssignment.is_active == True,
+            Subject.code == subject_id,
+            ClassSection.code == classroom_id,
+        )
+        .first()
+    )
+    if not assignment:
+        raise HTTPException(status_code=403, detail={"code": "SUBJECT_SCOPE", "message": "Teachers can only edit attendance for their assigned subject and class."})
+
+
+def _normalize_subject_id(db: Session, subject_id: str | None) -> str | None:
+    if not subject_id:
+        return None
+    subject = db.query(Subject).filter((Subject.id == subject_id) | (Subject.code == subject_id)).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail={"code": "SUBJECT_NOT_FOUND", "message": f"No subject with id or code {subject_id}."})
+    return subject.id
+
+
 @router.post("/mark")
 def mark_attendance(
     body: MarkRequest,
     db: Session = Depends(get_db),
     _current_user=Depends(get_current_user),
 ):
+    _check_attendance_scope(db, _current_user, body.classroom_id, body.subject_id)
+    body.subject_id = _normalize_subject_id(db, body.subject_id)
     # Decode and size-check image
     try:
         image_bytes = base64.b64decode(body.image)
@@ -161,6 +203,8 @@ def mark_attendance_batch(
     db: Session = Depends(get_db),
     _current_user=Depends(get_current_user),
 ):
+    _check_attendance_scope(db, _current_user, body.classroom_id, body.subject_id)
+    body.subject_id = _normalize_subject_id(db, body.subject_id)
     """
     Multi-face attendance: detect and recognize ALL faces in an image,
     write one attendance row per recognized student.
@@ -258,6 +302,8 @@ def attendance_log(
     db: Session = Depends(get_db),
     _current_user=Depends(get_current_user),
 ):
+    if _current_user.role == "student":
+        raise HTTPException(status_code=403, detail={"code": "READ_ONLY", "message": "Use the student portal for personal attendance."})
     # All students in the classroom
     all_students = (
         db.query(Student)
@@ -302,6 +348,68 @@ def attendance_log(
     return {"classroom_id": classroom_id, "date": date, "records": records, "total": len(records)}
 
 
+@router.post("/manual")
+def create_manual_attendance(
+    body: ManualAttendanceRequest,
+    db: Session = Depends(get_db),
+    _current_user=Depends(get_current_user),
+):
+    """Create or update a teacher-corrected attendance row for an absent student."""
+    if body.status not in {"present", "absent"}:
+        raise HTTPException(status_code=400, detail={"code": "INVALID_STATUS", "message": "status must be 'present' or 'absent'."})
+    _check_attendance_scope(db, _current_user, body.classroom_id, body.subject_id)
+    body.subject_id = _normalize_subject_id(db, body.subject_id)
+    student = db.query(Student).filter(Student.student_id == body.student_id, Student.is_active == True).first()
+    if not student:
+        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"No active student with id {body.student_id}."})
+
+    existing = (
+        db.query(Attendance)
+        .filter(
+            Attendance.student_id == body.student_id,
+            Attendance.classroom_id == body.classroom_id,
+            Attendance.session_date == body.session_date,
+            Attendance.subject_id == body.subject_id,
+        )
+        .first()
+    )
+    now = datetime.now(timezone.utc).isoformat()
+    if existing:
+        existing.status = body.status
+        existing.is_manual_override = True
+        existing.override_note = body.note
+        db.commit()
+        db.refresh(existing)
+        row = existing
+    else:
+        row = Attendance(
+            id=str(uuid.uuid4()),
+            student_id=body.student_id,
+            classroom_id=body.classroom_id,
+            subject_id=body.subject_id,
+            session_date=body.session_date,
+            timestamp=now,
+            status=body.status,
+            confidence=None,
+            is_manual_override=True,
+            override_note=body.note,
+            created_at=now,
+        )
+        db.add(row)
+        db.commit()
+        db.refresh(row)
+
+    return {
+        "attendance_id": row.id,
+        "student_id": row.student_id,
+        "student_name": student.name,
+        "status": row.status,
+        "confidence": row.confidence,
+        "marked_at": row.timestamp,
+        "is_manual_override": row.is_manual_override,
+    }
+
+
 @router.patch("/{attendance_id}")
 def patch_attendance(
     attendance_id: str,
@@ -314,6 +422,7 @@ def patch_attendance(
     row = db.query(Attendance).filter(Attendance.id == attendance_id).first()
     if not row:
         raise HTTPException(status_code=404, detail={"code": "ATTENDANCE_NOT_FOUND", "message": f"No attendance record with id {attendance_id}."})
+    _check_attendance_scope(db, _current_user, row.classroom_id, row.subject_id)
     row.status = body.status
     row.is_manual_override = True
     row.override_note = body.note

@@ -13,13 +13,17 @@ Usage:
 """
 from __future__ import annotations
 
+import json
 import logging
+import os
 
 import cv2
 import numpy as np
 
 from .detect import get_detector
+from .embed import list_to_embedding
 from .liveness import check_liveness
+from .match import FaceMatcher
 from .personal_classifier import classify_face
 
 logger = logging.getLogger(__name__)
@@ -38,11 +42,83 @@ def _crop_face(image_path: str, bbox: list[float]) -> np.ndarray | None:
     return image[y1:y2, x1:x2].copy()
 
 
+def _load_student_gallery() -> dict[str, list[float]]:
+    """Load the currently enrolled student embeddings from the database."""
+    try:
+        from vista.backend.app.db import SessionLocal
+        from vista.backend.app.models.student import Student
+
+        db = SessionLocal()
+        try:
+            students = db.query(Student).filter(Student.embedding.isnot(None), Student.is_active.is_(True)).all()
+            gallery: dict[str, list[float]] = {}
+            for student in students:
+                if not student.embedding:
+                    continue
+                try:
+                    emb = json.loads(student.embedding)
+                except (TypeError, json.JSONDecodeError):
+                    continue
+                if isinstance(emb, list) and len(emb) == 512:
+                    gallery[student.student_id] = emb
+            return gallery
+        finally:
+            db.close()
+    except Exception:
+        return {}
+
+
+def _match_student_gallery(face: dict) -> dict:
+    """Match an extracted face embedding against the enrolled gallery."""
+    embedding = face.get("embedding")
+    if embedding is None:
+        return {"student_id": None, "confidence": 0.0, "matched": False}
+
+    gallery = _load_student_gallery()
+    if not gallery:
+        return {"student_id": None, "confidence": 0.0, "matched": False}
+
+    try:
+        probe = np.asarray(embedding, dtype=np.float32)
+    except Exception:
+        return {"student_id": None, "confidence": 0.0, "matched": False}
+
+    matcher = FaceMatcher(threshold=float(os.getenv("VISTA_FACE_MATCH_THRESHOLD", "0.55")))
+    result = matcher.match(probe, gallery)
+    if result["matched"]:
+        return {
+            "student_id": result["student_id"],
+            "confidence": float(result["similarity"]),
+            "matched": True,
+        }
+
+    return {
+        "student_id": None,
+        "confidence": float(result["similarity"]),
+        "matched": False,
+    }
+
+
 def _classify_detected_face(image_path: str, face: dict) -> dict:
+    gallery_match = _match_student_gallery(face)
+    if gallery_match["matched"]:
+        return {
+            "student_id": gallery_match["student_id"],
+            "confidence": gallery_match["confidence"],
+        }
+
     crop = _crop_face(image_path, face["bbox"])
     if crop is None:
-        return {"student_id": None, "confidence": 0.0}
-    return classify_face(crop)
+        return {"student_id": None, "confidence": max(gallery_match["confidence"], 0.0)}
+
+    classifier_result = classify_face(crop)
+    if classifier_result.get("student_id") is not None:
+        return classifier_result
+
+    return {
+        "student_id": None,
+        "confidence": max(classifier_result.get("confidence", 0.0), gallery_match["confidence"]),
+    }
 
 
 def recognize_all(image_path: str) -> list[dict]:

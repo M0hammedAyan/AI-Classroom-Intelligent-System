@@ -671,3 +671,173 @@ def sync_dataset_students(db: Session) -> None:
     except Exception as exc:
         logger.warning(f"Failed to sync dataset student embeddings: {exc}")
 
+
+def reconcile_current_roster(db: Session) -> None:
+    """Align names/USNs with the maintained frontend roster without removing embeddings."""
+    import re
+    import uuid
+    import bcrypt
+    from pathlib import Path
+    from .models.student import Classroom, Student
+    from .models.user import User
+    from .models.organization import AccessRequest, MentorAssignment, TeacherSubjectAssignment
+
+    root = Path(__file__).resolve().parents[2]
+    source = root / "frontend" / "src" / "App.jsx"
+    if not source.exists():
+        return
+    pattern = re.compile(r"^([A-Z][A-Z0-9 &'./-]+)\|([A-Z0-9]+)$")
+    roster = {}
+    for line in source.read_text(encoding="utf-8").splitlines():
+        match = pattern.match(line.strip())
+        if match:
+            roster[match.group(2)] = match.group(1).replace("А", "A")
+    if not roster:
+        return
+
+    now = datetime.now(timezone.utc).isoformat()
+    classroom = db.query(Classroom).filter(Classroom.classroom_id == "class-ai-2022").first()
+    if not classroom:
+        classroom = Classroom(classroom_id="class-ai-2022", name="AIML Current Roster")
+        db.add(classroom)
+        db.flush()
+
+    for usn, name in roster.items():
+        student = db.query(Student).filter(Student.student_id == usn).first()
+        if not student:
+            student = Student(
+                student_id=usn,
+                name=name,
+                usn=usn,
+                class_="AIML-3A",
+                classroom_id=classroom.classroom_id,
+                is_active=True,
+                enrolled_at=now[:10],
+                created_at=now,
+            )
+            db.add(student)
+        else:
+            student.name = name
+            student.usn = usn
+            student.classroom_id = classroom.classroom_id
+            student.class_ = "AIML-3A"
+            student.is_active = True
+
+        student_user = db.query(User).filter(User.id == f"student-{usn}").first()
+        if not student_user:
+            db.add(User(
+                id=f"student-{usn}",
+                name=name,
+                email=f"{usn.lower()}@vista.local",
+                password_hash=bcrypt.hashpw(b"student123", bcrypt.gensalt(rounds=12)).decode(),
+                role="student",
+                is_active=True,
+                created_at=now,
+            ))
+        else:
+            student_user.name = name
+            student_user.email = f"{usn.lower()}@vista.local"
+            student_user.is_active = True
+
+    # Retire stale roster rows/accounts but preserve any stored face embedding.
+    for student in db.query(Student).all():
+        if student.student_id not in roster:
+            student.is_active = False
+    for user in db.query(User).filter(User.role == "student").all():
+        if user.id.removeprefix("student-") not in roster:
+            user.is_active = False
+
+    legacy_users = db.query(User).filter(User.role.in_(["hos", "hop", "mentor"])).all()
+    legacy_ids = [user.id for user in legacy_users]
+    if legacy_ids:
+        db.query(AccessRequest).filter(AccessRequest.requester_id.in_(legacy_ids)).delete(synchronize_session=False)
+        db.query(AccessRequest).filter(AccessRequest.reviewed_by.in_(legacy_ids)).update({"reviewed_by": None}, synchronize_session=False)
+        db.query(MentorAssignment).filter(MentorAssignment.mentor_id.in_(legacy_ids)).delete(synchronize_session=False)
+        db.query(TeacherSubjectAssignment).filter(TeacherSubjectAssignment.teacher_id.in_(legacy_ids)).delete(synchronize_session=False)
+        for user in legacy_users:
+            db.delete(user)
+
+    # Keep the current academic configuration aligned with the supplied class.
+    from .models.organization import ClassSection, Subject, TeacherSubjectAssignment
+    class_section = db.query(ClassSection).filter(ClassSection.id == "class-aiml-4a").first()
+    teacher = db.query(User).filter(User.email == "teacher@vista.local", User.role == "teacher", User.is_active == True).first()
+    if class_section:
+        class_section.code = "class-ai-2022"
+        class_section.name = "AIML 3rd Year"
+        class_section.semester = "6"
+    current_subjects = [
+        ("22AIU701", "Deep Learning", "Rajeshwari", "rajeshwari", "22AIU701"),
+        ("22AIU702", "Generative AI", "Ajayprakash B V", "ajayprakash", "22AIU702"),
+        ("22AIT703", "Data Engineering & Analytics", "Ganesh H J", "ganesh", "22AIT703"),
+        ("22AIT704C", "Data Security and Privacy", "Bharat V S", "bharat", "22AIT704C"),
+        ("22AIP706", "Major Project Phase 2", "Ganesh H J", "ganesh", "22AIP706"),
+    ]
+    teacher_accounts = {}
+    desired_assignments = set()
+    for code, name, _faculty, login_name, _assignment_code in current_subjects:
+        subject = db.query(Subject).filter(Subject.code == code).first()
+        if not subject:
+            subject = Subject(
+                id=f"subject-{code.lower()}",
+                department_id="dept-aiml",
+                name=name,
+                code=code,
+                semester="6",
+                created_at=now,
+            )
+            db.add(subject)
+            db.flush()
+        else:
+            subject.name = name
+        account = teacher_accounts.get(login_name)
+        if account is None:
+            account = db.query(User).filter(User.email == f"{login_name}@vista.local").first()
+            if not account:
+                account = User(
+                    id=str(uuid.uuid4()),
+                    name=_faculty,
+                    email=f"{login_name}@vista.local",
+                    password_hash=bcrypt.hashpw(f"{login_name}123".encode(), bcrypt.gensalt(rounds=12)).decode(),
+                    role="teacher",
+                    school_id="school-cse",
+                    department_id="dept-aiml",
+                    is_active=True,
+                    created_at=now,
+                )
+                db.add(account)
+                db.flush()
+            else:
+                account.name = _faculty
+                account.role = "teacher"
+                account.is_active = True
+                account.password_hash = bcrypt.hashpw(f"{login_name}123".encode(), bcrypt.gensalt(rounds=12)).decode()
+            teacher_accounts[login_name] = account
+
+        if class_section:
+            desired_assignments.add((account.id, subject.id, class_section.id))
+        existing_assignment = db.query(TeacherSubjectAssignment).filter(
+            TeacherSubjectAssignment.teacher_id == account.id,
+            TeacherSubjectAssignment.subject_id == subject.id,
+            TeacherSubjectAssignment.class_section_id == class_section.id,
+        ).first() if class_section else None
+        if class_section and existing_assignment:
+            existing_assignment.is_active = True
+        elif class_section:
+            db.add(TeacherSubjectAssignment(
+                id=str(uuid.uuid4()),
+                teacher_id=account.id,
+                subject_id=subject.id,
+                class_section_id=class_section.id,
+                assigned_at=now,
+                is_active=True,
+            ))
+
+    # Preserve every teacher account created by the admin. Startup
+    # reconciliation must not hide valid accounts from the admin dashboard.
+    demo_teacher_ids = set()
+    for user in db.query(User).filter(User.role == "teacher").all():
+        user.is_active = True
+    for assignment in db.query(TeacherSubjectAssignment).all():
+        if assignment.teacher_id in demo_teacher_ids:
+            assignment.is_active = False
+    db.commit()

@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 import bcrypt
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..db import get_db
@@ -23,7 +24,7 @@ from ..models.organization import (
     AccessRequest, ClassSection, Department, MentorAssignment,
     School, Subject, TeacherSubjectAssignment,
 )
-from ..models.student import Student
+from ..models.student import Classroom, Student
 from ..models.user import User
 from ..permissions import can_approve_requests, get_user_permissions, has_permission
 from ..routes.auth import get_current_user, require_admin
@@ -39,7 +40,7 @@ class CreateUserRequest(BaseModel):
     name: str
     email: str
     password: str
-    role: str               # admin | hos | hop | mentor | teacher
+    role: str               # admin | teacher | student
     school_id: str | None = None
     department_id: str | None = None
     custom_permissions: list[str] | None = None
@@ -59,14 +60,7 @@ def create_user(
     - Mentor/Teacher: CANNOT create users
     """
     # Who can create whom
-    creation_rules = {
-        "admin": ["admin", "hos", "hop", "mentor", "teacher", "student"],
-        "hos": ["hop", "mentor", "teacher", "student"],
-        "hop": ["mentor", "teacher", "student"],
-        "mentor": [],
-        "teacher": [],
-        "student": [],
-    }
+    creation_rules = {"admin": ["admin", "teacher", "student"], "teacher": [], "student": []}
 
     allowed_roles = creation_rules.get(current_user.role, [])
     if not allowed_roles:
@@ -75,26 +69,35 @@ def create_user(
     if body.role not in allowed_roles:
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": f"Your role ({current_user.role}) cannot create '{body.role}' users. Allowed: {allowed_roles}"})
 
-    # Scope enforcement
-    if current_user.role == "hos":
-        # HOS forces new user into their school
-        if body.school_id and body.school_id != current_user.school_id:
-            raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "HOS can only create users within their own school."})
-        body.school_id = body.school_id or current_user.school_id
-
-    if current_user.role == "hop":
-        # HOP forces new user into their department + school
-        body.school_id = body.school_id or current_user.school_id
-        body.department_id = body.department_id or current_user.department_id
-
     # Validate role
-    valid_roles = ["admin", "hos", "hop", "mentor", "teacher", "student"]
+    valid_roles = ["admin", "teacher", "student"]
     if body.role not in valid_roles:
         raise HTTPException(status_code=400, detail={"code": "INVALID_ROLE", "message": f"Role must be one of: {valid_roles}"})
 
     # Check email unique
-    existing = db.query(User).filter(User.email == body.email).first()
+    normalized_email = body.email.strip().lower()
+    existing = db.query(User).filter(func.lower(User.email) == normalized_email).first()
     if existing:
+        if not existing.is_active and existing.role == body.role:
+            existing.name = body.name.strip()
+            existing.email = normalized_email
+            existing.password_hash = bcrypt.hashpw(body.password.encode(), bcrypt.gensalt(rounds=12)).decode()
+            existing.is_active = True
+            existing.school_id = body.school_id
+            existing.department_id = body.department_id
+            db.commit()
+            db.refresh(existing)
+            return {
+                "id": existing.id,
+                "name": existing.name,
+                "email": existing.email,
+                "role": existing.role,
+                "school_id": existing.school_id,
+                "department_id": existing.department_id,
+                "permissions": get_user_permissions(existing),
+                "created_by": current_user.name,
+                "reactivated": True,
+            }
         raise HTTPException(status_code=400, detail={"code": "EMAIL_EXISTS", "message": "Email already registered."})
 
     now = datetime.now(timezone.utc).isoformat()
@@ -103,7 +106,7 @@ def create_user(
     user = User(
         id=str(uuid.uuid4()),
         name=body.name,
-        email=body.email,
+        email=normalized_email,
         password_hash=pw_hash,
         role=body.role,
         school_id=body.school_id,
@@ -135,17 +138,10 @@ def list_users(
     current_user: User = Depends(get_current_user),
 ):
     """List users. Scoped by role of requester."""
-    if current_user.role not in ("admin", "hos", "hop"):
+    if current_user.role != "admin":
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Insufficient access."})
 
-    query = db.query(User)
-
-    # Scope to school for HOS
-    if current_user.role == "hos":
-        query = query.filter(User.school_id == current_user.school_id)
-    # Scope to department for HOP
-    elif current_user.role == "hop":
-        query = query.filter(User.department_id == current_user.department_id)
+    query = db.query(User).filter(User.is_active == True, User.role.in_(["admin", "teacher", "student"]))
 
     if role:
         query = query.filter(User.role == role)
@@ -169,6 +165,132 @@ def list_users(
     }
 
 
+class UpdateUserRequest(BaseModel):
+            name: str | None = None
+            email: str | None = None
+            password: str | None = None
+
+
+@router.patch("/users/{user_id}")
+def update_user(
+            user_id: str,
+            body: UpdateUserRequest,
+            db: Session = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+):
+            if current_user.role != "admin":
+                raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin access required."})
+            user = db.query(User).filter(User.id == user_id, User.role.in_(["admin", "teacher", "student"])).first()
+            if not user:
+                raise HTTPException(status_code=404, detail={"code": "USER_NOT_FOUND", "message": "User not found."})
+            if body.email and body.email != user.email and db.query(User).filter(User.email == body.email).first():
+                raise HTTPException(status_code=409, detail={"code": "EMAIL_EXISTS", "message": "Email already registered."})
+            if body.name is not None:
+                user.name = body.name.strip()
+            if body.email is not None:
+                user.email = body.email.strip().lower()
+            if body.password:
+                user.password_hash = bcrypt.hashpw(body.password.encode(), bcrypt.gensalt(rounds=12)).decode()
+            db.commit()
+            return {"id": user.id, "name": user.name, "email": user.email, "role": user.role, "is_active": user.is_active}
+
+
+@router.delete("/users/{user_id}")
+def deactivate_user(
+            user_id: str,
+            db: Session = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+):
+            if current_user.role != "admin":
+                raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin access required."})
+            user = db.query(User).filter(User.id == user_id, User.role.in_(["admin", "teacher", "student"])).first()
+            if not user:
+                raise HTTPException(status_code=404, detail={"code": "USER_NOT_FOUND", "message": "User not found."})
+            if user.id == current_user.id:
+                raise HTTPException(status_code=400, detail={"code": "SELF_DELETE", "message": "You cannot deactivate your own account."})
+            user.is_active = False
+            db.commit()
+            return {"id": user.id, "status": "deactivated"}
+
+
+class UpdateStudentRequest(BaseModel):
+            name: str | None = None
+            usn: str | None = None
+            class_code: str | None = None
+
+
+@router.patch("/students/{student_id}")
+def update_student(
+            student_id: str,
+            body: UpdateStudentRequest,
+            db: Session = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+):
+            if current_user.role != "admin":
+                raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin access required."})
+            student = db.query(Student).filter(Student.student_id == student_id).first()
+            if not student:
+                raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": "Student not found."})
+            if body.name is not None:
+                student.name = body.name.strip()
+            if body.usn is not None:
+                student.usn = body.usn.strip()
+            if body.class_code is not None:
+                student.class_ = body.class_code.strip()
+                student.classroom_id = body.class_code.strip()
+            db.commit()
+            return {"student_id": student.student_id, "name": student.name, "usn": student.usn, "class": student.class_, "is_active": student.is_active}
+
+
+class CreateStudentRequest(BaseModel):
+            name: str
+            usn: str
+            class_code: str = "AIML-3A"
+
+
+@router.post("/students")
+def create_student(
+            body: CreateStudentRequest,
+            db: Session = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+):
+            if current_user.role != "admin":
+                raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin access required."})
+            usn = body.usn.strip().upper()
+            if db.query(Student).filter(Student.student_id == usn).first():
+                raise HTTPException(status_code=409, detail={"code": "STUDENT_EXISTS", "message": "A student with this USN already exists."})
+            classroom = db.query(Classroom).filter(Classroom.classroom_id == "class-ai-2022").first()
+            if not classroom:
+                raise HTTPException(status_code=400, detail={"code": "CLASS_NOT_FOUND", "message": "Default classroom is not configured."})
+            now = datetime.now(timezone.utc).isoformat()
+            student = Student(
+                student_id=usn, name=body.name.strip(), usn=usn, class_=body.class_code.strip(),
+                classroom_id=classroom.classroom_id, is_active=True, created_at=now,
+            )
+            db.add(student)
+            db.add(User(
+                id=f"student-{usn}", name=student.name, email=f"{usn.lower()}@vista.local",
+                password_hash=bcrypt.hashpw(b"student123", bcrypt.gensalt(rounds=12)).decode(),
+                role="student", is_active=True, created_at=now,
+            ))
+            db.commit()
+            return {"student_id": student.student_id, "name": student.name, "usn": student.usn, "class": student.class_}
+
+
+@router.delete("/students/{student_id}")
+def deactivate_student(
+            student_id: str,
+            db: Session = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+):
+            if current_user.role != "admin":
+                raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin access required."})
+            student = db.query(Student).filter(Student.student_id == student_id).first()
+            if not student:
+                raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": "Student not found."})
+            student.is_active = False
+            db.commit()
+            return {"student_id": student.student_id, "status": "deactivated", "embedding_retained": bool(student.embedding)}
 @router.patch("/users/{user_id}/permissions")
 def update_permissions(
     user_id: str,
@@ -457,6 +579,16 @@ def assign_teacher(
     if current_user.role not in ("admin", "hos", "hop"):
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Only admin/HOS/HOP can assign teachers."})
 
+    if not db.query(User).filter(User.id == body.teacher_id, User.role == "teacher", User.is_active == True).first():
+        raise HTTPException(status_code=404, detail={"code": "TEACHER_NOT_FOUND", "message": "Active teacher not found."})
+    if not db.query(Subject).filter(Subject.id == body.subject_id).first():
+        raise HTTPException(status_code=404, detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."})
+    if not db.query(ClassSection).filter(ClassSection.id == body.class_section_id).first():
+        raise HTTPException(status_code=404, detail={"code": "CLASS_NOT_FOUND", "message": "Class section not found."})
+    db.query(TeacherSubjectAssignment).filter(
+        TeacherSubjectAssignment.subject_id == body.subject_id,
+        TeacherSubjectAssignment.class_section_id == body.class_section_id,
+    ).update({"is_active": False}, synchronize_session=False)
     now = datetime.now(timezone.utc).isoformat()
     db.add(TeacherSubjectAssignment(
         id=str(uuid.uuid4()),
@@ -862,6 +994,55 @@ def list_subjects(
         ],
         "total": len(subjects),
     }
+
+
+class UpdateSubjectRequest(BaseModel):
+    name: str | None = None
+    code: str | None = None
+    semester: str | None = None
+
+
+@router.patch("/subjects/{subject_id}")
+def update_subject(
+    subject_id: str,
+    body: UpdateSubjectRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin access required."})
+    subject = db.query(Subject).filter(Subject.id == subject_id).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."})
+    if body.code and body.code.upper() != subject.code:
+        if db.query(Subject).filter(Subject.code == body.code.upper()).first():
+            raise HTTPException(status_code=409, detail={"code": "SUBJECT_EXISTS", "message": "Subject code already exists."})
+        subject.code = body.code.upper().strip()
+    if body.name is not None:
+        subject.name = body.name.strip()
+    if body.semester is not None:
+        subject.semester = body.semester.strip()
+    db.commit()
+    return {"id": subject.id, "name": subject.name, "code": subject.code, "semester": subject.semester}
+
+
+@router.delete("/subjects/{subject_id}")
+def delete_subject(
+    subject_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Admin access required."})
+    subject = db.query(Subject).filter(Subject.id == subject_id).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."})
+    db.query(TeacherSubjectAssignment).filter(TeacherSubjectAssignment.subject_id == subject.id).update(
+        {"is_active": False}, synchronize_session=False
+    )
+    db.delete(subject)
+    db.commit()
+    return {"id": subject_id, "status": "deleted"}
 
 
 # ---------------------------------------------------------------------------
