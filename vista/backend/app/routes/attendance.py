@@ -275,6 +275,21 @@ def mark_attendance_batch(
             continue
 
         status = "present"
+        existing = (
+            db.query(Attendance)
+            .filter(
+                Attendance.student_id == student_id,
+                Attendance.classroom_id == body.classroom_id,
+                Attendance.session_date == body.session_date,
+                Attendance.subject_id == body.subject_id,
+                Attendance.status == status,
+            )
+            .first()
+        )
+        if existing:
+            response_results.append(_mark_response(existing, student_id, db, liveness_passed))
+            continue
+
         att = Attendance(
             id=str(uuid.uuid4()),
             student_id=student_id,

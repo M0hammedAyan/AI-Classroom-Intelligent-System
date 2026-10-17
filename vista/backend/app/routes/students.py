@@ -9,11 +9,15 @@ Students API — Scoped by role.
 """
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..db import get_db
+from ..models.attendance import Attendance, RiskFlag, Score
 from ..models.organization import ClassSection, Department, MentorAssignment, TeacherSubjectAssignment
+from ..models.organization import Subject
 from ..models.student import Student
 from ..models.user import User
 from ..routes.auth import get_current_user
@@ -99,7 +103,7 @@ def list_students(
     students = query.order_by(Student.name).offset(offset).limit(page_size).all()
 
     return {
-        "students": [_student_dict(s) for s in students],
+        "students": [_student_dict(s, db) for s in students],
         "total": total,
         "page": page,
         "page_size": page_size,
@@ -133,13 +137,95 @@ def get_student(
         if not assigned:
             raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Student not assigned to you."})
 
-    return _student_dict(student)
+    return _student_dict(student, db)
 
 
-def _student_dict(s: Student) -> dict:
+@router.get("/{student_id}/academic-record")
+def academic_record(
+    student_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return scoped attendance, marks, subjects, and latest risk for a student."""
+    student = db.query(Student).filter(Student.student_id == student_id, Student.is_active == True).first()
+    if not student:
+        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"No student with id {student_id} exists."})
+    if current_user.role not in ("admin", "teacher"):
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Only admins and assigned teachers can view this record."})
+
+    assignments = db.query(TeacherSubjectAssignment).filter(
+        TeacherSubjectAssignment.is_active == True,
+    )
+    if current_user.role == "teacher":
+        assignments = assignments.filter(TeacherSubjectAssignment.teacher_id == current_user.id)
+    assignments = assignments.all()
+
+    class_section = db.query(ClassSection).filter(ClassSection.code == student.class_).first()
+    class_id = class_section.id if class_section else None
+    assignments = [a for a in assignments if not class_id or a.class_section_id == class_id]
+    subject_ids = {a.subject_id for a in assignments}
+    subjects = db.query(Subject).filter(Subject.id.in_(subject_ids)).all() if subject_ids else []
+    subject_by_id = {s.id: s for s in subjects}
+    subject_names = {s.name for s in subjects}
+    subject_codes = {s.code for s in subjects}
+
+    attendance_query = db.query(Attendance).filter(Attendance.student_id == student_id)
+    if current_user.role == "teacher":
+        attendance_query = attendance_query.filter(Attendance.subject_id.in_(subject_ids)) if subject_ids else attendance_query.filter(False)
+    attendance_rows = attendance_query.order_by(Attendance.session_date.desc()).all()
+
+    score_query = db.query(Score).filter(Score.student_id == student_id)
+    if current_user.role == "teacher":
+        score_query = score_query.filter(Score.subject.in_(subject_names | subject_codes)) if subject_names or subject_codes else score_query.filter(False)
+    score_rows = score_query.order_by(Score.date.desc()).all()
+
+    attendance = []
+    for row in attendance_rows:
+        subject = subject_by_id.get(row.subject_id)
+        attendance.append({
+            "id": row.id,
+            "date": row.session_date,
+            "status": row.status,
+            "confidence": row.confidence,
+            "is_manual_override": row.is_manual_override,
+            "subject_id": row.subject_id,
+            "subject_name": subject.name if subject else "General attendance",
+            "subject_code": subject.code if subject else None,
+        })
+
+    marks = [{
+        "id": row.id,
+        "subject": row.subject,
+        "score": row.score,
+        "max_score": row.max_score,
+        "percentage": round(row.score / row.max_score * 100, 1) if row.max_score else 0,
+        "date": row.date,
+    } for row in score_rows]
+
+    latest_risk = db.query(RiskFlag).filter(RiskFlag.student_id == student_id).order_by(RiskFlag.calculated_at.desc()).first()
+    risk = None
+    if latest_risk:
+        risk = {
+            "level": latest_risk.risk_level,
+            "confidence": latest_risk.confidence,
+            "reasons": json.loads(latest_risk.reasons) if isinstance(latest_risk.reasons, str) else latest_risk.reasons,
+            "computed_at": latest_risk.calculated_at,
+        }
+
+    return {
+        "student": _student_dict(student, db),
+        "subjects": [{"id": s.id, "name": s.name, "code": s.code} for s in subjects],
+        "attendance": attendance,
+        "marks": marks,
+        "risk": risk,
+        "scope": "all subjects" if current_user.role == "admin" else "assigned subjects",
+    }
+
+
+def _student_dict(s: Student, db: Session | None = None) -> dict:
     import json
     activities = json.loads(s.extracurricular) if s.extracurricular else []
-    return {
+    result = {
         "student_id": s.student_id,
         "name": s.name,
         "class": s.class_,
@@ -149,3 +235,19 @@ def _student_dict(s: Student) -> dict:
         "is_active": s.is_active,
         "extracurricular": activities,
     }
+    if db is None:
+        return result
+
+    attendance = db.query(Attendance).filter(Attendance.student_id == s.student_id).all()
+    session_dates = {row[0] for row in db.query(Attendance.session_date).filter(Attendance.classroom_id == s.classroom_id).distinct().all()}
+    present = sum(1 for row in attendance if row.status == "present")
+    scores = db.query(Score).filter(Score.student_id == s.student_id).all()
+    percentages = [row.score / row.max_score * 100 for row in scores if row.max_score]
+    risk = db.query(RiskFlag).filter(RiskFlag.student_id == s.student_id).order_by(RiskFlag.calculated_at.desc()).first()
+    result.update({
+        "attendance_pct": round(present / len(session_dates) * 100, 1) if session_dates else 0,
+        "average_score": round(sum(percentages) / len(percentages), 1) if percentages else None,
+        "risk_level": risk.risk_level if risk else None,
+        "risk_confidence": risk.confidence if risk else None,
+    })
+    return result

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { login, getStudents, getTeacherSubjects, getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, updateStudent, deleteStudent, createStudent, getAdminSubjects, createSubject, updateSubject, deleteSubject, assignTeacher, enrollStudent, getAdminClasses, createAdminClass, getStudentDashboard, getStudentAttendance, getStudentScores, markAttendanceBatch, getAttendanceLog, patchAttendance, createManualAttendance } from './api/client';
+import { login, getStudents, getStudentAcademicRecord, getTeacherSubjects, getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, updateStudent, deleteStudent, createStudent, getAdminSubjects, createSubject, updateSubject, deleteSubject, assignTeacher, enrollStudent, getAdminClasses, createAdminClass, getStudentDashboard, getStudentAttendance, getStudentScores, markAttendanceBatch, getAttendanceLog, patchAttendance, createManualAttendance, addScore } from './api/client';
 
 const SUBJECTS = [
   ['Deep Learning', '22AIU701', 'Mrs Rajeshwari'],
@@ -134,6 +134,47 @@ function StudentWorkspace({ auth, onLogout }) {
   </div>;
 }
 
+function StudentDetail({ studentId, onBack, auth }) {
+  const [record, setRecord] = useState(null);
+  const [subjectId, setSubjectId] = useState('all');
+  const [showMarks, setShowMarks] = useState(false);
+  const [form, setForm] = useState({ subject: '', score: '', maxScore: '100', date: today() });
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const load = () => getStudentAcademicRecord(studentId).then(setRecord).catch((err) => setError(err.message));
+  useEffect(() => { load(); }, [studentId]);
+
+  if (!record) return <div className="app-shell"><main className="workspace"><p className="notice">Loading student profile...</p>{error && <p className="error">{error}</p>}</main></div>;
+
+  const selectedSubject = record.subjects.find((subject) => subject.id === subjectId);
+  const attendance = subjectId === 'all' ? record.attendance : record.attendance.filter((item) => item.subject_id === subjectId);
+  const subjectMarks = selectedSubject
+    ? record.marks.filter((item) => item.subject === selectedSubject.name || item.subject === selectedSubject.code || item.subject === selectedSubject.id)
+    : record.marks;
+  const present = attendance.filter((item) => item.status === 'present').length;
+  const attendanceRate = attendance.length ? Math.round((present / attendance.length) * 100) : 0;
+  const chartAttendance = attendance.slice(0, 12).reverse();
+  const chartMarks = subjectMarks.slice(0, 8).reverse();
+
+  const saveMark = async (event) => {
+    event.preventDefault(); setSaving(true); setError('');
+    try {
+      await addScore(studentId, form.subject, form.score, form.maxScore, form.date);
+      setForm({ ...form, score: '' }); setShowMarks(false); await load();
+    } catch (err) { setError(err.message); } finally { setSaving(false); }
+  };
+
+  return <div className="app-shell"><header className="topbar"><div className="brand"><span className="brand-mark small">V</span><span>VISTA <b>Student profile</b></span></div><div className="top-actions"><span>{auth.name}</span><button className="ghost" onClick={onBack}>Back</button></div></header>
+    <main className="workspace"><div className="page-heading"><div><p className="eyebrow">{record.scope} / academic record</p><h1>{record.student.name}</h1><p>{record.student.student_id} · {record.student.class || 'Class not assigned'}</p></div><button className="primary" onClick={() => setShowMarks(true)}>Add marks</button></div>
+      {error && <p className="error">{error}</p>}
+      <section className="stats"><div><span>Attendance</span><strong className="green">{record.student.attendance_pct ?? attendanceRate}%</strong><small>{present} present sessions in this view</small></div><div><span>Average marks</span><strong>{record.student.average_score ?? '—'}%</strong><small>{record.marks.length} assessments</small></div><div><span>Average risk</span><strong className={`risk-value ${record.risk?.level || 'unknown'}`}>{record.risk?.level || 'Not computed'}</strong><small>{record.risk?.confidence || 'No risk assessment'}</small></div></section>
+      <section className="detail-grid"><div className="card"><div className="card-title"><div><p className="eyebrow">Subject view</p><h2>{selectedSubject ? selectedSubject.name : 'All subjects'}</h2></div></div><div className="subject-tabs"><button className={subjectId === 'all' ? 'active' : ''} onClick={() => setSubjectId('all')}>All subjects</button>{record.subjects.map((subject) => <button key={subject.id} className={subjectId === subject.id ? 'active' : ''} onClick={() => setSubjectId(subject.id)}>{subject.code}</button>)}</div><div className="detail-chart"><p className="eyebrow">Attendance history</p>{chartAttendance.length ? <div className="bar-chart">{chartAttendance.map((item) => <div className={`bar ${item.status}`} key={item.id} title={`${item.date}: ${item.status}`}><span /></div>)}</div> : <p className="muted">No attendance history for this subject yet.</p>}</div><div className="history-list">{attendance.map((item) => <div className="history-row" key={item.id}><span>{item.date}<small>{item.subject_name}{item.is_manual_override ? ' · manual edit' : ''}</small></span><b className={`status ${item.status}`}>{item.status}</b></div>)}</div></div>
+        <div className="card"><div className="card-title"><div><p className="eyebrow">Marks trend</p><h2>{selectedSubject ? selectedSubject.code : 'All assessments'}</h2></div></div>{chartMarks.length ? <div className="bar-chart marks-chart">{chartMarks.map((item) => <div className="bar mark" key={item.id} style={{ height: `${Math.max(8, item.percentage)}%` }} title={`${item.date}: ${item.percentage}%`}><span /></div>)}</div> : <p className="muted">No marks entered yet.</p>}<div className="history-list">{subjectMarks.map((item) => <div className="history-row" key={item.id}><span>{item.subject}<small>{item.date}</small></span><b>{item.score}/{item.max_score} · {item.percentage}%</b></div>)}</div></div></section>
+      {showMarks && <div className="editor-overlay" role="presentation"><form className="card editor-form" onSubmit={saveMark}><div className="card-title"><div><p className="eyebrow">Academic entry</p><h2>Add marks</h2></div><button type="button" className="ghost" onClick={() => setShowMarks(false)}>Cancel</button></div><label>Subject<select required value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })}><option value="">Select subject</option>{record.subjects.map((subject) => <option key={subject.id} value={subject.code}>{subject.name} · {subject.code}</option>)}</select></label><label>Marks obtained<input required type="number" min="0" step="0.1" value={form.score} onChange={(event) => setForm({ ...form, score: event.target.value })} /></label><label>Maximum marks<input required type="number" min="1" step="0.1" value={form.maxScore} onChange={(event) => setForm({ ...form, maxScore: event.target.value })} /></label><label>Date<input required type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} /></label><button className="primary wide" disabled={saving}>{saving ? 'Saving...' : 'Save marks'}</button></form></div>}
+    </main></div>;
+}
+
 function AdminWorkspace({ auth, onLogout }) {
   const [users, setUsers] = useState([]);
   const [students, setStudents] = useState(ROSTER);
@@ -146,8 +187,19 @@ function AdminWorkspace({ auth, onLogout }) {
   const [teacherSearch, setTeacherSearch] = useState('');
   const [subjectSearch, setSubjectSearch] = useState('');
   const [studentSearch, setStudentSearch] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const reload = () => Promise.all([getAdminUsers(), getStudents(1, 100), getAdminSubjects(), getAdminClasses()]).then(([userData, studentData, subjectData, classData]) => { setUsers(userData.users || []); if (studentData.students?.length) setStudents(studentData.students); setSubjects(subjectData.subjects || []); setClasses(classData.class_sections || []); }).catch((err) => setError(err.message));
   useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    const openProfile = (event) => {
+      const cell = event.target.closest('.roster-card tbody tr td:first-child');
+      if (!cell) return;
+      const student = students.find((item) => item.name === cell.innerText.trim());
+      if (student) setSelectedStudent(student.student_id);
+    };
+    document.addEventListener('click', openProfile);
+    return () => document.removeEventListener('click', openProfile);
+  }, [students]);
   const openEditor = (type, item = {}) => { setEditorError(''); setEditor({ type, id: item.id || item.student_id || null, name: item.name || '', email: item.email || '', password: '', code: item.code || '', usn: item.usn || item.student_id || '', teacherId: '', year: item.year || '', division: item.division || '' }); };
   const saveStudent = async (enrollAfterSave) => {
     try {
@@ -211,6 +263,7 @@ function AdminWorkspace({ auth, onLogout }) {
   const teachers = users.filter((user) => user.role === 'teacher' && `${user.name} ${user.email} ${user.id}`.toLowerCase().includes(teacherSearch.trim().toLowerCase()));
   const filteredSubjects = subjects.filter((subject) => `${subject.name} ${subject.code} ${subject.id}`.toLowerCase().includes(subjectSearch.trim().toLowerCase()));
   const filteredStudents = students.filter((student) => (!selectedClass || student.class === selectedClass || student.class_code === selectedClass || student.classroom_id === selectedClass) && `${student.name} ${student.usn || student.student_id} ${student.student_id}`.toLowerCase().includes(studentSearch.trim().toLowerCase()));
+  if (selectedStudent) return <StudentDetail auth={auth} studentId={selectedStudent} onBack={() => setSelectedStudent(null)} />;
   return <div className="app-shell"><header className="topbar"><div className="brand"><span className="brand-mark small">V</span><span>VISTA <b>Admin / HOD</b></span></div><div className="top-actions"><span>{auth.name}</span><button type="button" className="ghost" onClick={onLogout}>Sign out</button></div></header><main className="workspace"><div className="page-heading"><div><p className="eyebrow">Administrator / full access</p><h1>Academic control centre</h1><p>Manage teachers, students, attendance, marks, subjects, and face enrollment.</p></div></div>{error && !editor && <p className="error">{error}</p>}{editor && <div className="editor-overlay" role="presentation"><form className="card editor-form" onSubmit={saveEditor}><div className="card-title"><div><p className="eyebrow">Edit workspace</p><h2>{editor.id ? 'Edit' : 'Add'} {editor.type}</h2></div><button type="button" className="ghost" onClick={() => { setEditor(null); setEditorError(''); }}>Cancel</button></div>{editorError && <p className="error editor-error">{editorError}</p>}<label>Name<input required value={editor.name} onChange={(e) => setEditor({ ...editor, name: e.target.value })} /></label>{editor.type === 'teacher' && <><label>Email<input required type="email" value={editor.email} onChange={(e) => setEditor({ ...editor, email: e.target.value })} /></label><label>{editor.id ? 'New password (optional)' : 'Password'}<input required={!editor.id} type="password" value={editor.password} onChange={(e) => setEditor({ ...editor, password: e.target.value })} /></label></>}{editor.type === 'student' && <label>USN<input required value={editor.usn} onChange={(e) => setEditor({ ...editor, usn: e.target.value })} /></label>  }{editor.type === 'subject' && <><label>Subject code<input required value={editor.code} onChange={(e) => setEditor({ ...editor, code: e.target.value })} /></label><label>Assign teacher<select value={editor.teacherId} onChange={(e) => setEditor({ ...editor, teacherId: e.target.value })}><option value="">Select a teacher</option>{users.filter((user) => user.role === 'teacher').map((user) => <option key={user.id} value={user.id}>{user.name} · {user.email}</option>)}</select></label></>}{editor.type === 'class' && <><label>Year<select required value={editor.year} onChange={(e) => setEditor({ ...editor, year: e.target.value })}><option value="">Select year</option><option value="1st">1st</option><option value="2nd">2nd</option><option value="3rd">3rd</option><option value="4th">4th</option></select></label><label>Division<select required value={editor.division} onChange={(e) => setEditor({ ...editor, division: e.target.value })}><option value="">Select division</option>{['A', 'B', 'C', 'D', 'E', 'F'].map((division) => <option key={division} value={division}>{division}</option>)}</select></label></>}{editor.type === 'student' && !editor.id ? <div className="editor-actions"><button type="button" className="secondary" onClick={() => saveStudent(true)}>Enroll face</button><button className="primary" type="submit">Skip / Save</button></div> : <button className="primary" type="submit">Save {editor.type}</button>}  </form></div>}<section className="stats"><div><span>Students</span><strong>{students.length}</strong><small>view and manage roster</small></div><div><span>Teachers</span><strong>{users.filter((user) => user.role === 'teacher').length}</strong><small>subject instructors</small></div><div><span>Subjects</span><strong>{subjects.length || SUBJECTS.length}</strong><small>configured curriculum</small></div></section><section className="card class-manager"><div className="card-title"><div><p className="eyebrow">Class organization</p><h2>Classes and divisions</h2></div><button className="primary" onClick={() => openEditor('class')}>Add class</button></div><div className="class-list">{classes.map((classSection) => <button type="button" className={`class-chip ${selectedClass === classSection.code ? 'selected' : ''}`} key={classSection.id} onClick={() => setSelectedClass(selectedClass === classSection.code ? '' : classSection.code)}>{classSection.name}<small>{classSection.code}</small></button>)}</div></section><div className="content-grid"><section className="card"><div className="card-title"><div><p className="eyebrow">People</p><h2>Teachers</h2></div><button className="primary" onClick={() => openEditor('teacher')}>Add teacher</button></div><label className="search-field">Search teacher by name, email, or ID<input value={teacherSearch} onChange={(e) => setTeacherSearch(e.target.value)} placeholder="e.g. Rajeshwari or teacher ID" /></label><div className="subject-list">{teachers.map((user) => <div className="subject-row" key={user.id}><span>{user.name}<small>{user.email}</small></span><b><button className="edit-button" onClick={() => openEditor('teacher', user)}>Edit</button><button className="edit-button" onClick={() => removeTeacher(user)}>Delete</button></b></div>)}</div></section><section className="card"><div className="card-title"><div><p className="eyebrow">Curriculum</p><h2>Subjects</h2></div><button className="primary" onClick={() => openEditor('subject')}>Add subject</button></div><label className="search-field">Search subject by name, code, or ID<input value={subjectSearch} onChange={(e) => setSubjectSearch(e.target.value)} placeholder="e.g. Deep Learning or 22AIU701" /></label><div className="subject-list">{filteredSubjects.map((subject) => <div className="subject-row" key={subject.id}><span>{subject.name}<small>{subject.code}</small></span><b><button className="edit-button" onClick={() => openEditor('subject', subject)}>Edit</button><button className="edit-button" onClick={() => removeSubject(subject)}>Delete</button></b></div>)}</div></section></div><section className="card roster-card"><div className="card-title"><div><p className="eyebrow">Students</p><h2>All students</h2></div><button className="primary" onClick={() => openEditor('student')}>Add student</button></div><label className="class-filter">Show students from<select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}><option value="">All classes</option>{classes.map((classSection) => <option key={classSection.id} value={classSection.code}>{classSection.name}</option>)}</select></label><label className="search-field">Search student by name or USN<input value={studentSearch} onChange={(e) => setStudentSearch(e.target.value)} placeholder="e.g. Aditya or 1DA22AI002" /></label><div className="table-wrap"><table><thead><tr><th>Name</th><th>USN</th><th>Class</th><th>Face enrollment</th><th>Actions</th></tr></thead><tbody>{filteredStudents.map((student) => <tr key={student.student_id}><td><b>{student.name}</b></td><td className="mono">{student.usn || student.student_id}</td><td>{student.class || '—'}</td><td><button className="edit-button" onClick={() => enroll(student)}>{student.enrolled_at ? 'Re-enrol face' : 'Enrol face'}</button></td><td><button className="edit-button" onClick={() => openEditor('student', student)}>Edit</button><button className="edit-button" onClick={() => removeStudent(student)}>Delete</button></td></tr>)}</tbody></table></div></section></main></div>;
 }
 
@@ -229,6 +282,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
   const [cameraOn, setCameraOn] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
     if (auth.role === 'teacher') getTeacherSubjects().then((data) => {
@@ -251,6 +305,17 @@ function AttendanceWorkspace({ auth, onLogout }) {
   }, [auth.role]);
 
   useEffect(() => {
+    const openProfile = (event) => {
+      const cell = event.target.closest('.roster-card tbody tr td:first-child');
+      if (!cell) return;
+      const student = students.find((item) => (item.name || item.student_name) === cell.innerText.trim());
+      if (student) setSelectedStudent(student.student_id);
+    };
+    document.addEventListener('click', openProfile);
+    return () => document.removeEventListener('click', openProfile);
+  }, [students]);
+
+  useEffect(() => {
     const selected = assignments.find((item) => item.subject_code === subject && item.class_code === classroom);
     if (selected) setStudents(selected.students.map((student) => ({ ...student, name: student.name, usn: student.student_id })));
   }, [assignments, classroom, subject]);
@@ -266,6 +331,8 @@ function AttendanceWorkspace({ auth, onLogout }) {
       attendance_id: null, is_manual_override: false,
     });
   }, [students, records]);
+
+  if (selectedStudent) return <StudentDetail auth={auth} studentId={selectedStudent} onBack={() => setSelectedStudent(null)} />;
 
   const setImageFile = (file) => {
     if (!file) return;

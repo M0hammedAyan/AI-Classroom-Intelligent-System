@@ -17,6 +17,7 @@ async function request(path, options = {}) {
 
 export const login = (email, password) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
 export const getStudents = (page = 1, pageSize = 100) => request(`/students?page=${page}&page_size=${pageSize}`);
+export const getStudentAcademicRecord = (studentId) => request(`/students/${encodeURIComponent(studentId)}/academic-record`);
 export const getTeacherSubjects = () => request('/admin/teacher/my-subjects');
 export const getAdminUsers = () => request('/admin/users');
 export const createAdminUser = (body) => request('/admin/users', { method: 'POST', body: JSON.stringify(body) });
@@ -40,3 +41,4 @@ export const markAttendanceBatch = (image, classroomId, sessionDate, subjectId) 
 export const getAttendanceLog = (classroomId, date) => request(`/attendance/log?classroom_id=${encodeURIComponent(classroomId)}&date=${date}`);
 export const patchAttendance = (id, status, note) => request(`/attendance/${id}`, { method: 'PATCH', body: JSON.stringify({ status, note }) });
 export const createManualAttendance = (studentId, classroomId, sessionDate, subjectId, status, note) => request('/attendance/manual', { method: 'POST', body: JSON.stringify({ student_id: studentId, classroom_id: classroomId, session_date: sessionDate, subject_id: subjectId, status, note }) });
+export const addScore = (studentId, subject, score, maxScore, date) => request('/lms/add-score', { method: 'POST', body: JSON.stringify({ student_id: studentId, subject, score, max_score: maxScore, date }) });

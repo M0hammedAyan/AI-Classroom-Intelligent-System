@@ -23,8 +23,9 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..models.attendance import Score
+from ..models.organization import ClassSection, Subject, TeacherSubjectAssignment
 from ..models.student import Student
-from ..routes.auth import require_admin
+from ..routes.auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/api/v1/lms", tags=["lms"])
 
@@ -62,9 +63,11 @@ def list_scores(
 def add_score(
     body: dict,
     db: Session = Depends(get_db),
-    _admin=Depends(require_admin),
+    current_user=Depends(get_current_user),
 ):
-    """Add a single score manually."""
+    """Add a score manually; teachers may edit only their assigned subject."""
+    if current_user.role not in ("admin", "teacher"):
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Only admins and teachers can add marks."})
     required = {"student_id", "subject", "score", "max_score", "date"}
     missing = required - set(body.keys())
     if missing:
@@ -73,6 +76,20 @@ def add_score(
     student = db.query(Student).filter(Student.student_id == body["student_id"]).first()
     if not student:
         raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"Student {body['student_id']} not found"})
+
+    if current_user.role == "teacher":
+        class_section = db.query(ClassSection).filter(ClassSection.code == student.class_).first()
+        subject = db.query(Subject).filter(
+            (Subject.id == body["subject"]) | (Subject.code == body["subject"]) | (Subject.name == body["subject"])
+        ).first()
+        allowed = subject and class_section and db.query(TeacherSubjectAssignment).filter(
+            TeacherSubjectAssignment.teacher_id == current_user.id,
+            TeacherSubjectAssignment.subject_id == subject.id,
+            TeacherSubjectAssignment.class_section_id == class_section.id,
+            TeacherSubjectAssignment.is_active == True,
+        ).first()
+        if not allowed:
+            raise HTTPException(status_code=403, detail={"code": "SUBJECT_SCOPE", "message": "You can only add marks for your assigned subjects."})
 
     now = datetime.now(timezone.utc).isoformat()
     score = Score(
