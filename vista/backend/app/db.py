@@ -588,3 +588,86 @@ def get_student_metrics(student_id: str, db: Session):
         assignments_submitted=None,
         assignments_total=None,
     )
+
+
+def sync_dataset_students(db: Session) -> None:
+    """
+    Sync student database records with active students from facial_pipeline_results.npz.
+    - Purges deleted student 1DA22AI010 from database tables.
+    - Populates 512-dim ArcFace embeddings for all active students from .npz.
+    """
+    from .models.student import Student
+    from .models.attendance import Attendance, Score, RiskFlag
+    from .models.user import User
+    from pathlib import Path
+    import json
+    import logging
+    import numpy as np
+
+    logger = logging.getLogger("vista.sync")
+
+    # Purge 1DA22AI010
+    purged_students = db.query(Student).filter(Student.student_id == "1DA22AI010").all()
+    if purged_students:
+        for s in purged_students:
+            db.delete(s)
+        db.query(Attendance).filter(Attendance.student_id == "1DA22AI010").delete()
+        db.query(Score).filter(Score.student_id == "1DA22AI010").delete()
+        db.query(RiskFlag).filter(RiskFlag.student_id == "1DA22AI010").delete()
+        db.query(User).filter(User.id.like("%1DA22AI010%")).delete()
+        db.commit()
+        logger.info("Purged student 1DA22AI010 from database records.")
+
+    # Find NPZ file
+    root = Path(__file__).resolve().parent.parent.parent.parent
+    npz_path = root / "data" / "processed" / "facial_pipeline_results.npz"
+    if not npz_path.exists():
+        return
+
+    try:
+        data = np.load(npz_path, allow_pickle=True)
+        embs = data["embeddings"]
+        labels = data["labels"]
+        meta = data["metadata"]
+
+        student_vecs: dict[str, list] = {}
+        for i in range(len(labels)):
+            usn = str(labels[i]).strip("'\"")
+            m = meta[i].item() if hasattr(meta[i], "item") else meta[i]
+            if isinstance(m, dict) and m.get("augmentation_index", 0) == 0:
+                student_vecs.setdefault(usn, []).append(embs[i])
+
+        now = datetime.now(timezone.utc).isoformat()
+        updated_count = 0
+
+        for usn, vecs in student_vecs.items():
+            mean_vec = np.mean(vecs, axis=0)
+            norm = np.linalg.norm(mean_vec)
+            if norm > 0:
+                mean_vec = mean_vec / norm
+            emb_json = json.dumps(mean_vec.tolist())
+
+            student = db.query(Student).filter(Student.student_id == usn).first()
+            if student is None:
+                student = Student(
+                    student_id=usn,
+                    name=f"Student {usn}",
+                    class_="AIML-4A",
+                    classroom_id="CSE-3A",
+                    is_active=True,
+                    enrolled_at="2024-08-01",
+                    created_at=now,
+                    embedding=emb_json,
+                )
+                db.add(student)
+                updated_count += 1
+            else:
+                student.embedding = emb_json
+                student.is_active = True
+                updated_count += 1
+
+        db.commit()
+        logger.info(f"Synced {updated_count} student face embeddings from .npz to database.")
+    except Exception as exc:
+        logger.warning(f"Failed to sync dataset student embeddings: {exc}")
+

@@ -1,0 +1,134 @@
+======================================================================
+VISTA — ResNet-50 Face Classifier Results
+(backbone: ImageNet pretrained ResNet-50, ArcFace preprocessing)
+Split B  (70/15/15)
+Generated: 2026-09-11 15:55:22
+======================================================================
+
+DATASET SIZES
+  Train (orig + aug) : 3,631 images
+  Val  (orig only)   : 113  images
+  Test (orig only)   : 117  images
+  Aug cap/student    : 150
+
+TRAINING CONFIG
+  Epochs run         : 30  (max 30)
+  Best epoch         : 26
+  Early stop patience: 7
+  Batch size         : 32
+  Learning rate      : 0.0001
+  Optimizer          : Adam
+  Loss               : CrossEntropyLoss
+  Backbone           : ResNet-50 (ImageNet pretrained, NOT ArcFace ONNX)
+  Input size         : 112x112, mean=0.5 std=0.5 (ArcFace preprocessing)
+  Trainable layers   : layer3 + layer4 + classification head
+
+ACCURACY SUMMARY
+  Best val accuracy  : 83.19%
+  Final train acc    : 97.36%
+  Test accuracy      : 76.07%
+  Train / Test gap   : 21.29%
+
+DATA NOTES
+  Original images per student: 27-41 (varies, actual from dataset/)
+  Test set size per student  : 15% of originals = 2-6 images
+  WARNING: Per-class accuracy with < 5 test samples is HIGH-VARIANCE.
+     One wrong prediction can swing a class from 100% to 66%.
+     Overall test accuracy is the reliable metric for this dataset size.
+  Expected overall test accuracy: 70-85% (honest range for this data size)
+  If test accuracy > 95%: re-check data_split_log.txt for leakage.
+
+OVERFITTING WARNING: train/test gap = 21.3%  (> 15%)
+   Final train acc = 0.9736, test acc = 0.7607
+
+EPOCH LOG (train_loss | train_acc | val_loss | val_acc)
+------------------------------------------------------------
+  Epoch 001:  1.9657 | 0.4723 | 2.9324 | 0.1062
+  Epoch 002:  0.7029 | 0.8163 | 2.4223 | 0.2478
+  Epoch 003:  0.4985 | 0.8502 | 2.0256 | 0.3186
+  Epoch 004:  0.3748 | 0.8747 | 1.3443 | 0.5044
+  Epoch 005:  0.3087 | 0.8920 | 1.0960 | 0.6106
+  Epoch 006:  0.2483 | 0.9086 | 1.0545 | 0.6460
+  Epoch 007:  0.2180 | 0.9174 | 0.9225 | 0.6460
+  Epoch 008:  0.1975 | 0.9267 | 1.0528 | 0.6372
+  Epoch 009:  0.1808 | 0.9309 | 0.7832 | 0.6991
+  Epoch 010:  0.1613 | 0.9405 | 0.8399 | 0.7080
+  Epoch 011:  0.1595 | 0.9413 | 0.7135 | 0.7788
+  Epoch 012:  0.1395 | 0.9482 | 0.7568 | 0.7522
+  Epoch 013:  0.1212 | 0.9540 | 0.9898 | 0.7257
+  Epoch 014:  0.1322 | 0.9430 | 0.8996 | 0.7522
+  Epoch 015:  0.1352 | 0.9485 | 1.2327 | 0.6726
+  Epoch 016:  0.1045 | 0.9568 | 1.1462 | 0.7080
+  Epoch 017:  0.1147 | 0.9537 | 0.8175 | 0.7168
+  Epoch 018:  0.0880 | 0.9623 | 0.7274 | 0.7965
+  Epoch 019:  0.0763 | 0.9636 | 0.7157 | 0.7965
+  Epoch 020:  0.0730 | 0.9664 | 0.6602 | 0.7965
+  Epoch 021:  0.0706 | 0.9683 | 0.6412 | 0.7788
+  Epoch 022:  0.0689 | 0.9703 | 0.5970 | 0.8053
+  Epoch 023:  0.0639 | 0.9741 | 0.6678 | 0.7965
+  Epoch 024:  0.0632 | 0.9708 | 0.6852 | 0.8053
+  Epoch 025:  0.0612 | 0.9714 | 0.8103 | 0.7699
+  Epoch 026:  0.0642 | 0.9703 | 0.6227 | 0.8319
+  Epoch 027:  0.0576 | 0.9716 | 0.5565 | 0.8053
+  Epoch 028:  0.0648 | 0.9736 | 0.8218 | 0.7611
+  Epoch 029:  0.0665 | 0.9689 | 0.8778 | 0.6991
+  Epoch 030:  0.0586 | 0.9736 | 0.6954 | 0.7788
+
+PER-CLASS TEST ACCURACY
+------------------------------------------------------------
+  1DA22AI010 (class 00): 5/6 = 0.8333
+  1DA22AI402 (class 01): 2/6 = 0.3333
+  1DA23AI001 (class 02): 3/6 = 0.5000
+  1DA23AI004 (class 03): 5/5 = 1.0000
+  1DA23AI005 (class 04): 5/6 = 0.8333
+  1DA23AI009 (class 05): 6/6 = 1.0000
+  1DA23AI011 (class 06): 2/5 = 0.4000
+  1DA23AI024 (class 07): 2/5 = 0.4000
+  1DA23AI025 (class 08): 6/6 = 1.0000
+  1DA23AI031 (class 09): 6/6 = 1.0000
+  1DA23AI033 (class 10): 7/7 = 1.0000
+  1DA23AI036 (class 11): 3/5 = 0.6000
+  1DA23AI042 (class 12): 4/5 = 0.8000
+  1DA23AI044 (class 13): 6/6 = 1.0000
+  1DA23AI047 (class 14): 4/6 = 0.6667
+  1DA23AI049 (class 15): 4/5 = 0.8000
+  1DA23AI050 (class 16): 4/5 = 0.8000
+  1DA23AI055 (class 17): 3/6 = 0.5000
+  1DA23AI059 (class 18): 5/5 = 1.0000
+  1DA24AI403 (class 19): 2/5 = 0.4000
+  1DA24AI404 (class 20): 5/5 = 1.0000
+
+CLASSIFICATION REPORT (Precision / Recall / F1 per student)
+------------------------------------------------------------
+              precision    recall  f1-score   support
+
+  1DA22AI010     0.8333    0.8333    0.8333         6
+  1DA22AI402     0.2857    0.3333    0.3077         6
+  1DA23AI001     1.0000    0.5000    0.6667         6
+  1DA23AI004     0.7143    1.0000    0.8333         5
+  1DA23AI005     0.8333    0.8333    0.8333         6
+  1DA23AI009     0.7500    1.0000    0.8571         6
+  1DA23AI011     1.0000    0.4000    0.5714         5
+  1DA23AI024     0.5000    0.4000    0.4444         5
+  1DA23AI025     0.6667    1.0000    0.8000         6
+  1DA23AI031     1.0000    1.0000    1.0000         6
+  1DA23AI033     1.0000    1.0000    1.0000         7
+  1DA23AI036     0.6000    0.6000    0.6000         5
+  1DA23AI042     1.0000    0.8000    0.8889         5
+  1DA23AI044     1.0000    1.0000    1.0000         6
+  1DA23AI047     1.0000    0.6667    0.8000         6
+  1DA23AI049     0.8000    0.8000    0.8000         5
+  1DA23AI050     1.0000    0.8000    0.8889         5
+  1DA23AI055     1.0000    0.5000    0.6667         6
+  1DA23AI059     0.7143    1.0000    0.8333         5
+  1DA24AI403     0.2857    0.4000    0.3333         5
+  1DA24AI404     0.7143    1.0000    0.8333         5
+
+    accuracy                         0.7607       117
+   macro avg     0.7951    0.7556    0.7520       117
+weighted avg     0.8022    0.7607    0.7583       117
+
+
+======================================================================
+END OF REPORT
+======================================================================
