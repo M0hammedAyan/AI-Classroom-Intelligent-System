@@ -13,21 +13,22 @@
 - [x] HOP dashboard widgets defined (5 KPIs + risk cards)
 - [x] Mentor dashboard widgets defined (4 KPIs + watchlist)
 - [x] Teacher dashboard widgets defined (4 KPIs + quick actions)
+- [x] Student portal dashboard widgets defined (attendance, timetable, scores, assignments)
 - [x] Each role has unique layout, sidebar, and content
 
 ### RBAC Architecture
-- [x] 5 roles defined with hierarchy
-- [x] Permission matrix complete (24 actions × 5 roles)
-- [x] Scope rules defined (institution/school/dept/assigned/class)
+- [x] 6 roles defined with hierarchy (admin, hos, hop, mentor, teacher, student)
+- [x] Permission matrix complete (24 actions × 6 roles)
+- [x] Scope rules defined (institution/school/dept/assigned/class/self)
 - [x] User creation rules defined (who creates whom)
 - [x] Approval workflow designed
 
 ### Database Schema
-- [x] 16 tables designed with all columns
-- [x] Core tables (users, schools, departments, class_sections, subjects, students)
-- [x] Relationship tables (mentor_assignments, teacher_subjects)
-- [x] Academic tables (attendance, scores, assignments, submissions)
-- [x] System tables (risk_flags, access_requests, audit_logs, interventions)
+- [x] 24 tables implemented across 8 model modules in `vista/backend/app/models/`
+- [x] Core tables (users, schools, departments, classrooms, class_sections, subjects, students)
+- [x] Relationship tables (mentor_assignments, teacher_subjects, parent_contacts)
+- [x] Academic tables (attendance, scores, assignments, assignment_submissions, timetable_slots, study_materials, semester_results)
+- [x] System tables (risk_flags, access_requests, audit_logs, interventions, parent_alerts, notifications, announcements)
 
 ### API Architecture
 - [x] Role-scoped endpoints defined (/admin/*, /hos/*, /hop/*, /mentor/*, /teacher/*)

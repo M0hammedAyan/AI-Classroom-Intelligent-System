@@ -2,7 +2,7 @@
 
 AI-powered academic monitoring: face recognition attendance + ML risk prediction + 6-role dashboard.
 
-**Status:** Pilot-ready | **Features:** 50+ | **Endpoints:** 85+ | **Tables:** 24
+**Status:** Pilot-ready | **Features:** 50+ | **Endpoints:** 114 (110 route + 4 core) | **Tables:** 24
 
 ---
 
@@ -27,10 +27,10 @@ Login: `admin@vista.local` / `admin123`
 
 | Module | Function |
 |--------|----------|
-| **Vision** | Identify students from classroom photos (InsightFace ArcFace, 100% accuracy) |
-| **ML** | Predict dropout risk from attendance + scores (XGBoost F1=0.957, SHAP) |
+| **Vision** | Identify students from classroom photos (InsightFace ArcFace / ResNet-50 classifier: 100% on 14-image 2-student pilot test set; 90.10% test accuracy on 20-class .npz split B) |
+| **ML** | Predict dropout risk from attendance + scores (Rule-based engine + XGBoost F1=0.957 on synthetic validation data, SHAP) |
 | **Platform** | 6-role dashboard for Admin, HOS, HOP, Mentor, Teacher, Student |
-| **Alerts** | Auto-notify mentors + parents when student crosses HIGH risk |
+| **Alerts** | In-app notifications for mentors & admins; parent alert queuing in database (external SMS/email gateway planned) |
 
 ---
 
@@ -40,7 +40,7 @@ Login: `admin@vista.local` / `admin123`
 - Per-subject attendance + marks tracking
 - Risk prediction with SHAP explainability
 - Timetable, assignments, study materials, announcements
-- Parent SMS/email alerts
+- Parent alert records (queued in DB; external SMS/email gateway planned)
 - Student PDF reports
 - Dark/light mode for all users (ocean green accent dark theme)
 - Real-time WebSocket dashboard updates
@@ -145,7 +145,9 @@ Login as any role to see role-specific dashboards:
 - **Pipeline monitoring**: Add Prometheus metrics for processing time, success rates, queue depth
 
 
-run command for pipelines
+### Run Command for Pipeline
 
-cd D:\MDA\AI-Classroom-Intelligent-System
-C:\Users\Admin\AppData\Local\Programs\Python\Python312\python.exe vista\vision\facial_pipeline.py
+```bash
+# Run facial pipeline from project root
+python vista/vision/facial_pipeline.py
+```

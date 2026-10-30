@@ -203,6 +203,8 @@ All inputs are per-student, for a specified observation window (default: current
 
 ## 7. Future ML Upgrade Path
 
+> **Implementation Note:** In the current codebase, XGBoost (`XGBClassifier`) and Logistic Regression (`LogisticRegression`) pipelines are already implemented in `ml/train.py`, `ml/risk_engine.py`, and `ml/explainer.py` (SHAP TreeExplainer). They have been trained and validated on synthetic educational data (`model.pkl`). The phases below describe the progression toward training on real-world multi-semester historical outcome labels collected during collegiate pilot operations.
+
 The rule-based engine is designed so the function signature does not change when the model underneath is replaced. The backend calls `calculate_risk(student_id)` — the internals are invisible to it.
 
 ### Phase 2 — Logistic Regression

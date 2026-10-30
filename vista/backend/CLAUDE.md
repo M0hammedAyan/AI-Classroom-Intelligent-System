@@ -17,31 +17,43 @@ early — everyone else is blocked on your decisions for Days 1–3, nobody afte
 4. Wire in Vision (`vision.recognize()`) and Risk (`ml.risk_engine.calculate_risk()`) —
    import their functions, don't reimplement their logic.
 
-## Contract You Own (draft — finalize, don't silently change after Day 3)
-| Endpoint | Method | Request | Response |
-|---|---|---|---|
-| `/api/auth/login` | POST | `{email, password}` | `{token, role}` |
-| `/api/attendance/mark` | POST | `{image: base64, classroom_id}` | `{student_id, name, confidence, status}` |
-| `/api/attendance/log` | GET | `?classroom_id&date` | `[{student_id, name, status, timestamp}]` |
-| `/api/students/{id}/risk` | GET | — | `{student_id, risk_level, reasons}` |
-| `/api/students` | GET | — | `[{student_id, name, class}]` |
-| `/api/export/report` | GET | `?classroom_id&date_range` | PDF/CSV |
+## Contract & Endpoints
+The backend runs on **port 8002** by default (configurable via `PORT` / `UVICORN_PORT`) under the `/api/v1/` prefix. It implements **114 endpoints** in total (110 route endpoints across 14 modules + 4 system endpoints).
 
-If you change a field name or shape after Day 3, that's a team sync, not a silent edit —
-Frontend's mock data will silently break otherwise.
+Key route modules in `app/routes/`:
+- `academics.py` (23 endpoints): Classes, sections, subjects, timetables
+- `admin.py` (29 endpoints): User management, org tree, audit logs
+- `attendance.py` (8 endpoints): Photo attendance, manual mark, session logs
+- `auth.py` (7 endpoints): Login, logout, current user, tokens
+- `dashboards.py` (7 endpoints): Role-scoped analytics for 6 roles
+- `enroll.py` (2 endpoints): Face registration (single & batch)
+- `export.py` (1 endpoint): CSV attendance reports
+- `lms.py` (4 endpoints): Course materials, assignments, submissions
+- `mentor.py` (6 endpoints): Watchlists, interventions, mentor notes
+- `notifications.py` (4 endpoints): Alerts and broadcast messages
+- `reports.py` (1 endpoint): PDF/CSV reports
+- `risk.py` (5 endpoints): Risk flags, on-demand recomputation, SHAP explain
+- `student_portal.py` (10 endpoints): Student self-service access
+- `students.py` (3 endpoints): Student profile and listings
+
+Root & System endpoints:
+- `GET /health` — Service health check
+- `GET /metrics` & `/metrics/json` — Prometheus metrics
+- `WebSocket /ws/dashboard` — Live dashboard broadcast
 
 ## Structure
-- `app/routes/` — one file per resource (auth, attendance, students, risk)
-- `app/models/` — DB models (student, attendance, user)
+- `app/routes/` — 14 route files
+- `app/models/` — 8 model files defining 24 tables (organization, user, student, attendance, timetable, notification, intervention, audit)
 - `app/db.py`, `app/main.py`
-- `mock_server/` — keep in sync with the real contract until Frontend has fully
-  swapped over; don't let it drift
+- `app/scheduler.py` — APScheduler automated daily risk recalculation
+- `app/websocket.py` — WebSocket connection manager
+- `app/monitoring.py` — Prometheus instrumentation
+- `app/cache.py` — Redis with in-memory caching
+- `mock_server/` — mock server for testing
 
 ## Hard Rules
-- DB schema must match `docs/DB_SCHEMA.md` exactly — that's what Member 4's risk engine
-  reads from.
-- Mock server must match the real contract shape, not a simplified version — otherwise
-  Frontend integration in Week 7 breaks.
+- DB schema must match the 24 tables in `app/models/` and `docs/DB_SCHEMA.md`.
+- RBAC enforces 6 roles: `admin`, `hos`, `hop`, `mentor`, `teacher`, `student`.
 
 ## Explicitly Out of Scope Right Now
 - Message queue (RabbitMQ/SQS) for concurrent classroom load

@@ -10,43 +10,50 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    PRESENTATION LAYER                                 │
-│  React SPA (Vite) — Login, Dashboard, AttendanceLog, RiskFlags      │
-│  Communicates via REST API only (src/api/client.js)                  │
+│  React SPA (Vite + Tailwind v4) — Role-scoped portals:               │
+│  Admin, HOS, HOP, Mentor, Teacher, Student                          │
+│  Communicates via REST API + WebSocket (/ws/dashboard)               │
 └───────────────────────────────────┬─────────────────────────────────┘
-                                    │ HTTP/JSON
+                                    │ HTTP/JSON & WebSocket
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    APPLICATION LAYER (FastAPI)                      │
 │                                                                     │
-│  ┌──────────┐  ┌───────────┐  ┌────────────┐  ┌────────┐            │
-│  │ Auth     │  │ Students  │  │ Attendance │  │ Risk   │            │
-│  │ Service  │  │ Service   │  │ Service    │  │ Service│            │
-│  └──────────┘  └───────────┘  └─────┬──────┘  └───┬────┘            │
-│                                     │             │                 │
-└─────────────────────────────────────┼─────────────┼───────────────┘
-                                      │             │
-                    ┌─────────────────┼─────────────┼──────────┐
-                    │                 ▼             ▼          │
-                    │  ┌──────────────────┐  ┌──────────────┐  │
-                    │  │ VISION MODULE    │  │ ML MODULE    │  │
-                    │  │ vista/vision/    │  │ vista/ml/    │  │
-                    │  │                  │  │              │  │
-                    │  │ recognize()      │  │ calculate_   │  │
-                    │  │ → detection      │  │ risk()       │  │
-                    │  │ → embedding      │  │ → features   │  │
-                    │  │ → matching       │  │ → scoring    │  │
-                    │  │ → liveness       │  │ → overrides  │  │
-                    │  └──────────────────┘  └──────────────┘  │
-                    │           INTELLIGENCE LAYER             │
-                    └──────────────────────────────────────────┘
-                                       │
-                                       ▼
-                    ┌───────────────────────────────────────────┐
-                    │           DATA LAYER                      │
-                    │  SQLite (dev) / PostgreSQL (prod)         │
-                    │  Tables: classrooms, students, attendance,│
-                    │          scores, risk_flags, users        │
-                    └───────────────────────────────────────────┘
+│  14 Route Modules: academics, admin, attendance, auth, dashboards,  │
+│  enroll, export, lms, mentor, notifications, reports, risk,         │
+│  student_portal, students (114 endpoints)                           │
+│  Background Services: scheduler.py (APScheduler), websocket.py,     │
+│  audit.py, monitoring.py (Prometheus), cache.py (Redis/memory)      │
+└─────────────────────────────────────┬───────────────────────────────┘
+                                      │
+                    ┌─────────────────┼──────────────────────────┐
+                    │                 ▼                          ▼
+                    │  ┌───────────────────────────┐  ┌──────────────────────┐
+                    │  │ VISION MODULE             │  │ ML MODULE            │
+                    │  │ vista/vision/             │  │ vista/ml/            │
+                    │  │                           │  │                      │
+                    │  │ recognize()               │  │ calculate_risk()     │
+                    │  │ facial_pipeline.py        │  │ features.py          │
+                    │  │ SCRFD + ArcFace R50       │  │ risk_engine.py       │
+                    │  │ personal_classifier.py    │  │ explainer.py (SHAP)  │
+                    │  │ tracker.py (IoU matching) │  │ train.py (XGBoost)   │
+                    │  │ liveness.py (heuristics)  │  │ validate_uci.py      │
+                    │  └───────────────────────────┘  └──────────────────────┘
+                    │                   INTELLIGENCE LAYER                   │
+                    └────────────────────────────────────────────────────────┘
+                                               │
+                                               ▼
+                    ┌────────────────────────────────────────────────────────┐
+                    │                   DATA LAYER                           │
+                    │  PostgreSQL (prod) / SQLite (dev)                      │
+                    │  24 Tables: access_requests, announcements,            │
+                    │  assignment_submissions, assignments, attendance,      │
+                    │  audit_logs, class_sections, classrooms, departments,   │
+                    │  interventions, mentor_assignments, notifications,     │
+                    │  parent_alerts, parent_contacts, risk_flags, schools,  │
+                    │  scores, semester_results, students, study_materials,  │
+                    │  subjects, teacher_subjects, timetable_slots, users    │
+                    └────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -57,52 +64,54 @@
 
 | File | Responsibility | Input | Output |
 |---|---|---|---|
-| `detect.py` | Face detection | Image path | List of face bounding boxes + landmarks |
-| `embed.py` | Embedding extraction | Aligned face crop | 512-dim float vector |
-| `match.py` | Identity matching | Embedding + stored embeddings | Best match student_id + similarity |
-| `liveness.py` | Anti-spoofing | Face crop | Boolean (real/fake) |
-| `recognize.py` | Pipeline orchestrator | Image path | `{student_id, confidence, liveness_passed}` |
-| `enroll.py` | Face registration | Image(s) + student_id | Stored embedding in DB |
+| `detect.py` | Face detection via InsightFace SCRFD | Image path / numpy array | Bounding boxes + 5-point facial landmarks |
+| `embed.py` | Feature extraction via ArcFace R50 | Aligned face crop | 512-dimensional normalized float vector |
+| `match.py` | Cosine similarity gallery matching | Query vector + DB embeddings | Best match `student_id` + similarity score |
+| `personal_classifier.py` | ResNet-50 PyTorch classifier fallback | Face crop (112x112) | Predicted student identity + softmax confidence |
+| `tracker.py` | Multi-frame greedy IoU track manager | Bounding box sequence | Track IDs + active track histories |
+| `liveness.py` | Heuristic anti-spoofing checks | Face crop | Boolean + heuristic metrics (texture, size) |
+| `recognize.py` | Core recognition coordinator | Image path | List of match dictionaries |
+| `facial_pipeline.py` | End-to-end processing script | Image / directory | Formatted attendance output and logs |
+| `enroll.py` | Student enrollment pipeline | Image(s) + `student_id` | Stored 512-dim embedding in DB |
 
 ### 2.2 Backend Module (`vista/backend/app/`)
 
-| File | Responsibility |
+| Component | Responsibility |
 |---|---|
-| `main.py` | FastAPI app, CORS, router registration, startup seed |
-| `db.py` | SQLAlchemy engine, session, table creation, seed data, `get_student_metrics()` |
-| `routes/auth.py` | Login/logout, JWT creation, token validation, role guards |
-| `routes/students.py` | Student list/detail endpoints |
-| `routes/attendance.py` | Mark attendance (vision integration), log, override |
-| `routes/risk.py` | Risk flag endpoints, recompute trigger |
-| `routes/export.py` | CSV export |
-| `models/student.py` | Classroom + Student ORM models |
-| `models/attendance.py` | Attendance + Score + RiskFlag ORM models |
-| `models/user.py` | User ORM model |
+| `main.py` | FastAPI application factory, middleware, CORS, router mounts, Prometheus metrics |
+| `db.py` | SQLAlchemy database engine, session lifecycle, table initialization |
+| `permissions.py` | RBAC access decorators and dependencies for all 6 roles |
+| `scheduler.py` | APScheduler service for daily risk calculations and audit maintenance |
+| `tasks.py` | Asynchronous job queues for background tasks |
+| `websocket.py` | Connection manager and event broadcasting (`/ws/dashboard`) |
+| `audit.py` | Structured audit logging into `audit_logs` table |
+| `monitoring.py` | Prometheus metrics instrumentation and endpoint handlers |
+| `cache.py` | Redis client with in-memory fallback for query caching |
+| `routes/*.py` | 14 API route modules exposing 110 endpoints |
+| `models/*.py` | 8 SQLAlchemy model files defining the 24 relational tables |
 
 ### 2.3 ML Module (`vista/ml/`)
 
 | File | Responsibility |
 |---|---|
-| `features.py` | Compute 8 engineered features from raw metrics |
-| `risk_engine.py` | Rule-based scoring + XGBoost inference + reason generation |
-| `train.py` | Model training pipeline (XGBoost + LR comparison) |
-| `model.pkl` | Serialized trained model artifact |
-| `data/generate_sample_data.py` | Synthetic dataset generator |
-| `data/student_data.csv` | 200-row training dataset |
-| `validate_uci.py` | External dataset validation |
-| `test_risk_engine.py` | 7 integration test cases |
+| `features.py` | Feature extraction computing 8 engineered features + 3 override flags |
+| `risk_engine.py` | Rule-based scoring + XGBoost classification + factor breakdowns |
+| `explainer.py` | SHAP TreeExplainer wrapper for individual risk feature attribution |
+| `train.py` | ML model training pipeline comparing XGBoost and Logistic Regression |
+| `model.pkl` | Serialized trained XGBoost pipeline artifact |
+| `data/generate_sample_data.py` | Synthetic student academic history generator |
+| `data/student_data.csv` | Synthetic dataset for risk training and validation |
+| `validate_uci.py` | Pipeline validation using UCI Student Performance benchmark |
+| `tests/test_risk_engine.py` | 7 automated unit and integration tests |
 
 ### 2.4 Frontend Module (`vista/frontend/src/`)
 
-| File | Responsibility |
+| File / Directory | Responsibility |
 |---|---|
-| `api/client.js` | Centralized API layer — all backend calls |
-| `pages/Login.jsx` | Authentication form |
-| `pages/Dashboard.jsx` | Overview: stats + at-risk students |
-| `pages/AttendanceLog.jsx` | Date-filtered log + override + export |
-| `pages/RiskFlags.jsx` | Risk cards + filter + recompute |
-| `components/Layout.jsx` | Sidebar navigation + user info |
-| `App.jsx` | Routing + auth state management |
+| `api/client.js` | Axios API client configured with auth headers and error handling |
+| `pages/` | Role-specific views for Admin, HOS, HOP, Mentor, Teacher, and Student |
+| `components/` | Reusable UI components (KPI cards, charts, modals, layout) |
+| `App.jsx` | Client routing, role-based route protection, navigation shell |
 
 ---
 
@@ -111,16 +120,16 @@
 ```
 vision/ ──── DOES NOT import from backend/ or ml/
 ml/     ──── DOES NOT import from vision/ or frontend/
-backend/ ─── IMPORTS vision.recognize() and ml.calculate_risk_from_metrics()
-frontend/ ── COMMUNICATES only via HTTP API (never imports Python)
+backend/ ─── IMPORTS vision.facial_pipeline / recognize and ml.risk_engine
+frontend/ ── COMMUNICATES only via HTTP API & WebSocket (never imports Python)
 ```
 
 ### Fixed Entry Points (signatures never change)
 
 ```python
 # vision/recognize.py
-def recognize(image_path: str) -> dict:
-    # Returns: {student_id: str|None, confidence: float, liveness_passed: bool}
+def recognize(image_path: str) -> list[dict]:
+    # Returns: [{student_id: str|None, confidence: float, liveness_passed: bool}]
 
 # ml/risk_engine.py
 def calculate_risk(student_id: str) -> dict:
@@ -136,13 +145,13 @@ def calculate_risk_from_metrics(metrics: StudentMetrics) -> dict:
 
 | Layer | Mechanism |
 |---|---|
-| Authentication | JWT (HS256), 8-hour expiry |
+| Authentication | JWT (HS256), 8-hour expiry default |
 | Password storage | bcrypt, cost factor ≥ 12 |
-| Authorization | Role-based (admin/teacher) via `require_admin` dependency |
-| Token revocation | In-memory blocklist (pilot; Redis in Phase 2) |
-| CORS | Whitelist localhost:3000 and localhost:5173 |
-| Input validation | Pydantic models on all request bodies |
-| File handling | Temp files deleted immediately after vision processing |
+| Authorization | Role-based (admin, hos, hop, mentor, teacher, student) via `require_role` / `permissions.py` |
+| Token revocation | In-memory blocklist / Redis |
+| CORS | Configurable whitelist (`http://localhost:5173`, `http://localhost:3000`) |
+| Input validation | Pydantic v2 schemas across all routes |
+| File handling | Temp upload files sanitized and cleaned up post-inference |
 
 ---
 

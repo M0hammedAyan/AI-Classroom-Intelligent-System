@@ -41,43 +41,38 @@ via face recognition AND identifies at-risk students with explainable prediction
 
 ## 3. Scope Definition
 
-### In Scope (Pilot)
+### In Scope (Implemented)
 
-- Single classroom (CSE-3A), 20–30 students
-- Face detection + recognition from uploaded images
-- Attendance recording with confidence scores
-- Manual attendance override by teachers
-- Rule-based + XGBoost risk scoring
-- Template-based explainable reasons
-- React dashboard with login, attendance log, risk flags
-- CSV export of attendance reports
-- JWT authentication (admin/teacher roles)
+- Multi-tier institution structure (Schools, Departments, Classes, Sections)
+- Face detection (SCRFD) + recognition (ArcFace R50) + ResNet-50 personal classifier fallback
+- Heuristic liveness verification (Laplacian variance, bounding box thresholds)
+- Multi-face tracking via greedy IoU association (`tracker.py`)
+- Attendance recording with confidence scores and manual teacher override
+- Rule-based risk scoring + XGBoost inference + SHAP TreeExplainer (`explainer.py`)
+- React dashboard supporting 6 roles (Admin, HOS, HOP, Mentor, Teacher, Student) with dark/light mode
+- CSV and PDF export for attendance and academic performance reports
+- Real-time updates via WebSocket (`/ws/dashboard`)
+- Automated daily risk evaluation via APScheduler (`scheduler.py`)
+- Student face enrollment (single & batch API in `enroll.py`)
 
-### Out of Scope (Phase 2+)
+### Out of Scope / Future Upgrades
 
-- Multi-classroom / multi-college support
-- Video stream processing / ByteTrack tracking
-- Real-time alerts / WebSocket push
-- LMS integration for score ingestion
-- SHAP-based model explanations
-- Separate dashboards per role (mentor/HOD/student)
-- Cloud deployment / Kubernetes
-- Edge device deployment (Raspberry Pi/Jetson)
-- Supervised ML trained on real outcome labels
-- Token refresh endpoint
-- PDF export
+- Real-time RTSP camera hardware integration
+- Supervised ML trained on multi-semester real institutional outcome records (pilot uses synthetic data + UCI benchmark)
+- Cloud Kubernetes orchestration (pilot uses Docker Compose / local server)
 
 ---
 
 ## 4. User Roles
 
-| Role | Permissions | Pilot Status |
+| Role | Permissions | Status |
 |---|---|---|
-| Admin | All access + risk recompute + user management | ✅ Implemented |
-| Teacher | View attendance, risk flags, override records, export | ✅ Implemented |
-| Mentor | View assigned students' risk trends | ❌ Phase 2 |
-| HOD | Department-level analytics | ❌ Phase 2 |
-| Student | View own attendance/risk | ❌ Phase 2 |
+| Admin | All access + risk recompute + user/org management + audit logs | ✅ Implemented |
+| HOS | School-wide monitoring, departments, staff, student analytics | ✅ Implemented |
+| HOP | Department-level analytics, class assignments, teacher mapping | ✅ Implemented |
+| Mentor | Assigned mentees watchlist, risk tracking, intervention logging | ✅ Implemented |
+| Teacher | Class attendance (photo + manual), marks entry, assignments | ✅ Implemented |
+| Student | Self-service portal: attendance breakdown, timetable, scores, study materials | ✅ Implemented |
 
 ---
 
@@ -85,21 +80,21 @@ via face recognition AND identifies at-risk students with explainable prediction
 
 | ID | Requirement | Priority | Status |
 |---|---|---|---|
-| FR-01 | Detect faces in classroom image | P0 | ❌ Not built |
-| FR-02 | Extract 512-dim face embeddings (ArcFace) | P0 | ❌ Not built |
-| FR-03 | Match embeddings via cosine similarity | P0 | ❌ Not built |
-| FR-04 | Anti-spoofing liveness check | P1 | ❌ Not built |
-| FR-05 | `recognize(image_path)` entry point | P0 | ❌ Not built |
-| FR-06 | Mark attendance via image upload API | P0 | ✅ Implemented (vision stub) |
+| FR-01 | Detect faces in classroom image (SCRFD) | P0 | ✅ Implemented (`detect.py`) |
+| FR-02 | Extract 512-dim face embeddings (ArcFace R50) | P0 | ✅ Implemented (`embed.py`) |
+| FR-03 | Match embeddings via cosine similarity + ResNet classifier | P0 | ✅ Implemented (`match.py`, `personal_classifier.py`) |
+| FR-04 | Anti-spoofing heuristic liveness check | P1 | ✅ Implemented (`liveness.py`) |
+| FR-05 | `recognize(image_path)` entry point | P0 | ✅ Implemented (`recognize.py`) |
+| FR-06 | Mark attendance via image upload API | P0 | ✅ Implemented (`attendance.py`, `facial_pipeline.py`) |
 | FR-07 | Derive absent status at read time | P0 | ✅ Implemented |
 | FR-08 | Manual attendance override | P1 | ✅ Implemented |
-| FR-09 | Compute risk from attendance + scores | P0 | ✅ Implemented |
-| FR-10 | Explainable reasons + recommendations | P0 | ✅ Implemented (template) |
-| FR-11 | Admin-triggered risk recompute | P1 | ✅ Implemented |
-| FR-12 | Role-gated JWT authentication | P0 | ✅ Implemented |
-| FR-13 | Dashboard (attendance + risk overview) | P0 | ✅ Implemented |
-| FR-14 | CSV export of attendance | P1 | ✅ Implemented |
-| FR-15 | Student face enrollment | P0 | ❌ Not built |
+| FR-09 | Compute risk from attendance + scores | P0 | ✅ Implemented (`risk_engine.py`) |
+| FR-10 | Explainable reasons + SHAP recommendations | P0 | ✅ Implemented (`explainer.py`, `risk_engine.py`) |
+| FR-11 | Admin & scheduled daily risk recompute | P1 | ✅ Implemented (`risk.py`, `scheduler.py`) |
+| FR-12 | Role-gated JWT authentication (6 roles) | P0 | ✅ Implemented (`auth.py`, `permissions.py`) |
+| FR-13 | Role-scoped Dashboards (6 portals) | P0 | ✅ Implemented (`dashboards.py`, frontend) |
+| FR-14 | CSV / PDF export of attendance & reports | P1 | ✅ Implemented (`export.py`, `reports.py`) |
+| FR-15 | Student face enrollment (single & batch) | P0 | ✅ Implemented (`enroll.py`) |
 
 ---
 

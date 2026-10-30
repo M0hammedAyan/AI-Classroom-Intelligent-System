@@ -15,27 +15,40 @@ Detect and recognize student faces from a captured image, return a structured re
 This module is standalone — it does not know about the API, the database, or the
 frontend. Backend (Member 2) imports your function; you don't import anything from them.
 
-## Entry Point Contract — do not change the signature without updating the team
+## Entry Point Contract
 ```python
 # vision/recognize.py
-def recognize(image_path: str) -> dict:
+def recognize(
+    image_path: str,
+    gallery: dict[str, list[np.ndarray]] | None = None,
+    match_threshold: float = 0.55,
+) -> list[dict]:
     """
-    Returns: {
-        "student_id": str | None,   # None if no confident match
-        "confidence": float,         # 0.0–1.0
-        "liveness_passed": bool
-    }
+    Returns list of detected face matches:
+    [
+        {
+            "student_id": str | None,   # None if unmatched
+            "confidence": float,         # 0.0–1.0 (cosine similarity or softmax prob)
+            "liveness_passed": bool,     # Heuristic texture/geometry anti-spoofing
+            "method": str,               # "arcface" or "personal_classifier"
+            "bbox": list[int],           # [x1, y1, x2, y2]
+        },
+        ...
+    ]
     """
 ```
 
-## Pipeline
-- `detect.py` — face detection (SCRFD via InsightFace buffalo_l)
-- `embed.py` — embedding utilities (normalize, average, serialize)
-- `match.py` — cosine similarity against stored student embeddings, threshold-based
-- `liveness.py` — basic check (blink/head-turn), not depth-based
-- `recognize.py` — wires the above into the single entry point above
-- `facial_pipeline.py` — **NEW**: End-to-end batch pipeline (30 images → 600 augmented → 512-dim embeddings)
-- `test_recognize.py` — must test against real captured classroom photos, not synthetic/clean data
+## Pipeline Files
+- `detect.py` — Face detection via InsightFace SCRFD (`buffalo_l`)
+- `embed.py` — ArcFace R50 512-dim feature extraction and normalization
+- `match.py` — Cosine similarity matching (default threshold 0.55, env `VISTA_FACE_MATCH_THRESHOLD`)
+- `personal_classifier.py` — PyTorch ResNet-50 classifier trained on `.npz` (`best_model_npz_splitB.pth`, 90.10% accuracy)
+- `tracker.py` — Multi-frame greedy IoU track manager
+- `liveness.py` — Heuristic anti-spoofing (detection confidence, box dimensions, Laplacian texture variance)
+- `recognize.py` — Pipeline orchestrator (checks ArcFace gallery first, invokes personal classifier if unmatched)
+- `enroll.py` — Extracts and averages embeddings from 3–5 enrollment images
+- `facial_pipeline.py` — End-to-end processing script
+- `tests/test_recognize.py` — Automated test suite (7 tests)
 
 ## Hard Rules
 - Use pretrained models. No training a recognition model from scratch — no dataset or

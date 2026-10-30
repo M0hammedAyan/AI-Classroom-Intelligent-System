@@ -12,10 +12,10 @@
 AI-Classroom-Intelligent-System/
   vista/
     backend/         — FastAPI + SQLAlchemy backend
-    frontend/        — React 18 + Vite + Tailwind CSS frontend
-    ml/              — XGBoost model training
-    vision/          — InsightFace face recognition
-    docker/          — Docker configuration
+    frontend/        — React 18 + Vite + Tailwind CSS v4 frontend
+    ml/              — Risk prediction (rule-based + XGBoost)
+    vision/          — InsightFace + ResNet-50 face recognition
+    docker-compose.yml — Docker composition
 ```
 
 ### Backend Architecture
@@ -23,20 +23,23 @@ AI-Classroom-Intelligent-System/
 vista/backend/
   app/
     main.py          — FastAPI entry point
-    models/          — SQLAlchemy models (24 tables)
-    routes/          — API routes (85+ endpoints)
-    services/        — Business logic (attendance, alerts, reporting)
-    middleware/      — Auth middleware (JWT, RBAC, 6 roles)
-  alembic/           — Database migrations
+    models/          — SQLAlchemy models (8 files, 24 tables)
+    routes/          — API routes (14 route modules, 110 endpoints)
+    audit.py         — Audit logging
+    monitoring.py    — Prometheus metrics and monitoring
+    permissions.py   — RBAC logic (6 roles)
+    scheduler.py     — APScheduler background jobs
+    websocket.py     — WebSocket broadcasting
 ```
 
 ### ML Architecture
 ```
 vista/ml/
-  train.py           — XGBoost training (F1=0.957)
-  predict.py         — Risk prediction inference
-  features.py        — Feature engineering
-  models/            — Saved model artifacts
+  train.py           — XGBoost & Logistic Regression training
+  risk_engine.py     — Risk prediction & SHAP pipeline
+  features.py        — Feature engineering (8 features)
+  explainer.py       — SHAP TreeExplainer integration
+  model.pkl          — Saved model artifact
 ```
 
 ### Vision Architecture
@@ -57,7 +60,7 @@ vista/vision/
 | SQLAlchemy | orm | 2.x |
 | React | framework | 18.x |
 | Vite | build-tool | 5.x |
-| Tailwind CSS | framework | 3.x |
+| Tailwind CSS | framework | 4.x |
 | InsightFace | cv-library | — |
 | SCRFD | model | face-detection |
 | ArcFace R50 | model | face-recognition |
@@ -105,7 +108,7 @@ graph TD
 | Name | Path | Type |
 |---|---|---|
 | Backend Entry | vista/backend/app/main.py | server |
-| Frontend Entry | vista/frontend/src/main.tsx | app |
+| Frontend Entry | vista/frontend/src/main.jsx | app |
 | ML Training | vista/ml/train.py | script |
 | Docker Compose | vista/docker-compose.yml | infra |
 

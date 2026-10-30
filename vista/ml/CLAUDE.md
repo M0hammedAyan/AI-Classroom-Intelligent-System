@@ -73,6 +73,7 @@ snake_case for all Python files and function names.
 | `test_risk_engine.py` | Done | 7 test cases from `RISK_ENGINE_SPEC.md` — run with `python -m ml.test_risk_engine` |
 | `validate_uci.py` | Done | UCI dataset sanity checker — run with `python -m ml.validate_uci --file path/to/student-mat.csv` |
 | `train.py` | Done | Trains XGBoost + LR on synthetic data; XGBoost selected (macro F1 = 0.957) |
+| `explainer.py` | Done | SHAP TreeExplainer for per-prediction feature attribution and reason generation |
 | `data/generate_sample_data.py` | Done | 200-student synthetic dataset generator |
 | `__init__.py` | Done | Exports public API: `calculate_risk`, `calculate_risk_from_metrics`, `run_pipeline` |
 | DB wiring (`_load_student_metrics`) | Done | Calls `backend/app/db.get_student_metrics()` — fully functional when DB is available |

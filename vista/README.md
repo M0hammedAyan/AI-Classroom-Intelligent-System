@@ -13,7 +13,7 @@ An AI-powered academic intelligence platform combining automated face recognitio
 - **Real-Time Dashboard** — React SPA with attendance logs, risk flags, statistics, and WebSocket updates
 - **LMS Integration** — Import scores from CSV or Moodle API
 - **PDF/CSV Export** — Attendance reports in both formats
-- **ByteTrack Tracking** — Multi-face temporal tracking for video-based attendance
+- **ByteTrack-Style Tracking** — Multi-face temporal tracking using IoU greedy association for video-based attendance
 
 ---
 
@@ -27,7 +27,7 @@ Camera/Image Upload
 │  Vision Module  │────▶│  FastAPI Backend  │────▶│  React SPA   │
 │  InsightFace    │     │  SQLAlchemy ORM   │     │  Vite + CSS  │
 │  ArcFace R50    │     │  JWT Auth         │     │              │
-│  ByteTrack      │     │  WebSocket        │     │  Dashboard   │
+│  ByteTrack IoU  │     │  WebSocket        │     │  Dashboard   │
 └─────────────────┘     └────────┬──────────┘     │  Risk Flags  │
                                  │                │  Enrollment  │
                         ┌────────▼──────────┐     │  Statistics  │
@@ -51,7 +51,7 @@ Camera/Image Upload
 ### Backend
 
 ```bash
-cd "D:\MY_Projects\Major Project\AI-Classroom-Intelligent-System"
+# From repository root
 pip install -r vista/requirements.txt
 python -m uvicorn vista.backend.app.main:app --host 127.0.0.1 --port 8002
 ```
@@ -77,7 +77,9 @@ Frontend runs at `http://localhost:5173` (or next available port).
 
 ---
 
-## API Endpoints (24 routes)
+## API Endpoints (114 Total Endpoints across 14 Route Modules)
+
+> The backend contains 110 route endpoints across 14 modules, plus 4 core endpoints (`/health`, `/metrics`, `/metrics/json`, `/ws/dashboard`). Below is a representative sample of primary routes; full interactive documentation is available at `/docs`.
 
 | Category | Endpoint | Method |
 |---|---|---|
@@ -110,30 +112,31 @@ Frontend runs at `http://localhost:5173` (or next available port).
 ```
 vista/
 ├── backend/app/          # FastAPI application
-│   ├── routes/           # API endpoints (auth, attendance, risk, export, enroll, lms)
-│   ├── models/           # SQLAlchemy ORM models
+│   ├── routes/           # 14 route modules (auth, students, attendance, risk, export, enroll, lms, admin, mentor, dashboards, student_portal, notifications, reports, academics)
+│   ├── models/           # 8 SQLAlchemy ORM model files (24 tables)
 │   ├── db.py             # Database engine + seed data
 │   ├── websocket.py      # Real-time WebSocket manager
 │   ├── scheduler.py      # APScheduler cron jobs
 │   └── main.py           # App entry point
 ├── frontend/src/         # React SPA
-│   ├── pages/            # Login, Dashboard, AttendanceLog, RiskFlags, Enroll, TestRecognition, StudentDetail
-│   ├── components/       # Layout, ShapChart
+│   ├── pages/            # Login, Dashboard, AttendanceLog, RiskFlags, Enroll, TestRecognition, StudentDetail, etc.
+│   ├── components/       # Layout, ShapChart, etc.
 │   └── api/client.js     # Centralized API client
 ├── ml/                   # Machine Learning
 │   ├── features.py       # 8 engineered features
 │   ├── risk_engine.py    # Rule-based + XGBoost + SHAP
 │   ├── explainer.py      # SHAP TreeExplainer integration
 │   ├── train.py          # Model training pipeline
-│   └── model.pkl         # Trained XGBoost (F1=0.957)
+│   └── model.pkl         # Trained XGBoost artifact (F1=0.957 on synthetic data)
 ├── vision/               # Computer Vision
 │   ├── detect.py         # SCRFD face detection
 │   ├── embed.py          # ArcFace R50 embeddings
-│   ├── match.py          # Cosine similarity matching
-│   ├── liveness.py       # Anti-spoofing heuristics
+│   ├── match.py          # Cosine similarity matching (default threshold 0.55)
+│   ├── liveness.py       # Anti-spoofing heuristics (Laplacian + face size)
+│   ├── personal_classifier.py # Personal ResNet-50 checkpoint adapter
 │   ├── recognize.py      # Pipeline orchestrator
 │   ├── enroll.py         # Face enrollment
-│   └── tracker.py        # ByteTrack multi-face tracking
+│   └── tracker.py        # ByteTrack-inspired IoU multi-face tracking
 ├── docs/                 # Contract documents (API, DB schema, specs)
 ├── md-docs/              # Architecture & planning documents
 ├── docker-compose.yml    # Docker deployment
@@ -148,8 +151,8 @@ vista/
 | Layer | Technology |
 |---|---|
 | Face Detection | SCRFD (InsightFace) |
-| Face Recognition | ArcFace R50 (512-dim embeddings) |
-| Face Tracking | ByteTrack (IoU + Kalman) |
+| Face Recognition | ArcFace R50 (512-dim embeddings) & Personal ResNet-50 classifier |
+| Face Tracking | ByteTrack-style (IoU greedy matching; no Kalman filter) |
 | Risk ML | XGBoost + Logistic Regression |
 | Explainability | SHAP TreeExplainer |
 | Backend | FastAPI + SQLAlchemy |
@@ -167,7 +170,7 @@ vista/
 # ML tests (7 test cases)
 python -m vista.ml.test_risk_engine
 
-# Vision tests (6 test cases)
+# Vision tests (7 test cases)
 python -m vista.vision.test_recognize
 
 # Frontend build check

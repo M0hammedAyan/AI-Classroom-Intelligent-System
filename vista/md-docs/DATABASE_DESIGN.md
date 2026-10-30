@@ -128,14 +128,47 @@
 | name | TEXT | NOT NULL |
 | email | TEXT | UNIQUE, NOT NULL |
 | password_hash | TEXT | NOT NULL (bcrypt) |
-| role | TEXT | NOT NULL: admin/teacher |
+| role | TEXT | NOT NULL: admin, hos, hop, mentor, teacher, student |
 | is_active | BOOLEAN | NOT NULL, DEFAULT true |
 | last_login_at | TEXT | nullable |
 | created_at | TEXT | NOT NULL |
 
 ---
 
-## 4. Indexing Strategy
+## 4. Full Production Schema (24 Tables across 8 Modules)
+
+The complete backend database expands beyond the 6 pilot tables to 24 tables defined across 8 SQLAlchemy model files in `vista/backend/app/models/`:
+
+| Model File | Table Name | Key Purpose |
+|---|---|---|
+| `organization.py` | `schools` | Academic institutions / faculties |
+| `organization.py` | `departments` | Academic departments within schools |
+| `organization.py` | `classrooms` | Physical or virtual classroom spaces |
+| `organization.py` | `class_sections` | Student batch / section groupings |
+| `organization.py` | `subjects` | Courses / academic subjects |
+| `organization.py` | `teacher_subjects` | Mapping of teachers to taught subjects |
+| `organization.py` | `access_requests` | Role/class permission escalation workflows |
+| `user.py` | `users` | System user accounts and authentication credentials (6 roles) |
+| `student.py` | `students` | Student records, roll numbers, and embedded face vectors |
+| `student.py` | `semester_results` | Historical semester SGPA/CGPA and backlogs |
+| `student.py` | `study_materials` | Uploaded academic documents and syllabi |
+| `attendance.py` | `attendance` | Per-session facial and manual attendance logs |
+| `attendance.py` | `scores` | Internal assessment and exam marks |
+| `attendance.py` | `risk_flags` | Computed academic risk scores, levels, and factor JSON |
+| `attendance.py` | `parent_alerts` | Automated communication log for parent absence notices |
+| `timetable.py` | `timetable_slots` | Weekly scheduled periods by day, time, subject, room |
+| `notification.py` | `notifications` | Role-targeted system notifications |
+| `notification.py` | `announcements` | Institution and department-wide broadcast notices |
+| `intervention.py` | `interventions` | Remedial counselling logs, action items, and outcomes |
+| `intervention.py` | `mentor_assignments` | Student-to-faculty mentor mappings |
+| `intervention.py` | `parent_contacts` | Directory of parent contact phone numbers and emails |
+| `audit.py` | `audit_logs` | Security and access audit trail |
+| `student.py` / LMS | `assignments` | LMS coursework and homework assignments |
+| `student.py` / LMS | `assignment_submissions` | Student assignment file uploads and marks |
+
+---
+
+## 5. Indexing Strategy
 
 | Table | Index | Purpose |
 |---|---|---|
@@ -144,22 +177,23 @@
 | scores | (student_id, date) | Score trend queries |
 | risk_flags | (student_id, calculated_at DESC) | Latest risk per student |
 | users | (email) UNIQUE | Login lookup |
+| audit_logs | (timestamp DESC, user_id) | Compliance review |
 
 ---
 
-## 5. Seed Data (Auto-generated on Startup)
+## 6. Seed Data (Auto-generated on Startup)
 
-- 1 classroom (CSE-3A)
-- 2 users (admin + teacher)
-- 5 students with realistic profiles
-- 8 weeks of attendance data (varied patterns)
-- 3 assessments per student
-- Risk flags computed via ML engine on startup
+- Multi-tier institution structure (DSATM -> AIML Dept -> Sections)
+- Seed users for all 6 roles (admin, hos, hop, mentor, teacher, student)
+- Enrolled students with facial embeddings
+- Timetable slots across 6 working days
+- Multi-week attendance sessions with varied attendance patterns
+- Historical assessment scores and seeded risk assessments
 
 ---
 
-## 6. Migration Strategy
+## 7. Migration Strategy
 
-- **Pilot:** Drop and recreate on schema changes (acceptable for dev)
-- **Phase 2:** Alembic migrations for PostgreSQL
-- **Data preservation:** Seed script is idempotent (checks `classroom.count > 0`)
+- **Development:** Automatic creation on startup via `Base.metadata.create_all(bind=engine)` in `db.py`
+- **Production:** PostgreSQL with persistent storage volumes
+- **Data preservation:** Seed script is idempotent (checks `User.count > 0` and `School.count > 0`)

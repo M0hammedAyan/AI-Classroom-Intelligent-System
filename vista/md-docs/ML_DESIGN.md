@@ -123,31 +123,28 @@ validation on actual student outcomes (Phase 2).
 
 ---
 
-## 8. Explainability Strategy
+### Current Implementations
 
-### Current (Template-Based)
+1. **Rule-Based Template Reasons:**
+   Reasons generated from feature thresholds in `risk_engine.py`:
+   ```python
+   if attendance_percentage < 75:
+       reasons.append(f"Attendance at {pct:.0f}% — below 75% threshold")
+   ```
+   - Max 4 reasons, ordered by weighted contribution
+   - Max 3 recommendations, matched to risk level
 
-Reasons generated from feature thresholds:
-```python
-if attendance_percentage < 75:
-    reasons.append(f"Attendance at {pct:.0f}% — below 75% threshold")
-```
-- Max 4 reasons, ordered by weighted contribution
-- Max 3 recommendations, matched to risk level
-
-### Phase 2 (SHAP)
-
-```python
-import shap
-explainer = shap.TreeExplainer(xgb_model)
-shap_values = explainer.shap_values(feature_vector)
-# Convert top SHAP contributors → human-readable reasons
-```
+2. **SHAP TreeExplainer (Implemented in `vista/ml/explainer.py`):**
+   ```python
+   from vista.ml.explainer import explain_prediction
+   reasons = explain_prediction(feature_vector, model_artifact)
+   ```
+   Uses SHAP `TreeExplainer` on the trained XGBoost model (`model.pkl`) to compute per-feature attribution for each risk prediction class (LOW, MEDIUM, HIGH), converting raw SHAP values into top human-readable driver statements.
 
 Benefits:
 - Per-prediction explanations (not just global importance)
-- Quantifies HOW MUCH each feature contributed
-- Direction-aware (pushed toward HIGH vs pushed toward LOW)
+- Quantifies HOW MUCH each feature contributed to the specific risk classification
+- Direction-aware (identifies factors pushing toward HIGH vs LOW)
 
 ---
 

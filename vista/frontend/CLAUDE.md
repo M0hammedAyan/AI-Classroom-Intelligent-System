@@ -1,51 +1,41 @@
 # CLAUDE.md — frontend/ (Member 3: Frontend & Dashboard Lead)
 
 ## Project Context
-VISTA is a 4-person college MVP: face-recognition attendance + academic risk flagging.
-**Current scope: pilot only — one classroom, 20–30 students, one dashboard.** The
-original report's separate Admin/Teacher/Student dashboards are Phase 2 — build a
-single role-gated dashboard for now, not three.
+VISTA is an AI classroom management platform providing automated facial attendance marking and predictive student risk detection.
+**Implementation Scope:** Full 6-role workspace (Admin, HOS, HOP, Mentor, Teacher, Student) built with React 19, Vite, and Tailwind CSS v4.
 
 ## Your Module's Job
-Build the UI against `docs/API_CONTRACT.md`, using Backend's `mock_server/` or mocked
-JSON matching that contract. **Do not wait for the real backend to exist** — that's the
-entire point of the contract being frozen Day 3.
+Build and maintain the UI against `docs/API_CONTRACT.md` and the FastAPI backend running on port 8002 (proxied via `vite.config.js`).
 
-## Pages (pilot scope only)
-- `Login.jsx` — role-gated login (admin/teacher)
-- `Dashboard.jsx` — overview: attendance summary + risk flags at a glance
-- `AttendanceLog.jsx` — per-classroom attendance log, filterable by date
-- `RiskFlags.jsx` — list of flagged students with risk level + reasons
+## Pages & Role Dashboards
+The application provides scoped dashboards and views across all 6 roles:
+- `Login.jsx` — Authentication and role-based redirect
+- **Admin:** Institution tree, User CRUD, Role permissions, Analytics, System audit logs
+- **HOS:** School KPI summary, Department performance, Staff directory, Student analytics
+- **HOP:** Department risk center, Class and timetable assignments, Teacher subject mapping
+- **Mentor:** Assigned student watchlist, SHAP factor breakdown, Intervention logging
+- **Teacher:** Today's timetable, Photo attendance marking, Attendance log & overrides, Marks entry
+- **Student:** Personal attendance breakdown, Timetable, Internal assessment marks, Study materials
 
 ## Integration Rule
-All backend calls go through `src/api/client.js` — nowhere else. When Backend's real
-API goes live (~Week 7), the only change needed is the base URL in that one file. If
-you call endpoints directly from components instead, that swap becomes a multi-file
-refactor instead of a one-line change.
+All backend calls go through `src/api/client.js` with Axios, using the `http://localhost:8002/api/v1` base URL. Live metrics and alerts update via WebSocket (`/ws/dashboard`).
 
 ## Contract Reference (build mocks matching this exactly)
 | Endpoint | Method | Response shape |
 |---|---|---|
-| `/api/auth/login` | POST | `{token, role}` |
-| `/api/attendance/mark` | POST | `{student_id, name, confidence, status}` |
-| `/api/attendance/log` | GET | `[{student_id, name, status, timestamp}]` |
-| `/api/students/{id}/risk` | GET | `{student_id, risk_level, reasons}` |
-| `/api/students` | GET | `[{student_id, name, class}]` |
-| `/api/export/report` | GET | PDF/CSV file |
+| `/api/v1/auth/login` | POST | `{token, role, user_id, name}` |
+| `/api/v1/attendance/mark` | POST | `{marked_count, records: [...]}` |
+| `/api/v1/attendance/log` | GET | `[{student_id, name, status, timestamp}]` |
+| `/api/v1/students/{id}/risk` | GET | `{student_id, risk_level, reasons, recommendations}` |
+| `/api/v1/students` | GET | `[{student_id, name, class}]` |
+| `/api/v1/export/report` | GET | PDF/CSV file |
+| `/ws/dashboard` | WebSocket | Real-time KPI broadcasts |
 
-Check `docs/API_CONTRACT.md` for the current version — Member 2 owns it and may have
-finalized details beyond this draft.
+Check `docs/API_CONTRACT.md` and `md-docs/API_SPEC.md` for full endpoint details.
 
 ## Hard Rules
-- Mock data must match the contract shape exactly, including field names — sloppy
-  mocks here are what cause the Week 7 integration to break.
-- This is a pilot demo, not an investor-ready product yet. Functional and clean beats
-  pixel-perfect. Don't sink hours into polish the timeline doesn't have room for.
-
-## Explicitly Out of Scope Right Now
-- Separate Teacher/Mentor/Admin dashboards (Phase 2)
-- Real-time alerts / live updates
-- Performance graph library beyond basic charts
+- Maintain consistency with the 114 endpoints and 6 roles implemented in backend.
+- Use Tailwind CSS v4 design tokens and responsive classes. Dark/light mode toggle supported.
 
 ## File/Naming Conventions
 camelCase for JS variables/functions, PascalCase for component filenames (`Login.jsx`,

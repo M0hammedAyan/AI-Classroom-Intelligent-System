@@ -28,7 +28,7 @@ The frontend already sends the photo to the backend. The integration work belong
 
 - [x] Keep SCRFD face detection for locating faces in the submitted photo.
 - [x] Keep the existing liveness check before writing attendance.
-- [x] Crop each detected face from the submitted image and pass it to the personal classifier.
+- [x] Crop each detected face from the submitted image and pass it to the personal classifier (in `recognize.py`, enrolled database gallery ArcFace matching is evaluated first; if unmatched, the personal ResNet-50 classifier is invoked).
 - [x] Use the personal classifier in both `recognize()` and `recognize_all()`.
 - [x] Preserve the existing result contract: `student_id`, `confidence`, and `liveness_passed`.
 - [x] Preserve multi-face deduplication for classroom photos.

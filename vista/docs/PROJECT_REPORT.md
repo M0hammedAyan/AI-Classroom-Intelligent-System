@@ -14,9 +14,9 @@ monitoring system that combines face recognition attendance with machine learnin
 prediction to identify at-risk students before they fail.
 
 **Key Results:**
-- Face recognition: 100% accuracy on real student photos (14 images, 2 students)
+- Face recognition: 100% accuracy on real student photos (14 images, 2 students; 90.10% test accuracy on 20-class .npz split B)
 - Risk engine: F1 = 0.957 on synthetic validation pipeline
-- System: 85+ API endpoints, 6-role RBAC, real-time WebSocket updates
+- System: 114 API endpoints (110 route across 14 modules + 4 core), 6-role RBAC, real-time WebSocket updates
 - Frontend: Enterprise-grade React dashboard with dark/light themes
 - 24 database tables, 50+ features, role-specific dashboards
 - Zero-warning production build, Docker-ready deployment
@@ -235,9 +235,9 @@ Student Data → Feature Engineering → XGBoost Model → Rule Engine → Final
 
 | Rule | Condition | Action |
 |------|-----------|--------|
-| Chronic absence | >5 consecutive days | Force HIGH |
+| Chronic absence | ≥7 consecutive days | Force HIGH |
 | Attendance critical | <50% | Force HIGH |
-| Marks collapse | Average < 30% | Force HIGH |
+| Marks collapse | Average < 35% | Force HIGH |
 | Attendance warning | <75% | Boost to MEDIUM min |
 | Score decline | >20% drop | Boost by 0.15 |
 
@@ -263,7 +263,8 @@ Real-world accuracy will be measured during the pilot phase.
 Image → SCRFD Detection → Face Crop → ArcFace R50 → 512-dim Embedding
                                                           ↓
                                               Cosine Similarity Match
-                                              (threshold: 0.45)
+                                              (threshold: 0.55)
+                                              + Personal ResNet-50 Classifier
                                                           ↓
                                               Student ID + Confidence
 ```
@@ -350,12 +351,12 @@ Runs: PostgreSQL, Redis, Gunicorn (4 workers), Celery, Nginx (port 80)
 vista/
 ├── backend/
 │   └── app/
-│       ├── main.py              # FastAPI app + middleware
+│       ├── main.py              # FastAPI app + middleware (114 endpoints)
 │       ├── db.py                # Database engine + seed data
 │       ├── models/              # 8 model files (24 tables)
-│       ├── routes/              # 14 route files (70+ endpoints)
+│       ├── routes/              # 14 route files (110 endpoints)
 │       ├── monitoring.py        # Prometheus + logging
-│       ├── permissions.py       # RBAC logic
+│       ├── permissions.py       # RBAC logic (6 roles)
 │       ├── scheduler.py         # Periodic risk recomputation
 │       └── websocket.py         # Real-time broadcast
 ├── frontend/
@@ -367,15 +368,20 @@ vista/
 │       └── styles/              # Design system CSS
 ├── ml/
 │   ├── risk_engine.py           # Main prediction pipeline
-│   ├── features.py              # Feature engineering
-│   ├── train.py                 # XGBoost training
+│   ├── features.py              # Feature engineering (8 features)
+│   ├── explainer.py             # SHAP TreeExplainer
+│   ├── train.py                 # XGBoost & Logistic Regression training
 │   └── data/                    # Sample data generator
 ├── vision/
 │   ├── recognize.py             # Face recognition entry point
 │   ├── enroll.py                # Face enrollment
-│   ├── detector.py              # SCRFD face detection
-│   ├── embedder.py              # ArcFace embedding
-│   └── tracker.py               # ByteTrack multi-face
+│   ├── detect.py                # SCRFD face detection
+│   ├── embed.py                 # ArcFace embedding
+│   ├── match.py                 # Cosine similarity matching
+│   ├── liveness.py              # Heuristic anti-spoofing
+│   ├── personal_classifier.py   # ResNet-50 checkpoint runtime adapter
+│   ├── facial_pipeline.py       # Augmentation & batch embedding pipeline
+│   └── tracker.py               # ByteTrack-style IoU tracker
 ├── docs/
 │   ├── IEEE_PAPER.md            # Research paper draft
 │   └── PROJECT_REPORT.md        # This document
@@ -403,7 +409,7 @@ vista/
 | Metric | Value |
 |--------|-------|
 | Total features | 50+ |
-| API endpoints | 85+ |
+| API endpoints | 114 (110 route + 4 core) |
 | Database tables | 24 |
 | Frontend pages | 22 |
 | Frontend components | 8 |

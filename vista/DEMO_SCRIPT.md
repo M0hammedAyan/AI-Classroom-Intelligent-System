@@ -56,7 +56,7 @@
 - Show reasons update in real-time
 
 ### 8. Technical Highlights (2 min)
-- Open `/docs` (FastAPI Swagger) — show all 24 endpoints
+- Open `/docs` (FastAPI Swagger) — show all 114 endpoints
 - Mention: "Architecture supports Docker deployment, PostgreSQL, WebSocket real-time updates"
 - Mention SHAP explainability: "Not a black box — every prediction is explainable"
 
@@ -87,7 +87,7 @@
 
 | Question | Answer |
 |---|---|
-| "What's the accuracy?" | "XGBoost F1=0.957 on risk prediction. Face recognition depends on enrollment quality — typically >95% at 1-2m distance." |
+| "What's the accuracy?" | "XGBoost macro F1=0.957 on synthetic validation data. Face recognition reached 100% on the 14-image 2-student pilot test set, and 90.10% test accuracy on the 20-class .npz split B personal classifier." |
 | "Can it handle 100 students?" | "Current brute-force matching works up to ~100. Beyond that, we'd add FAISS indexing." |
 | "What about privacy?" | "All data stays on-premise. No cloud calls. Embeddings are non-reversible — you can't reconstruct a face from them." |
 | "Is this real-time?" | "Single image: <2s on CPU. Video stream: ByteTrack handles frame-by-frame with temporal deduplication." |

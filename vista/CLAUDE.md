@@ -29,13 +29,16 @@ VISTA solves this by answering:
 - What interventions are recommended?
 - How is performance changing over time?
 
-### Expected Users
-
+### Implemented Roles
+ 
 | Role | Access |
 |---|---|
-| Teacher | View attendance, risk flags, override records, export reports |
-| Admin | All teacher access + recompute risk, manage users |
-| (Phase 2) Mentor, HOD, Student | Not built in pilot |
+| Admin | Full system control: schools, departments, classes, subjects, users, risk, reports |
+| HOS | Head of School: school-scoped departments, staff, students, analytics |
+| HOP | Head of Program/Dept: department classes, teacher assignments, subjects, risk center |
+| Teacher | Assigned subjects & classes: mark attendance, enter marks, assignments |
+| Mentor | Assigned student watchlist, interventions, risk tracking |
+| Student | Own dashboard: timetable, attendance by subject, scores, materials, notices |
 
 ---
 
@@ -171,15 +174,15 @@ Admin triggers recompute → POST /api/v1/students/{id}/risk/recompute
 
 | Paper | Algorithm | VISTA Component | Status |
 |---|---|---|---|
-| ArcFace (Deng, CVPR 2019) | Angular margin loss, R100 embedding | `vision/embed.py` | ❌ Not implemented |
-| RetinaFace / SCRFD (InsightFace) | Multi-task face detection | `vision/detect.py` | ❌ Not implemented |
-| InsightFace toolkit | Unified detect + recognize | `vision/recognize.py` | ❌ Not implemented |
-| ByteTrack (Zhang, ECCV 2022) | Two-stage IoU + Kalman tracking | Not in codebase | ❌ Phase 2 only |
+| ArcFace (Deng, CVPR 2019) | Angular margin loss, R50 embedding | `vision/embed.py`, `vision/recognize.py` | ✅ Implemented (buffalo_l R50) |
+| RetinaFace / SCRFD (InsightFace) | Multi-task face detection | `vision/detect.py` | ✅ Implemented (SCRFD 500M) |
+| InsightFace toolkit | Unified detect + recognize | `vision/recognize.py` | ✅ Implemented |
+| ByteTrack (Zhang, ECCV 2022) | Two-stage IoU association | `vision/tracker.py` | ✅ Implemented (IoU greedy association, without Kalman) |
 | Deep OC-SORT (Maggiolino, 2023) | Observation-centric + ReID | Not in codebase | ❌ Phase 4 only |
 | DeepSORT (Wojke, 2017) | Kalman + appearance ReID | Not in codebase | ❌ Superseded by ByteTrack |
 | XGBoost (Chen & Guestrin, 2016) | Gradient boosted trees | `ml/train.py`, `ml/risk_engine.py` | ✅ Implemented |
 | Logistic Regression | Linear classifier | `ml/train.py` | ✅ Implemented |
-| SHAP (Lundberg & Lee, 2017) | Shapley value explanations | Not in codebase | ❌ Milestone 4 |
+| SHAP (Lundberg & Lee, 2017) | Shapley value explanations | `ml/explainer.py`, `ml/risk_engine.py` | ✅ Implemented (TreeExplainer) |
 | FaceNet (Schroff, 2015) | Triplet loss embeddings | Not used (ArcFace preferred) | — |
 | KappaFace | Adaptive margin | Not in codebase | ❌ Research only |
 | Ramya et al. (2025) | AI attendance monitoring | Overall architecture | ⚠️ Partially aligned |
@@ -206,50 +209,53 @@ Admin triggers recompute → POST /api/v1/students/{id}/risk/recompute
 |---|---|---|
 | ML | `features.py` | 8 features per FEATURE_ENGINEERING.md |
 | ML | `risk_engine.py` | Rule-based + XGBoost dual path, DB-wired |
-| ML | `train.py` | XGBoost wins (F1=0.957), saved as model.pkl |
+| ML | `explainer.py` | SHAP TreeExplainer integration |
+| ML | `train.py` | XGBoost wins (F1=0.957 on synthetic data), saved as model.pkl |
 | ML | `test_risk_engine.py` | 7/7 tests pass |
 | ML | `validate_uci.py` | UCI dataset sanity checker |
 | ML | `__init__.py` | Public API exports |
-| Backend | Auth routes | Login/logout, JWT, role guards |
-| Backend | Student routes | List/detail |
-| Backend | Attendance routes | Mark (vision stub), log (derived absent), override |
-| Backend | Risk routes | Get, list, recompute |
-| Backend | Export route | CSV (PDF not implemented) |
-| Backend | DB + Models | All tables, seed data with realistic patterns |
-| Backend | Mock server | Full contract-shaped fixture data |
-| Frontend | Login page | Email/password, demo credentials shown |
-| Frontend | Dashboard | Stats grid + at-risk students list |
-| Frontend | Attendance Log | Date filter, status badges, override, CSV export |
-| Frontend | Risk Flags | Cards, filter, admin recompute button |
-| Frontend | Layout | Sidebar nav, user info, logout |
-| Frontend | API client | Centralized, auth-aware |
-| Docs | All 7 contract documents | Frozen, comprehensive |
+| Vision | `detect.py` | SCRFD face detection via InsightFace buffalo_l |
+| Vision | `embed.py` | ArcFace R50 embedding extraction (512-dim) |
+| Vision | `match.py` | Cosine similarity matching (threshold 0.55) |
+| Vision | `liveness.py` | Anti-spoofing heuristics (face size, detection conf, Laplacian variance) |
+| Vision | `personal_classifier.py` | Personally trained ResNet-50 PyTorch checkpoint runtime adapter |
+| Vision | `recognize.py` | Pipeline orchestrator (`recognize` and `recognize_all`) |
+| Vision | `enroll.py` | Face enrollment with embedding averaging |
+| Vision | `tracker.py` | ByteTrack-style IoU greedy association tracking |
+| Vision | `facial_pipeline.py` | End-to-end Albumentations augmentation + ArcFace feature extraction pipeline |
+| Vision | `test_recognize.py` | 7 integration test cases |
+| Backend | Routes (14 modules) | 110 endpoints across auth, students, attendance, risk, export, enroll, lms, admin, mentor, dashboards, student_portal, notifications, reports, academics |
+| Backend | Attendance routes | Real vision integration (`recognize` and `recognize_all`), log, override, video |
+| Backend | Risk routes | Get, list, recompute, recompute-all, SHAP explain |
+| Backend | Export & Reports | CSV export + ReportLab PDF export + student PDF report |
+| Backend | DB + Models | 8 model files, 24 tables, seed data with realistic patterns |
+| Backend | Core services | WebSocket broadcasting, APScheduler jobs, Prometheus metrics, audit logging |
+| Frontend | React SPA | 6 role-based dashboards (Admin, HOS, HOP, Mentor, Teacher, Student), dark/light theme |
+| Frontend | API client | Centralized, auth-aware client in `src/api/client.js` |
+| Docs | Contract documents | API contract, DB schema, specs, reports |
 
-### Not Built ❌ (Vision Module — Critical Path)
+### Planned / In Progress ⏳
 
-| File | What It Does | Blocks |
+| Feature | Description | Status |
 |---|---|---|
-| `vision/detect.py` | SCRFD face detection | Everything in vision |
-| `vision/embed.py` | ArcFace R50 embedding | Matching |
-| `vision/match.py` | Cosine similarity matching | Recognition |
-| `vision/liveness.py` | MiniFASNet anti-spoofing | Full pipeline |
-| `vision/recognize.py` | Pipeline orchestrator | Backend integration |
-| `vision/test_recognize.py` | Integration tests | Validation |
-| `vision/enroll.py` or `enroll_cli.py` | Face registration | Having embeddings to match against |
+| Deep Learning Anti-Spoofing | MiniFASNet / Silent-FAS to replace current heuristic liveness | Planned (Phase 2) |
+| External SMS/Email Alerts | Real Twilio/SendGrid integration for `ParentAlert` queue | Planned |
+| Kalman Filter in Tracker | Full ByteTrack Kalman filter state estimation | Planned |
+| Real-World College Model | Supervised ML trained on real multi-semester academic failure labels | Planned (Post-Pilot) |
 
 ---
 
 ## 7. Roadmap & Milestones
 
-| # | Milestone | Status | Next Action |
+| # | Milestone | Status | Deliverables |
 |---|---|---|---|
-| M0 | Planning & Documentation | ✅ Complete | — |
-| M1 | Vision Pipeline | ❌ NEXT | Install InsightFace, implement detect→embed→match→recognize |
-| M2 | Student Enrollment | ❌ Blocked on M1 | CLI/API to register faces |
-| M3 | E2E Integration Test | ❌ Blocked on M2 | Full flow with real photos |
-| M4 | SHAP Explainability | ❌ Independent | Add TreeExplainer to risk_engine |
-| M5 | Multi-Face (Optional) | ❌ Low priority | Batch detection in single image |
-| M6 | Production Hardening | ❌ Phase 2 | Docker, PostgreSQL, monitoring |
+| M0 | Planning & Documentation | ✅ Complete | Specifications, architecture diagrams, schema designs |
+| M1 | Vision Pipeline | ✅ Complete | SCRFD detection, ArcFace R50 embedding, cosine matching, personal classifier |
+| M2 | Student Enrollment | ✅ Complete | Single and bulk face registration APIs & scripts |
+| M3 | E2E Integration Testing | ✅ Complete | End-to-end attendance flow and automated test suites |
+| M4 | SHAP Explainability | ✅ Complete | `explainer.py` TreeExplainer integration into risk engine |
+| M5 | Multi-Face Batch Attendance | ✅ Complete | `recognize_all` and `/attendance/mark-batch` |
+| M6 | Production Hardening | ✅ Complete | Docker Compose, PostgreSQL, Celery worker, Gunicorn, Nginx |
 
 **See `md-docs/ROADMAP.md` for full details, effort estimates, and acceptance criteria.**
 

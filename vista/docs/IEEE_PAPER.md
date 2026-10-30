@@ -54,7 +54,7 @@ This paper makes the following contributions:
 
 2. **Explainable risk scoring** — SHAP-based per-prediction explanations that convert model outputs into actionable insights for non-technical educators.
 
-3. **Indian academic hierarchy support** — A role-based system (School → Department → Class) with five user roles matching Indian collegiate administrative structures.
+3. **Indian academic hierarchy support** — A role-based system (School → Department → Class) with six user roles (Admin, HOS, HOP, Mentor, Teacher, Student) matching Indian collegiate administrative structures.
 
 4. **Zero-cost deployment model** — On-premise architecture requiring no cloud subscription or per-student licensing.
 
@@ -89,17 +89,17 @@ No existing system integrates: (1) automated face recognition attendance, (2) ML
 ### A. Overview
 
 VISTA follows a four-layer architecture:
-- **Vision Layer:** SCRFD detection → ArcFace R50 embedding → cosine similarity matching → liveness check
-- **Application Layer:** FastAPI REST API (60 endpoints), JWT authentication, WebSocket real-time updates
+- **Vision Layer:** SCRFD detection → ArcFace R50 embedding / personal classifier → cosine similarity matching → heuristic liveness check
+- **Application Layer:** FastAPI REST API (114 endpoints across 14 modules), JWT authentication, WebSocket real-time updates
 - **Intelligence Layer:** 8-feature engineering pipeline → rule-based scoring + XGBoost → SHAP explanations
-- **Presentation Layer:** React SPA with role-specific dashboards
+- **Presentation Layer:** React SPA with 6 role-specific dashboards
 
 ### B. Data Flow
 
 1. Classroom image captured
 2. SCRFD detects face bounding boxes
 3. ArcFace R50 extracts 512-dimensional embedding
-4. Cosine similarity computed against enrolled student gallery
+4. Cosine similarity computed against enrolled student gallery (with personal classifier fallback)
 5. If similarity ≥ 0.55: identity confirmed → attendance recorded
 6. Periodically: risk engine computes features from attendance + scores
 7. SHAP generates per-student explanations
@@ -107,7 +107,7 @@ VISTA follows a four-layer architecture:
 
 ### C. Database Schema
 
-16 tables including: students, attendance, scores, risk_flags, schools, departments, class_sections, users (5 roles), mentor_assignments, teacher_subjects, interventions, audit_logs.
+24 tables including: students, attendance, scores, risk_flags, schools, departments, class_sections, users (6 roles), mentor_assignments, teacher_subjects, interventions, audit_logs, timetable_slots, announcements, study_materials, assignments, assignment_submissions, semester_results, parent_contacts, parent_alerts, notifications, classrooms.
 
 ---
 
@@ -209,9 +209,9 @@ Converted to human-readable reasons: features with |SHAP| > 0.01 and values belo
 
 | Metric | Value |
 |---|---|
-| API endpoints | 60 |
-| Automated tests | 44 (31 API + 7 ML + 6 vision) |
-| Frontend pages | 15 |
+| API endpoints | 114 (110 route + 4 core) |
+| Automated tests | 45 (31 API + 7 ML + 7 vision) |
+| Frontend pages | 15+ |
 | User roles | 6 (admin, HOS, HOP, mentor, teacher, student) |
 | p50 response latency | <15ms (non-vision) |
 | Vision inference | ~800ms (CPU, no GPU) |

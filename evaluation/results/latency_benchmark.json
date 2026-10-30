@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-10-30 22:06:41",
+  "matching_benchmarks": {
+    "gallery_30": {
+      "gallery_size": 30,
+      "avg_latency_ms": 0.3183,
+      "throughput_faces_per_sec": 3141.6
+    },
+    "gallery_100": {
+      "gallery_size": 100,
+      "avg_latency_ms": 1.0693,
+      "throughput_faces_per_sec": 935.1
+    },
+    "gallery_500": {
+      "gallery_size": 500,
+      "avg_latency_ms": 5.6197,
+      "throughput_faces_per_sec": 177.9
+    }
+  },
+  "resnet_classifier_benchmark": {
+    "model": "ResNet-50 PyTorch (best_model_npz_splitB.pth)",
+    "device": "CPU",
+    "avg_latency_ms": 32.5,
+    "fps": 30.8
+  },
+  "insightface_detection_benchmark": {
+    "detector": "SCRFD (det_10g.onnx)",
+    "recognizer": "ArcFace R50 (w600k_r50.onnx)",
+    "input_resolution": "640x480",
+    "avg_inference_ms": 71.23
+  },
+  "group_photo_scaling": {
+    "1_faces": {
+      "face_count": 1,
+      "fast_path_latency_sec": 0.077,
+      "hybrid_path_latency_sec": 0.109
+    },
+    "5_faces": {
+      "face_count": 5,
+      "fast_path_latency_sec": 0.098,
+      "hybrid_path_latency_sec": 0.13
+    },
+    "10_faces": {
+      "face_count": 10,
+      "fast_path_latency_sec": 0.124,
+      "hybrid_path_latency_sec": 0.157
+    },
+    "20_faces": {
+      "face_count": 20,
+      "fast_path_latency_sec": 0.178,
+      "hybrid_path_latency_sec": 0.275
+    },
+    "30_faces": {
+      "face_count": 30,
+      "fast_path_latency_sec": 0.231,
+      "hybrid_path_latency_sec": 0.361
+    },
+    "45_faces": {
+      "face_count": 45,
+      "fast_path_latency_sec": 0.311,
+      "hybrid_path_latency_sec": 0.506
+    },
+    "60_faces": {
+      "face_count": 60,
+      "fast_path_latency_sec": 0.39,
+      "hybrid_path_latency_sec": 0.683
+    }
+  },
+  "resource_usage": {
+    "ram_rss_mb": 1243.38,
+    "ram_vms_mb": 2616.89,
+    "cpu_percent": 84.3,
+    "cpu_count_logical": 16,
+    "cpu_count_physical": 10
+  }
+}

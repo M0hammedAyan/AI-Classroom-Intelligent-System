@@ -1,24 +1,49 @@
-# VISTA Database Schema — v1
+# VISTA Database Schema
 
-**Owner:** Member 2 (Backend).  
-**Status:** Frozen as of Day 3 — any change requires a team sync and a log entry in `INTEGRATION_LOG.md`.
+**Owner:** Backend Team  
+**Status:** Initial Day 3 Baseline (6 tables) expanded to Full Production Schema (24 tables across 8 model files in `vista/backend/app/models/`).
 
-**Engine:** PostgreSQL (production). SQLite acceptable for local dev via the same SQLAlchemy models.  
-**ORM:** SQLAlchemy (`backend/app/db.py`).  
+**Engine:** PostgreSQL (production). SQLite default for local development via SQLAlchemy 2.0 ORM (`backend/app/db.py`).  
 **Passwords:** bcrypt, cost factor ≥ 12. Never store plaintext.  
-**Timestamps:** All timestamp columns store UTC. Use `TIMESTAMP` (PostgreSQL) / `TEXT` ISO 8601 (SQLite).  
-**IDs:** UUIDs for `users`. Student IDs use the college's existing roll number — avoids a mapping problem between systems.
+**Timestamps:** UTC timestamps stored as DateTime/TIMESTAMP (PostgreSQL) / ISO 8601 strings (SQLite).  
+**IDs:** UUID primary keys for system entities; natural college roll numbers (`student_id`) for students.
 
 ---
 
-## Relationships
+## Architecture Overview: 24 Tables Across 8 Model Modules
+
+| Model Module | Source File | Tables Defined |
+|---|---|---|
+| **Organization** | `models/organization.py` | `schools`, `departments`, `class_sections`, `subjects`, `mentor_assignments`, `teacher_subjects`, `access_requests` (7 tables) |
+| **User** | `models/user.py` | `users` (1 table; 6 roles: admin, hos, hop, mentor, teacher, student) |
+| **Student** | `models/student.py` | `classrooms`, `students` (2 tables) |
+| **Attendance & Risk** | `models/attendance.py` | `attendance`, `scores`, `risk_flags` (3 tables) |
+| **Interventions** | `models/intervention.py` | `interventions` (1 table) |
+| **Audit** | `models/audit.py` | `audit_logs` (1 table) |
+| **Notifications** | `models/notification.py` | `notifications` (1 table) |
+| **Academics & Timetable** | `models/timetable.py` | `timetable_slots`, `announcements`, `study_materials`, `assignments`, `assignment_submissions`, `semester_results`, `parent_contacts`, `parent_alerts` (8 tables) |
+
+---
+
+## Core Relationships
 
 ```
+schools ──1──* departments ──1──* class_sections ──1──* students
+departments ──1──* subjects
 classrooms ──1──* students
-students   ──1──* attendance
-students   ──1──* scores
-students   ──1──* risk_flags   (multiple rows — full history, not just latest)
-users      (standalone — teachers/admins are not students)
+students ──1──* attendance
+students ──1──* scores
+students ──1──* risk_flags
+students ──1──* interventions
+students ──1──* semester_results
+students ──1──* parent_contacts ──1──* parent_alerts
+users ──1──* mentor_assignments ──*──1 students
+users ──1──* teacher_subjects ──*──1 subjects
+users ──1──* access_requests
+users ──1──* notifications
+users ──1──* audit_logs
+class_sections ──1──* timetable_slots
+class_sections ──1──* assignments ──1──* assignment_submissions
 ```
 
 ---
@@ -147,19 +172,26 @@ Admin and teacher accounts. Not linked to `students`.
 | `name` | TEXT | NOT NULL | Display name |
 | `email` | TEXT | UNIQUE, NOT NULL | Login identifier |
 | `password_hash` | TEXT | NOT NULL | bcrypt hash, cost ≥ 12. Never store plaintext. |
-| `role` | TEXT | NOT NULL | `"admin"` or `"teacher"` |
+| `role` | TEXT | NOT NULL | `"admin"`, `"hos"`, `"hop"`, `"mentor"`, `"teacher"`, or `"student"` |
+| `school_id` | UUID | FK → `schools.id`, nullable | Assigned school for HOS/staff |
+| `department_id` | UUID | FK → `departments.id`, nullable | Assigned department for HOP/staff |
+| `theme_preference` | TEXT | DEFAULT 'light' | User UI theme ('light' or 'dark') |
 | `is_active` | BOOLEAN | NOT NULL, DEFAULT true | False = account disabled |
 | `last_login_at` | TIMESTAMP | nullable | Updated on successful login |
 | `created_at` | TIMESTAMP | NOT NULL, DEFAULT now() | |
 
-**Phase 2 note:** An `institution_id` column would be added for multi-college support. Not built now.
-
 ---
 
-## Out of Scope — Phase 2 Only
+## Production Scope Status
 
-- pgvector / FAISS for embedding search — not needed at 20–30 students
-- `institution_id` / multi-tenancy columns
-- Separate `risk_flags_history` versioning table
-- Automated risk recomputation triggers or scheduled jobs
-- LMS integration for score ingestion
+### Implemented in Current Codebase
+- 24 SQLAlchemy models across 8 modules
+- 6-role RBAC hierarchy (Admin, HOS, HOP, Mentor, Teacher, Student) with school/department scoping
+- LMS score import (CSV upload and Moodle REST API integration in `routes/lms.py`)
+- APScheduler periodic background jobs (`app/scheduler.py`)
+- Full academic features: timetable slots, announcements, study materials, assignments, submissions, semester results, and parent contacts/alerts
+
+### Future / Next Phase Scope
+- pgvector / FAISS vector index for embedding search (exact cosine similarity sufficient for current class sizes)
+- Multi-institution SaaS tenancy (current system is scoped for single-institution multi-school deployment)
+- Automated external SMS/email gateway dispatch for queued `parent_alerts`

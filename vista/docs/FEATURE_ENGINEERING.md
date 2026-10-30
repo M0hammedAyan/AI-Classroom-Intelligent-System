@@ -190,11 +190,16 @@ else:
 **What it measures:** A composite proxy for active participation — how consistently the student shows up AND submits work.
 
 **Formula:**
-```
-attendance_component   = attendance_percentage / 100          # 0–1
-completion_component   = assignment_completion_rate / 100     # 0–1, or 0.5 if unavailable
+```python
+attendance_component = attendance_percentage / 100          # 0–1
 
-engagement_score = (0.6 * attendance_component + 0.4 * completion_component) * 100
+if assignment_completion_rate is None:
+    # When assignment data is unavailable, engagement defaults to attendance percentage
+    engagement_score = attendance_component * 100
+else:
+    completion_component = assignment_completion_rate / 100  # 0–1
+    engagement_score = (0.6 * attendance_component + 0.4 * completion_component) * 100
+
 # Result: 0–100. Higher = more engaged.
 ```
 

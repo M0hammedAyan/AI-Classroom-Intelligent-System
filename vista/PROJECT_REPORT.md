@@ -51,14 +51,16 @@ VISTA implements a hierarchical Role-Based Access Control system mirroring a rea
 │  Approves access requests                            │
 ├─────────────────────────────────────────────────────┤
 │  MENTOR                                              │
-│  Views assigned students + their subjects + teachers │
-│  Cannot create users                                 │
-│  Requests access via approval workflow               │
+│  Views assigned students + watchlist + interventions │
+│  Cannot create users; requests access via workflow   │
 ├─────────────────────────────────────────────────────┤
 │  TEACHER                                             │
 │  Creates subject groups, manages own classes         │
-│  Marks attendance, manages scores                    │
-│  Requests access via approval workflow               │
+│  Marks attendance, manages scores, assignments       │
+├─────────────────────────────────────────────────────┤
+│  STUDENT                                             │
+│  Personal portal: timetable, attendance by subject,  │
+│  scores, materials, extracurriculars, notifications  │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -85,22 +87,23 @@ Institution
 
 ## 4. Tech Stack
 
-### Computer Vision
+#### Computer Vision
 | Technology | Purpose |
 |---|---|
 | InsightFace | Unified face analysis framework |
 | SCRFD | Face detection (finds faces in images) |
 | ArcFace R50 | Face embedding (512-dim identity vectors) |
-| Cosine Similarity | Identity matching |
-| ByteTrack | Multi-face temporal tracking |
-| MiniFASNet | Anti-spoofing / liveness detection |
+| Cosine Similarity | Identity matching (threshold 0.55) |
+| Personal Classifier | ResNet-50 PyTorch checkpoint runtime adapter |
+| ByteTrack-style Tracker | Multi-face temporal tracking (IoU greedy association, without Kalman filter) |
+| Heuristic Liveness | Anti-spoofing via Laplacian variance, size, detection confidence (deep learning liveness planned) |
 | OpenCV | Image processing |
 | ONNX Runtime | Model inference on CPU |
 
 ### Machine Learning
 | Technology | Purpose |
 |---|---|
-| XGBoost | Risk classification (F1 = 0.957) |
+| XGBoost | Risk classification (F1 = 0.957 on synthetic data) |
 | Logistic Regression | Baseline model comparison |
 | SHAP (TreeExplainer) | Per-prediction explainability |
 | scikit-learn | Training pipeline, evaluation |
@@ -124,7 +127,7 @@ Institution
 | React 18 | UI component framework |
 | Vite 5 | Build tool + dev server |
 | React Router 6 | Client-side routing |
-| Tailwind CSS | Utility-first styling |
+| Tailwind CSS v4 | Utility-first styling |
 | Custom CSS | Component-specific styles |
 
 ### Deployment
@@ -132,7 +135,7 @@ Institution
 |---|---|
 | Docker | Containerization |
 | Docker Compose | Multi-service orchestration |
-| Nginx | Reverse proxy + static serving |
+| Nginx | Reverse proxy + static serving (in frontend container) |
 | PostgreSQL 16 | Production database |
 
 ---
@@ -148,61 +151,77 @@ Institution
                                ▼
 ┌────────────────────────────────────────────────────────────────┐
 │                     BACKEND (FastAPI)                            │
-│  42 API Endpoints │ JWT Auth │ RBAC │ WebSocket │ Scheduler     │
+│  114 API Endpoints │ JWT Auth │ RBAC │ WebSocket │ Scheduler    │
 └─────────┬──────────────────────────────────┬───────────────────┘
           │                                  │
           ▼                                  ▼
 ┌──────────────────────┐      ┌──────────────────────────────────┐
 │   VISION MODULE      │      │      ML MODULE                    │
-│   InsightFace        │      │   XGBoost + SHAP                  │
-│   ArcFace R50        │      │   8 Engineered Features           │
-│   ByteTrack          │      │   Rule-Based + ML Scoring         │
+│   InsightFace + R50  │      │   XGBoost + SHAP                  │
+│   Personal ResNet-50 │      │   8 Engineered Features           │
+│   ByteTrack IoU      │      │   Rule-Based + ML Scoring         │
 └──────────────────────┘      └──────────────────────────────────┘
                                │
                                ▼
                     ┌──────────────────────┐
                     │   DATABASE            │
-                    │   13 Tables           │
+                    │   24 Tables           │
                     │   SQLite / PostgreSQL │
                     └──────────────────────┘
 ```
 
 ---
 
-## 6. API Summary (42 Endpoints)
+## 6. API Summary (114 Endpoints)
 
-| Category | Endpoints | Purpose |
+| Category / Module | Endpoints | Purpose |
 |---|---|---|
-| Authentication | 2 | Login, Logout |
-| Students | 2 | List, Detail |
-| Attendance | 5 | Mark, Mark-Batch, Mark-Video, Log, Stats |
-| Risk | 5 | View, List, Recompute, Recompute-All, Explain (SHAP) |
-| Enrollment | 1 | Face registration |
-| Export | 1 | CSV + PDF reports |
-| LMS | 4 | View scores, Add score, Import CSV, Moodle Sync |
-| Admin | 15 | User CRUD, Schools, Departments, Assignments, Requests |
-| WebSocket | 1 | Real-time dashboard updates |
-| Health | 1 | System status check |
+| Admin (`/api/v1/admin`) | 29 | User CRUD, org tree, schools, depts, classes, subjects, mentor/teacher assignments, access requests, audit logs, CSV import |
+| Academics (`/api/v1`) | 23 | Timetable, semester results, announcements, study materials, assignments, submissions, parent alerts |
+| Attendance (`/api/v1/attendance`) | 8 | Mark, mark-batch, mark-video, log, manual override, stats, patch, subject breakdown |
+| Student Portal (`/api/v1/student-portal`) | 10 | Personal dashboard, attendance, scores, timetable, subjects, extracurriculars, profile |
+| Auth (`/api/v1/auth`) | 7 | Login, logout, get me, change password, profile update, theme update |
+| Dashboards (`/api/v1/dashboard`) | 7 | Admin, HOS, HOP, teacher dashboards + attendance/risk/subject charts |
+| Mentor (`/api/v1/mentor`) | 6 | Mentor dashboard, assigned students, watchlist, interventions CRUD |
+| Risk (`/api/v1`) | 5 | Get student risk, list risk, recompute, recompute-all, SHAP explain |
+| LMS (`/api/v1/lms`) | 4 | List scores, add score, CSV score import, Moodle API sync |
+| Notifications (`/api/v1/notifications`) | 4 | List notifications, unread count, mark read, mark all read |
+| Students (`/api/v1/students`) | 3 | List students, get student detail, academic record |
+| Enrollment (`/api/v1/students`) | 2 | Single enrollment, bulk enrollment |
+| Export (`/api/v1/export`) | 1 | CSV and PDF attendance report matrix |
+| Reports (`/api/v1/reports`) | 1 | Comprehensive student PDF report |
+| Core (`/`) | 4 | `/health`, `/metrics`, `/metrics/json`, `/ws/dashboard` (WebSocket) |
 
 ---
 
-## 7. Database Schema (13 Tables)
+## 7. Database Schema (24 Tables)
 
 | Table | Purpose |
 |---|---|
-| users | All system users (admin, HOS, HOP, mentor, teacher) |
-| schools | College schools (CS, Mechanical, etc.) |
-| departments | Departments within schools (AIML, CSE, etc.) |
-| class_sections | Class groups (AIML-3A, CSE-2B) |
-| subjects | Academic subjects |
+| users | All system users across 6 roles (admin, HOS, HOP, mentor, teacher, student) |
+| schools | Academic schools |
+| departments | Departments within schools |
+| class_sections | Class groups / sections |
+| subjects | Academic curriculum subjects |
 | students | Enrolled students with face embeddings |
 | classrooms | Physical classroom mapping |
-| attendance | Per-session attendance records |
+| attendance | Per-session attendance records with confidence |
 | scores | Academic assessment scores |
-| risk_flags | Risk computation history |
+| risk_flags | Risk computation history and recommendations |
 | mentor_assignments | Mentor → student mappings |
-| teacher_subjects | Teacher → subject + class mappings |
+| teacher_subjects | Teacher → subject + class section mappings |
 | access_requests | Approval workflow records |
+| interventions | Mentoring intervention tracking |
+| audit_logs | System-wide audit trail |
+| notifications | In-app user notifications |
+| timetable_slots | Weekly schedule slots |
+| announcements | Scoped broadcast notices |
+| study_materials | Downloadable academic materials |
+| assignments | Course assignments |
+| assignment_submissions | Student assignment submissions and grading |
+| semester_results | End-semester grading records |
+| parent_contacts | Student parent/guardian contacts |
+| parent_alerts | Queued parent notifications (SMS/email delivery planned) |
 
 ---
 
@@ -282,13 +301,13 @@ npm run dev
 
 | Metric | Value |
 |---|---|
-| Total API endpoints | 42 |
-| Database tables | 13 |
-| Frontend pages | 8 |
-| ML features | 8 |
-| Vision pipeline stages | 5 (detect → embed → match → liveness → track) |
-| User roles | 5 (admin, HOS, HOP, mentor, teacher) |
-| Test cases | 13 (7 ML + 6 vision) |
-| Model accuracy | 95% (XGBoost) |
-| Lines of Python | ~3,000+ |
-| Lines of JavaScript | ~2,000+ |
+| Total API endpoints | 114 (110 route + 4 core) |
+| Database tables | 24 |
+| Frontend pages | 20+ |
+| ML features | 8 engineered features (5 in pipeline) |
+| Vision pipeline stages | 5 (detect → crop → match/classify → liveness → track) |
+| User roles | 6 (admin, HOS, HOP, mentor, teacher, student) |
+| Automated test cases | 14 (7 ML + 7 vision) |
+| Model performance | XGBoost macro F1 = 0.957 (synthetic validation); Face classifier test acc = 90.10% (split B NPZ) |
+| Lines of Python | ~6,000+ |
+| Lines of JavaScript | ~3,000+ |

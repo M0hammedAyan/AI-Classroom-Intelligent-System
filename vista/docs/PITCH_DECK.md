@@ -52,7 +52,7 @@ DSATM | School of CSE | AIML Department
 5. Mentor gets notification → opens student profile → sees SHAP explanation
 6. Mentor logs intervention (counselling session)
 
-*100% accuracy on face recognition (tested on real photos)*
+*Pilot accuracy: 100% on 14 photos of 2 students; 90.10% test accuracy on 20-class .npz split B*
 
 ---
 
@@ -61,11 +61,11 @@ DSATM | School of CSE | AIML Department
 | What | How |
 |------|-----|
 | Face Detection | InsightFace SCRFD (state-of-the-art) |
-| Face Recognition | ArcFace R50 — 512-dim embeddings, cosine matching |
-| Risk Prediction | XGBoost ML + Rule Engine (9 features) |
-| Explainability | SHAP — shows WHY a student is at risk |
-| Backend | FastAPI + PostgreSQL (85+ API endpoints) |
-| Frontend | React (responsive, dark/light mode) |
+| Face Recognition | ArcFace R50 — 512-dim embeddings + ResNet-50 personal classifier fallback |
+| Risk Prediction | XGBoost ML + Rule Engine (8 features + override flags) |
+| Explainability | SHAP + Rule engine breakdown — shows WHY a student is at risk |
+| Backend | FastAPI + PostgreSQL (114 API endpoints) |
+| Frontend | React + Tailwind CSS (responsive, dark/light mode) |
 | Deployment | Docker — runs on any Linux server |
 
 *All open-source. No license fees. No vendor lock-in.*
@@ -78,7 +78,7 @@ DSATM | School of CSE | AIML Department
 
 - Real-time attendance without manual roll call (saves 1500+ hours/year)
 - Early warning system before students fail (not after)
-- Parent alerts when attendance drops below 75%
+- Parent alerts queued when attendance drops below 75%
 - NAAC-ready attendance + academic reports
 - One dashboard for HOS/HOP to see entire school/department
 

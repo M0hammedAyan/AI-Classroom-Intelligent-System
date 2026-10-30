@@ -45,45 +45,53 @@ VISTA Platform
 │   ├── Interventions (Track actions taken)
 │   └── Reports       (Mentee reports)
 │
-└── /teacher/*        ← Subject + class scoped
-    ├── Dashboard     (KPI: classes today, attendance, at-risk in class)
-    ├── Classes       (Only assigned classes)
-    ├── Attendance    (Mark, view, override)
-    ├── Marks         (Enter scores per subject)
-    ├── Assignments   (Create, track submissions)
-    └── Reports       (Class/subject reports)
+├── /teacher/*        ← Subject + class scoped
+│   ├── Dashboard     (KPI: classes today, attendance, at-risk in class)
+│   ├── Classes       (Only assigned classes)
+│   ├── Attendance    (Mark, view, override)
+│   ├── Marks         (Enter scores per subject)
+│   ├── Assignments   (Create, track submissions)
+│   └── Reports       (Class/subject reports)
+│
+└── /student/*        ← Self-service student portal
+    ├── Dashboard     (Personal KPI: attendance %, avg score, risk indicator)
+    ├── Attendance    (Subject-wise attendance breakdown, session log)
+    ├── Timetable     (Weekly class schedule)
+    ├── Assignments   (Homework & lab tasks, file submission)
+    ├── StudyMaterial (Lecture notes and syllabus documents)
+    └── Results       (Internal assessment marks and semester SGPA)
 ```
 
 ---
 
 ## 2. Permission Matrix
 
-| Action | Admin | HOS | HOP | Mentor | Teacher |
-|---|---|---|---|---|---|
-| View all schools | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Manage schools | ✅ | ❌ | ❌ | ❌ | ❌ |
-| View own school | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Manage departments | ✅ | ✅ | ❌ | ❌ | ❌ |
-| View own department | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Create HOS | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Create HOP | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Create Mentor | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Create Teacher | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Assign mentor to students | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Assign teacher to subject | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View all students | ✅ | School | Dept | Assigned | Class |
-| View risk flags | ✅ | School | Dept | Assigned | Class |
-| Recompute risk | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Mark attendance | ✅ | ✅ | ✅ | ❌ | ✅ |
-| Override attendance | ✅ | ✅ | ✅ | ❌ | ✅ |
-| Enter marks | ✅ | ✅ | ✅ | ❌ | ✅ (own subject) |
-| Import CSV scores | ✅ | ✅ | ✅ | ❌ | ✅ (own subject) |
-| Export reports | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Approve access requests | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View audit logs | ✅ | ❌ | ❌ | ❌ | ❌ |
-| System settings | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Enroll faces | ✅ | ✅ | ✅ | ❌ | ✅ |
-| SHAP explanations | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Action | Admin | HOS | HOP | Mentor | Teacher | Student |
+|---|---|---|---|---|---|---|
+| View all schools | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Manage schools | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| View own school | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Manage departments | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View own department | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Create HOS | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Create HOP | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Create Mentor | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Create Teacher | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Assign mentor to students | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Assign teacher to subject | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| View all students | ✅ | School | Dept | Assigned | Class | Self only |
+| View risk flags | ✅ | School | Dept | Assigned | Class | Self only |
+| Recompute risk | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Mark attendance | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Override attendance | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Enter marks | ✅ | ✅ | ✅ | ❌ | ✅ (own subject) | ❌ |
+| Import CSV scores | ✅ | ✅ | ✅ | ❌ | ✅ (own subject) | ❌ |
+| Export reports | ✅ | ✅ | ✅ | ✅ | ✅ | Self report |
+| Approve access requests | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| View audit logs | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| System settings | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Enroll faces | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| SHAP explanations | ✅ | ✅ | ✅ | ✅ | ✅ | Self only |
 
 ---
 

@@ -13,7 +13,7 @@
 - [x] Problem statement understood — manual attendance + no risk analytics
 - [x] Project goals documented — 8 measurable goals in PROJECT_PLAN.md
 - [x] Scope defined — in-scope vs out-of-scope clearly separated
-- [x] User roles identified — admin, teacher (pilot); mentor/HOD/student (Phase 2)
+- [x] User roles identified — 6 roles (admin, hos, hop, mentor, teacher, student)
 - [x] Functional requirements documented — 15 FRs with priority and status
 - [x] Non-functional requirements documented — 6 NFRs with targets
 - [x] Constraints documented — 6 hard constraints
@@ -26,7 +26,7 @@
 - [x] Techniques compared — table of alternatives for each component
 - [x] Selected algorithms justified — rationale documented for each choice
 - [x] Alternative approaches evaluated — R18/R50/R100, DeepSORT vs ByteTrack, etc.
-- [x] Research gaps identified — SHAP not implemented, ByteTrack deferred, liveness limitations
+- [x] Research gaps identified — SHAP implemented in explainer.py, ByteTrack deferred to future video streams, heuristic liveness in place
 
 ### SYSTEM ARCHITECTURE
 
@@ -40,20 +40,20 @@
 
 ### DATABASE DESIGN
 
-- [x] Entities identified — 6 tables
+- [x] Entities identified — 24 tables across 8 model modules
 - [x] Relationships defined — ER diagram with FKs
 - [x] ER diagram completed — in DATABASE_DESIGN.md
 - [x] Schema completed — all columns, types, constraints documented
-- [x] Indexing strategy documented — 5 indexes for query patterns
-- [x] Migration strategy documented — drop/recreate (pilot); Alembic (Phase 2)
+- [x] Indexing strategy documented — indexes for query patterns
+- [x] Migration strategy documented — Base.metadata.create_all for SQLite/PostgreSQL
 
 ### BACKEND DESIGN
 
 - [x] API architecture completed — FastAPI + SQLAlchemy + JWT
-- [x] Endpoint list completed — 13 endpoints with status
+- [x] Endpoint list completed — 114 endpoints across 14 modules + system routes
 - [x] Authentication strategy completed — JWT HS256, 8hr expiry
-- [x] Authorization strategy completed — get_current_user + require_admin
-- [x] Service structure defined — 5 route files + models + db
+- [x] Authorization strategy completed — get_current_user + require_role for 6 roles
+- [x] Service structure defined — 14 route files + models + core background services
 - [x] Error handling strategy documented — standard envelope + error codes
 
 ### FRONTEND DESIGN
