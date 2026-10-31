@@ -320,10 +320,22 @@ Source: `training_results/results_npz_splitB.txt` (evaluated on 101 unaugmented 
 | **Macro F1-Score** | **88.46%** | Balanced harmonic mean |
 | **Generalization Gap** | **6.40%** | Difference between training and test accuracy |
 
-### 3. Pilot Image Evaluation Set
-- **Sample Size:** 14 images representing 2 students (Saheel and Sujal).
-- **Result:** **100% correct match** (14/14 faces matched to true student ID, zero false accepts, zero false rejects).
-- *Caveat:* This figure represents a controlled pilot check and must not be conflated with the 20-student cohort benchmark.
+### 3. Pilot Image & Live Group Verification Sets
+- **Initial Pilot Cohort:** 14 images representing 2 students (Saheel and Sujal).
+  - **Result:** **100% correct match** (14/14 faces matched to true student ID, zero false accepts, zero false rejects).
+  - *Caveat:* This figure represents an initial feasibility check and must not be conflated with larger cohort benchmarks.
+- **Live Classroom Group Verification (`docs/screenshots/fig_7_2_teacher_attendance.png`):**
+  - **Session Details:** Course *Deep Learning (22AIU701)*, *AIML 3rd Year* (66 total students), conducted on 30-Oct-2026.
+  - **Sample Ingested:** Single laboratory group capture containing 7 seated students.
+  - **Result:** **100% detection and recognition (7/7 faces)**:
+    1. Saheel Pradhan (96% confidence)
+    2. Shreyas K T (71% confidence)
+    3. Mohammed Ayyan (76% confidence)
+    4. Sujala Agrahari (75% confidence)
+    5. Vignesh V (58% confidence)
+    6. MC Chethan Patil (73% confidence)
+    7. Mallikarjuna C (70% confidence)
+  - **Database Commit:** Immediately committed 7 Present, 59 Absent to the attendance database with zero manual corrections.
 
 ### 4. Latency and Group-Photo Scaling Benchmark
 Source: `evaluation/results/latency_benchmark.json` (executed on 16-thread Intel Core CPU).

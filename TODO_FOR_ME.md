@@ -25,11 +25,16 @@ The college project report requires live interface screenshots for **Chapter 7 (
 
 ### Screenshots Checklist:
 
-- [ ] **Figure 7.2: Teacher Facial Attendance Capture View**
-  - **Route:** `http://localhost:5173/teacher/attendance` (Log in as teacher, e.g., `teacher1@college.edu`)
-  - **Action:** Select an active lecture session from the dropdown. Hold up a sample classroom photograph or turn on the webcam.
-  - **What to capture:** The video feed showing detected bounding boxes, recognition badges, and the auto-populated attendance confirmation table.
-  - **Save as:** `docs/screenshots/fig_7_2_teacher_attendance.png`
+- [x] **Figure 7.2: Teacher Facial Attendance Capture View** *(CAPTURED & EMBEDDED IN REPORT)*
+  - **Route:** `http://localhost:5173/teacher/attendance` (Logged in for Deep Learning · 22AIU701, AIML 3rd Year)
+  - **Verified Output:** 7 students detected and marked present simultaneously:
+    1. Saheel Pradhan (96% confidence)
+    2. Shreyas K T (71% confidence)
+    3. Mohammed Ayyan (76% confidence)
+    4. Sujala Agrahari (75% confidence)
+    5. Vignesh V (58% confidence)
+    6. MC Chethan Patil (73% confidence)
+    7. Mallikarjuna C (70% confidence)
 
 - [ ] **Figure 7.3: Student Self-Service Portal Dashboard**
   - **Route:** `http://localhost:5173/student/dashboard` (Log in as student, e.g., `student1@college.edu`)

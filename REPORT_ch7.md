@@ -48,9 +48,24 @@ flowchart LR
     H -- "Conf < 0.80" --> I
 ```
 
-In end-to-end testing with sample classroom photographs, the SCRFD detector reliably isolates individual faces even under variable lighting and mild angular tilt ($< 30^\circ$).
+In end-to-end testing with real classroom group photographs, the SCRFD detector reliably isolates individual faces under ambient institutional lighting and mild angular tilt ($< 30^\circ$).
 
-### 7.2.2 Explainable AI (SHAP) Attribution Outputs
+Figure 7.2 illustrates a live classroom attendance run conducted on October 30, 2026, for the course **Deep Learning (22AIU701)** in the **AIML 3rd Year** section (cohort size: 66 students). A group capture containing 7 students seated in the department laboratory was ingested:
+
+![Figure 7.2: Teacher Facial Attendance Live Verification View](docs/screenshots/fig_7_2_teacher_attendance.png)
+
+*Figure 7.2: Teacher Facial Attendance Interface (`/teacher/attendance`) processing a live multi-student laboratory capture in AIML 3rd Year (Deep Learning · 22AIU701).*
+
+As shown in Figure 7.2, the vision pipeline achieved **100% detection and recognition across all 7 candidates** in the capture:
+1. **SAHEEL PRADHAN:** Present · $96\%$ confidence
+2. **SHREYAS K T:** Present · $71\%$ confidence
+3. **MOHAMMED AYYAN:** Present · $76\%$ confidence
+4. **SUJALA AGRAHARI:** Present · $75\%$ confidence
+5. **VIGNESH V:** Present · $58\%$ confidence
+6. **MC CHETHAN PATIL:** Present · $73\%$ confidence
+7. **MALLIKARJUNA C:** Present · $70\%$ confidence
+
+The session summary immediately updated to **7 Present** and **59 Absent**, demonstrating seamless real-time processing and immediate attendance database commit.
 
 The risk engine supplements categorical predictions (`LOW`, `MEDIUM`, `HIGH`) with local feature attribution generated via SHAP TreeExplainer. Figure 7.1 illustrates the feature attribution flow for an at-risk student.
 
@@ -216,7 +231,7 @@ During continuous benchmark execution, memory and CPU utilization were profiled 
 
 Academic integrity requires transparent disclosure of the empirical boundaries and limitations of this study:
 
-1. **Restricted Real-World Vision Pilot Size:** While the synthetic NPZ dataset contains 107 test crops across 20 classes (achieving $90.10\%$ accuracy on ResNet-50 and $85.98\%$ on ArcFace $\tau=0.30$), the live camera pilot was validated on a 14-photograph cohort representing 2 students (Saheel and Sujal). While achieving 100% recognition within this pilot, performance across a diverse, multi-section student body of hundreds of individuals subject to occlusion and dramatic pose variation will exhibit lower accuracy.
+1. **Restricted Real-World Vision Pilot Size:** While the synthetic NPZ dataset contains 107 test crops across 20 classes (achieving $90.10\%$ accuracy on ResNet-50 and $85.98\%$ on ArcFace $\tau=0.30$), live physical testing progressed from an initial 14-photograph 2-student pilot (Saheel and Sujal) to a 7-student live laboratory capture (Figure 7.2) achieving $100\%$ detection and recognition across all 7 candidates. While these results demonstrate strong local feasibility, campus-wide performance across hundreds of students subject to extreme lighting variances, physical motion blur, and dense occlusions requires continued validation.
 2. **Synthetic Training Data for Risk Prediction:** The machine learning risk model was trained and evaluated on generated synthetic data (`generate_sample_data.py`). Real-world student trajectories exhibit nuanced psychosocial and demographic factors not captured in synthetic tabular distributions. Validation against historical multi-year university data is an essential prerequisite for production grading.
 3. **Heuristic Anti-Spoofing Constraints:** The passive anti-spoofing module relies on classical computer vision heuristics (Laplacian variance and RGB texture contrast). While computationally negligible ($< 5\text{ ms}$), heuristic checks are vulnerable to high-resolution tablet screens, video replays, or physical cutouts. Production deployment requires integrating deep presentation attack detection (such as MiniFASNet).
 4. **Gallery Scalability Boundary:** Linear cosine similarity scanning across enrolled numpy vectors scales well up to several hundred students ($5.62\text{ ms}$ for 500 students). However, university-wide deployments spanning thousands of students across multiple campuses will require hierarchical indexing structures (e.g., FAISS or HNSW indexers).
@@ -229,14 +244,14 @@ To complete the institutional submission dossier, the candidate must capture liv
 
 #### Table 7.7: Required Frontend Interface Screenshots Catalog
 
-| Figure Identifier | Target View / Component | URL / Navigation Path | Key Elements to Highlight in Screenshot |
-| :--- | :--- | :--- | :--- |
-| **Figure 7.2** | Teacher Facial Attendance Capture View | `/teacher/attendance` | Web camera feed, detected face bounding boxes, green recognition badges, and confirmation table. |
-| **Figure 7.3** | Student Self-Service Portal Dashboard | `/student/dashboard` | Subject-wise attendance gauge charts, overall attendance percentage, upcoming timetable, and alerts. |
-| **Figure 7.4** | Mentor Academic Watchlist with SHAP Insights | `/mentor/watchlist` | Ranked student risk table, color-coded badges (`HIGH`/`MED`/`LOW`), and expandable SHAP reason popover. |
-| **Figure 7.5** | Admin Multi-Tier Organizational Tree View | `/admin/organization` | Hierarchical department nodes, faculty assignments, batch management, and user creation modal. |
-| **Figure 7.6** | Head of School (HOS) Institution Analytics | `/hos/overview` | College-wide attendance trends, department comparison bar charts, and multi-term filter controls. |
-| **Figure 7.7** | Manual Attendance Fallback Override Form | `/teacher/attendance/manual` | Attendance grid with Present/Absent/Late radio buttons and bulk commit confirmation button. |
+| Figure Identifier | Target View / Component | URL / Navigation Path | Key Elements to Highlight in Screenshot | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Figure 7.2** | Teacher Facial Attendance Capture View | `/teacher/attendance` | Web camera feed, detected face bounding boxes, recognition badges, and confirmation table. | **Captured & Embedded** |
+| **Figure 7.3** | Student Self-Service Portal Dashboard | `/student/dashboard` | Subject-wise attendance gauge charts, overall attendance percentage, upcoming timetable, and alerts. | Pending Capture |
+| **Figure 7.4** | Mentor Academic Watchlist with SHAP Insights | `/mentor/watchlist` | Ranked student risk table, color-coded badges (`HIGH`/`MED`/`LOW`), and expandable SHAP reason popover. | Pending Capture |
+| **Figure 7.5** | Admin Multi-Tier Organizational Tree View | `/admin/organization` | Hierarchical department nodes, faculty assignments, batch management, and user creation modal. | Pending Capture |
+| **Figure 7.6** | Head of School (HOS) Institution Analytics | `/hos/overview` | College-wide attendance trends, department comparison bar charts, and multi-term filter controls. | Pending Capture |
+| **Figure 7.7** | Manual Attendance Fallback Override Form | `/teacher/attendance/manual` | Attendance grid with Present/Absent/Late radio buttons and bulk commit confirmation button. | Pending Capture |
 
 ---
 
