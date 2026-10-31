@@ -165,7 +165,7 @@ def recompute_all_risk(
         try:
             sid = student.student_id
             att_rows = att_by_student.get(sid, [])
-            score_rows = sorted(scores_by_student.get(sid, []), key=lambda x: x.date)
+            score_rows = [r for r in sorted(scores_by_student.get(sid, []), key=lambda x: x.date) if getattr(r, 'status', 'scored') != 'absent' and r.score is not None]
 
             sessions_attended = sum(1 for a in att_rows if a.status == "present")
             present_dates = {a.session_date for a in att_rows if a.status == "present"}

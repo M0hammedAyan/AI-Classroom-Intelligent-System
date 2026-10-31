@@ -188,7 +188,7 @@ Verified in `vista/backend/app/main.py:40-54` and `vista/backend/app/routes/*.py
 | `enroll` | `/api/v1/enroll` | 2 | `POST /students/{id}/enroll`, `POST /batch` (single & batch ArcFace embeddings) |
 | `export` | `/api/v1/export` | 1 | `GET /report` (dynamic CSV attendance export) |
 | `lms` | `/api/v1/lms` | 4 | Assignments, submissions, file tracking, grading |
-| `mentor` | `/api/v1/mentor` | 6 | Assigned mentee directory, student watchlist, intervention tracking logs |
+| ~~`mentor`~~ | ~~`/api/v1/mentor`~~ | *Deprecated* | Assigned mentee directory, student watchlist, intervention tracking logs |
 | `notifications`| `/api/v1/notifications`| 4 | In-app alerts, broadcast messages, unread count badge, mark-as-read |
 | `reports` | `/api/v1/reports` | 1 | `GET /academic-report` (ReportLab programmatic PDF generation) |
 | `risk` | `/api/v1/risk` | 5 | Roster risk flags, on-demand student recompute, SHAP feature driver query |

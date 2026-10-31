@@ -26,6 +26,7 @@ from ..models.organization import ClassSection, Subject, TeacherSubjectAssignmen
 from ..models.student import Student
 from ..models.user import User
 from ..routes.auth import get_current_user
+from ..cie_policy import evaluate_cie
 
 router = APIRouter(prefix="/api/v1/student-portal", tags=["student-portal"])
 
@@ -108,7 +109,7 @@ def student_dashboard(
     score_rows = db.query(Score).filter(Score.student_id == sid).order_by(Score.date.desc()).all()
     avg_score = 0.0
     if score_rows:
-        valid_scores = [s.score / s.max_score * 100 for s in score_rows if s.max_score > 0]
+        valid_scores = [s.score / s.max_score * 100 for s in score_rows if s.score is not None and s.max_score > 0]
         if valid_scores:
             avg_score = round(sum(valid_scores) / len(valid_scores), 1)
 
@@ -243,11 +244,11 @@ def student_subject_detail(
         (Score.subject == subj.name) | (Score.subject == subj.code) | (Score.subject == subj.id)
     ).order_by(Score.date.asc()).all()
 
-    cie1 = next((s.score for s in scores if s.assessment_type == "CIE 1" or "CIE 1" in (s.subject or "")), None)
-    cie2 = next((s.score for s in scores if s.assessment_type == "CIE 2" or "CIE 2" in (s.subject or "")), None)
-    total_cie = None
-    if cie1 is not None or cie2 is not None:
-        total_cie = round((cie1 or 0.0) + (cie2 or 0.0), 1)
+    cie_eval = evaluate_cie(sid, subj.name, db)
+    cie1 = cie_eval["cie1"]
+    cie2 = cie_eval["cie2"]
+    cie3 = cie_eval["cie3"]
+    total_cie = cie_eval["final_cie_50"]
 
     # Teacher assignment
     assignment = db.query(TeacherSubjectAssignment).filter(
@@ -290,12 +291,21 @@ def student_subject_detail(
         "marks": {
             "cie1": cie1,
             "cie2": cie2,
+            "cie3": cie3,
+            "cie1_status": cie_eval["cie1_status"],
+            "cie2_status": cie_eval["cie2_status"],
+            "cie3_status": cie_eval["cie3_status"],
+            "cie3_eligible": cie_eval["cie3_eligible"],
+            "cie3_reason": cie_eval["cie3_reason"],
+            "final_cie_25": cie_eval["final_cie_25"],
+            "final_cie_50": cie_eval["final_cie_50"],
             "total": total_cie,
             "max_total": 50.0,
             "all_scores": [
                 {
                     "assessment": s.assessment_type or "Assessment",
                     "score": s.score,
+                    "status": s.status or ("scored" if s.score is not None else "absent"),
                     "max_score": s.max_score,
                     "date": s.date,
                     "source": s.source or "seed",
@@ -336,20 +346,21 @@ def student_scores(
             {
                 "assessment": s.assessment_type or "CIE",
                 "score": s.score,
+                "status": s.status or ("scored" if s.score is not None else "absent"),
                 "max_score": s.max_score,
                 "date": s.date,
                 "source": s.source or "seed",
-                "pct": round(s.score / s.max_score * 100, 1) if s.max_score > 0 else 0.0,
+                "pct": round(s.score / s.max_score * 100, 1) if (s.score is not None and s.max_score > 0) else None,
             }
             for s in subj_scores
         ]
         for s in score_dicts:
-            all_pcts.append(s["pct"])
+            if s["pct"] is not None:
+                all_pcts.append(s["pct"])
 
-        cie1 = next((s["score"] for s in score_dicts if s["assessment"] == "CIE 1"), None)
-        cie2 = next((s["score"] for s in score_dicts if s["assessment"] == "CIE 2"), None)
-        total_cie = round((cie1 or 0.0) + (cie2 or 0.0), 1) if (cie1 is not None or cie2 is not None) else None
-        avg_pct = round(sum(s["pct"] for s in score_dicts) / len(score_dicts), 1) if score_dicts else None
+        cie_eval = evaluate_cie(sid, subj.name, db)
+        scored_pcts = [s["pct"] for s in score_dicts if s["pct"] is not None]
+        avg_pct = round(sum(scored_pcts) / len(scored_pcts), 1) if scored_pcts else None
 
         subjects_summary.append({
             "subject_id": subj.id,
@@ -357,9 +368,17 @@ def student_scores(
             "subject_code": subj.code,
             "credits": subj.credits,
             "scores": score_dicts,
-            "cie1": cie1,
-            "cie2": cie2,
-            "cie_total": total_cie,
+            "cie1": cie_eval["cie1"],
+            "cie2": cie_eval["cie2"],
+            "cie3": cie_eval["cie3"],
+            "cie1_status": cie_eval["cie1_status"],
+            "cie2_status": cie_eval["cie2_status"],
+            "cie3_status": cie_eval["cie3_status"],
+            "cie3_eligible": cie_eval["cie3_eligible"],
+            "cie3_reason": cie_eval["cie3_reason"],
+            "final_cie_25": cie_eval["final_cie_25"],
+            "final_cie_50": cie_eval["final_cie_50"],
+            "cie_total": cie_eval["final_cie_50"],
             "max_cie_total": 50.0,
             "average_pct": avg_pct,
             "assessments": len(score_dicts),

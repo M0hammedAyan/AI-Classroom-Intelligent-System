@@ -642,7 +642,7 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 | `enroll.py` | `/api/v1/enroll` | 2 | Single and batch facial image feature extraction and database enrollment |
 | `export.py` | `/api/v1/export` | 1 | Streaming CSV export of attendance and academic performance records |
 | `lms.py` | `/api/v1/lms` | 4 | Course assignments, student file submissions, syllabus progress tracking |
-| `mentor.py` | `/api/v1/mentor` | 6 | Assigned student directories, high-risk watchlists, remedial intervention logs |
+| ~~`mentor.py`~~ | ~~`/api/v1/mentor`~~ | *Deprecated* | Assigned student directories, high-risk watchlists, remedial intervention logs |
 | `notifications.py`| `/api/v1/notifications`| 4 | In-app alerts, campus-wide announcements, unread status tracking |
 | `reports.py` | `/api/v1/reports` | 1 | Programmatic PDF generation of student academic transcripts via ReportLab |
 | `risk.py` | `/api/v1/risk` | 5 | Roster risk flags, on-demand student recalculation, SHAP factor breakdown queries |

@@ -103,7 +103,7 @@ Integration testing verifies that interconnected modules function harmoniously u
 
 ### 6.3.1 Role-Based Access Control (RBAC) Verification
 
-The VISTA backend implements 6 distinct user roles (`admin`, `hos`, `hop`, `mentor`, `teacher`, `student`). Each endpoint is decorated with dependency-injected permission checks (`require_role` in `vista/backend/app/permissions.py`).
+The VISTA backend implements **3 active user roles** (`admin`, `teacher`, `student`). The legacy roles `hos`, `hop`, and `mentor` have been deprecated and are rejected at login.. Each endpoint is decorated with dependency-injected permission checks (`require_role` in `vista/backend/app/permissions.py`).
 
 Testing verified that:
 1. **Unauthorized Access Rejection:** Any request omitting the `Authorization: Bearer <token>` header is rejected immediately with HTTP `401 Unauthorized`.

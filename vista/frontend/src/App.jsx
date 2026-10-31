@@ -30,6 +30,16 @@ import {
   patchAttendance,
   createManualAttendance,
   addScore,
+  getNotifications,
+  getUnreadNotificationsCount,
+  createNotification,
+  markNotificationRead,
+  markAllNotificationsRead,
+  deleteNotification,
+  coachChat,
+  getCoachHistory,
+  clearCoachHistory,
+  getCoachSummary,
 } from './api/client';
 
 const SUBJECTS = [
@@ -145,6 +155,418 @@ function Login({ onLogin }) {
   </main>;
 }
 
+
+function NotificationCenter({ user, onOpenCompose }) {
+  const [open, setOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchUnread = () => {
+    getUnreadNotificationsCount()
+      .then((data) => setUnreadCount(data.unread_count || 0))
+      .catch(() => {});
+  };
+
+  const fetchList = () => {
+    setLoading(true);
+    getNotifications(1, 20)
+      .then((data) => {
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unread_count || 0);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 45000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleToggle = () => {
+    if (!open) {
+      fetchList();
+    }
+    setOpen(!open);
+  };
+
+  const handleMarkRead = async (id, e) => {
+    e.stopPropagation();
+    try {
+      await markNotificationRead(id);
+      setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch {}
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+    } catch {}
+  };
+
+  const handleDelete = async (id, e) => {
+    e.stopPropagation();
+    try {
+      await deleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      fetchUnread();
+    } catch {}
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        type="button"
+        className="notification-bell-btn"
+        onClick={handleToggle}
+        title="Notifications"
+        aria-label="Notifications"
+      >
+        🔔
+        {unreadCount > 0 && <span className="unread-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+      </button>
+
+      {open && (
+        <div className="notification-dropdown">
+          <div className="notification-header">
+            <h3>Notifications {unreadCount > 0 && `(${unreadCount} unread)`}</h3>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {unreadCount > 0 && (
+                <button type="button" className="ghost" style={{ fontSize: 11, padding: '3px 6px' }} onClick={handleMarkAllRead}>
+                  Mark all read
+                </button>
+              )}
+              {user?.role !== 'student' && onOpenCompose && (
+                <button type="button" className="primary" style={{ fontSize: 11, padding: '3px 8px' }} onClick={() => { setOpen(false); onOpenCompose(); }}>
+                  + Post
+                </button>
+              )}
+              <button type="button" className="ghost" style={{ fontSize: 11, padding: '3px 6px' }} onClick={() => setOpen(false)}>
+                ✕
+              </button>
+            </div>
+          </div>
+          <div className="notification-list">
+            {loading && <p style={{ padding: 14, fontSize: 12, color: '#6d827e', margin: 0 }}>Loading notifications...</p>}
+            {!loading && notifications.length === 0 && (
+              <p style={{ padding: 20, fontSize: 12, color: '#8ca19a', textAlign: 'center', margin: 0 }}>
+                No notifications yet.
+              </p>
+            )}
+            {notifications.map((item) => (
+              <div
+                key={item.id}
+                className={`notification-item ${!item.is_read ? 'unread' : ''}`}
+                onClick={(e) => !item.is_read && handleMarkRead(item.id, e)}
+              >
+                <div className="notif-title">
+                  <span>{item.title}</span>
+                  {item.priority === 'important' && <span className="badge important">Urgent</span>}
+                </div>
+                <div className="notif-body">{item.body}</div>
+                <div className="notif-meta">
+                  <span>
+                    By {item.sender_role} · {new Date(item.created_at).toLocaleDateString()}
+                    {item.subject_id && ` · ${item.subject_id}`}
+                  </span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {!item.is_read && (
+                      <span style={{ color: '#389260', cursor: 'pointer', fontWeight: 600 }} onClick={(e) => handleMarkRead(item.id, e)}>
+                        Mark read
+                      </span>
+                    )}
+                    {(user?.role === 'admin' || user?.id === item.sender_id) && (
+                      <span style={{ color: '#dc2626', cursor: 'pointer' }} onClick={(e) => handleDelete(item.id, e)}>
+                        Delete
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComposeNotificationModal({ isOpen, onClose, user, assignedSubjects, onPosted }) {
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [audienceType, setAudienceType] = useState(user?.role === 'admin' ? 'all' : 'subject');
+  const [targetSubject, setTargetSubject] = useState(assignedSubjects?.[0]?.code || assignedSubjects?.[0]?.[1] || '');
+  const [priority, setPriority] = useState('normal');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim() || !body.trim()) {
+      setError('Title and body are required.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      await createNotification({
+        title: title.trim(),
+        body: body.trim(),
+        audience_type: audienceType,
+        subject_id: audienceType === 'subject' ? targetSubject : null,
+        class_id: audienceType === 'class' ? 'class-aiml-4a' : null,
+        priority: priority,
+      });
+      onClose();
+      if (onPosted) onPosted();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="editor-overlay" role="presentation">
+      <div className="card editor-form">
+        <div className="card-title">
+          <div>
+            <p className="eyebrow">Announcements / {user?.role?.toUpperCase()}</p>
+            <h2>Create Notification</h2>
+            <p>{user?.role === 'admin' ? 'Broadcast to institution or target class/subject.' : 'Send notification to your assigned class or subject.'}</p>
+          </div>
+          <button type="button" className="ghost" onClick={onClose}>Close</button>
+        </div>
+
+        {error && <p className="error">{error}</p>}
+
+        <form onSubmit={handleSubmit}>
+          <label>
+            Audience
+            <select value={audienceType} onChange={(e) => setAudienceType(e.target.value)}>
+              {user?.role === 'admin' && <option value="all">Everyone (All Teachers & Students)</option>}
+              <option value="subject">Specific Subject</option>
+              <option value="class">Class (4th Year AIML)</option>
+            </select>
+          </label>
+
+          {audienceType === 'subject' && (
+            <label>
+              Subject
+              <select value={targetSubject} onChange={(e) => setTargetSubject(e.target.value)}>
+                {(assignedSubjects || []).map((s) => (
+                  <option key={s.code || s[1]} value={s.code || s[1]}>
+                    {s.name || s[0]} ({s.code || s[1]})
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <label>
+            Priority
+            <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+              <option value="normal">Normal</option>
+              <option value="important">Important / Urgent</option>
+            </select>
+          </label>
+
+          <label>
+            Title
+            <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} placeholder="e.g. CIE 2 Schedule Update" required />
+          </label>
+
+          <label>
+            Message Body
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={4}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d5e2dc', fontFamily: 'inherit', fontSize: 13 }}
+              placeholder="Enter announcement details..."
+              required
+            />
+          </label>
+
+          <div className="editor-actions">
+            <button type="button" className="secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="primary" disabled={busy}>
+              {busy ? 'Posting...' : 'Send Notification'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function CoachTipCard({ onOpenCoach }) {
+  const [tip, setTip] = useState(null);
+
+  useEffect(() => {
+    getCoachSummary()
+      .then((data) => setTip(data.tip))
+      .catch(() => {});
+  }, []);
+
+  if (!tip) return null;
+
+  return (
+    <div className="coach-tip-card">
+      <div className="coach-tip-content">
+        <span className="coach-tip-icon">🤖</span>
+        <div className="coach-tip-text">
+          <strong>AI Study Coach Tip</strong>
+          <p>{tip}</p>
+        </div>
+      </div>
+      <button type="button" className="primary" style={{ whiteSpace: 'nowrap', fontSize: 12, padding: '8px 14px' }} onClick={onOpenCoach}>
+        Ask Coach →
+      </button>
+    </div>
+  );
+}
+
+function CoachChatDrawer({ isOpen, onClose }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const messagesEndRef = useRef(null);
+
+  const quickPrompts = [
+    'Can I miss next class?',
+    'How many classes to reach 85%?',
+    'What do I need in CIE 2 to avoid CIE 3?',
+    'Am I eligible for CIE 3?',
+    'What is my risk level?',
+  ];
+
+  useEffect(() => {
+    if (isOpen) {
+      getCoachHistory(20)
+        .then((data) => {
+          if (data.messages && data.messages.length > 0) {
+            setMessages(data.messages);
+          } else {
+            setMessages([
+              {
+                role: 'assistant',
+                content: "Hello! I am your AI Study Coach. I can help you calculate class attendance buffers, CIE requirements, and track academic risk based on your official college records. How can I help you today?",
+              },
+            ]);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, busy]);
+
+  if (!isOpen) return null;
+
+  const handleSend = async (textToSend) => {
+    const text = (textToSend || input).trim();
+    if (!text || busy) return;
+
+    const userMsg = { role: 'user', content: text };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput('');
+    setBusy(true);
+    setError('');
+
+    try {
+      const res = await coachChat(text);
+      setMessages((prev) => [...prev, { role: 'assistant', content: res.reply }]);
+    } catch (err) {
+      setError(err.message || 'Failed to get response from coach.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleClear = async () => {
+    try {
+      await clearCoachHistory();
+      setMessages([
+        {
+          role: 'assistant',
+          content: "Chat history cleared. What would you like to ask?",
+        },
+      ]);
+    } catch {}
+  };
+
+  return (
+    <div className="coach-drawer">
+      <div className="coach-header">
+        <div>
+          <h3>🤖 AI Study Coach</h3>
+          <small>Grounded in your official records</small>
+        </div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <button type="button" className="ghost" style={{ color: '#9cb8ac', fontSize: 11 }} onClick={handleClear} title="Clear history">
+            Clear
+          </button>
+          <button type="button" className="ghost" style={{ color: '#e7f3ed', fontSize: 16 }} onClick={onClose}>
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div className="coach-pills">
+        {quickPrompts.map((p, idx) => (
+          <button key={idx} type="button" className="coach-pill" onClick={() => handleSend(p)}>
+            {p}
+          </button>
+        ))}
+      </div>
+
+      <div className="coach-messages">
+        {messages.map((m, idx) => (
+          <div key={idx} className={`coach-bubble-msg ${m.role}`}>
+            {m.content}
+          </div>
+        ))}
+        {busy && (
+          <div className="coach-bubble-msg assistant" style={{ fontStyle: 'italic', color: '#6d827e' }}>
+            Thinking...
+          </div>
+        )}
+        {error && <div className="error" style={{ fontSize: 11, padding: '6px 10px' }}>{error}</div>}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form
+        className="coach-input-bar"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend();
+        }}
+      >
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask a question about your attendance or CIE..."
+          disabled={busy}
+        />
+        <button type="submit" className="primary" disabled={busy || !input.trim()}>
+          Send
+        </button>
+      </form>
+    </div>
+  );
+}
+
 function StudentSubjectModal({ subjectId, onClose }) {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -176,22 +598,50 @@ function StudentSubjectModal({ subjectId, onClose }) {
 
         {detail && (
           <>
-            <div className="marks-summary-box">
+            <div className="marks-summary-box" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
               <div>
                 <span>CIE 1 (Max 25)</span>
                 <strong>{detail.marks.cie1 !== null ? `${detail.marks.cie1} / 25` : '—'}</strong>
+                <span className={`badge ${detail.marks.cie1_status === 'absent' ? 'cie-absent' : 'cie-scored'}`}>
+                  {detail.marks.cie1_status === 'absent' ? 'Absent' : detail.marks.cie1 !== null ? 'Scored' : 'Pending'}
+                </span>
               </div>
               <div>
                 <span>CIE 2 (Max 25)</span>
                 <strong>{detail.marks.cie2 !== null ? `${detail.marks.cie2} / 25` : '—'}</strong>
+                <span className={`badge ${detail.marks.cie2_status === 'absent' ? 'cie-absent' : 'cie-scored'}`}>
+                  {detail.marks.cie2_status === 'absent' ? 'Absent' : detail.marks.cie2 !== null ? 'Scored' : 'Pending'}
+                </span>
               </div>
               <div>
-                <span>Total CIE (Max 50)</span>
-                <strong className={detail.marks.total !== null && detail.marks.total >= 40 ? 'green' : ''}>
-                  {detail.marks.total !== null ? `${detail.marks.total} / 50` : '—'}
+                <span>CIE 3 (Re-attempt)</span>
+                <strong>{detail.marks.cie3 !== null ? `${detail.marks.cie3} / 25` : '—'}</strong>
+                <span className={`badge ${
+                  detail.marks.cie3_status === 'scored' ? 'cie-scored' :
+                  detail.marks.cie3_status === 'absent' ? 'cie-absent' :
+                  detail.marks.cie3_status === 'eligible_not_taken' ? 'cie-eligible' : 'cie-ineligible'
+                }`}>
+                  {detail.marks.cie3_status === 'scored' ? 'Scored' :
+                   detail.marks.cie3_status === 'absent' ? 'Absent' :
+                   detail.marks.cie3_status === 'eligible_not_taken' ? 'Eligible (Not Written)' : 'Not Eligible'}
+                </span>
+              </div>
+              <div>
+                <span>Final CIE</span>
+                <strong className={detail.marks.final_cie_50 !== null && detail.marks.final_cie_50 >= 40 ? 'green' : ''}>
+                  {detail.marks.final_cie_25 !== null ? `${detail.marks.final_cie_25}/25` : '—'}
                 </strong>
+                <small style={{ display: 'block', fontSize: 11, color: '#6d827e' }}>
+                  {detail.marks.final_cie_50 !== null ? `(${detail.marks.final_cie_50} / 50)` : ''}
+                </small>
               </div>
             </div>
+
+            {detail.marks.cie3_reason && (
+              <p className="notice" style={{ fontSize: 12, margin: '8px 0 16px', padding: '8px 12px' }}>
+                💡 {detail.marks.cie3_reason}
+              </p>
+            )}
 
             <div className="detail-chart" style={{ borderTop: 'none', paddingTop: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -241,6 +691,7 @@ function StudentWorkspace({ auth, onLogout }) {
   const [scores, setScores] = useState(null);
   const [error, setError] = useState('');
   const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+  const [showCoach, setShowCoach] = useState(false);
 
   useEffect(() => {
     Promise.all([getStudentDashboard(), getStudentAttendance(), getStudentScores()])
@@ -265,6 +716,7 @@ function StudentWorkspace({ auth, onLogout }) {
           <span>VISTA <b>Student portal</b></span>
         </div>
         <div className="top-actions">
+          <NotificationCenter user={auth} />
           <span>{auth.name}</span>
           <button className="ghost" onClick={onLogout}>Sign out</button>
         </div>
@@ -278,6 +730,7 @@ function StudentWorkspace({ auth, onLogout }) {
           </div>
         </div>
         {error && <p className="error">{error}</p>}
+        <CoachTipCard onOpenCoach={() => setShowCoach(true)} />
         <section className="stats">
           <div>
             <span>Attendance</span>
@@ -361,6 +814,17 @@ function StudentWorkspace({ auth, onLogout }) {
             onClose={() => setSelectedSubjectId(null)}
           />
         )}
+
+        <button
+          type="button"
+          className="coach-floating-btn"
+          onClick={() => setShowCoach(true)}
+          title="Open AI Study Coach"
+        >
+          💬 AI Study Coach
+        </button>
+
+        <CoachChatDrawer isOpen={showCoach} onClose={() => setShowCoach(false)} />
       </main>
     </div>
   );
@@ -375,6 +839,7 @@ function ManualEntryModal({ isOpen, onClose, userRole, assignedSubjects, allStud
   const [status, setStatus] = useState('present');
   const [attReason, setAttReason] = useState('');
   const [assessmentType, setAssessmentType] = useState('CIE 1');
+  const [marksStatus, setMarksStatus] = useState('scored');
   const [scoreVal, setScoreVal] = useState('');
   const [marksDate, setMarksDate] = useState(today());
   const [marksReason, setMarksReason] = useState('');
@@ -472,10 +937,13 @@ function ManualEntryModal({ isOpen, onClose, userRole, assignedSubjects, allStud
       setError('A mandatory reason is required for marks entry.');
       return;
     }
-    const numScore = parseFloat(scoreVal);
-    if (isNaN(numScore) || numScore < 0 || numScore > 25) {
-      setError('CIE score must be a number between 0 and 25.');
-      return;
+    let numScore = null;
+    if (marksStatus === 'scored') {
+      numScore = parseFloat(scoreVal);
+      if (isNaN(numScore) || numScore < 0 || numScore > 25) {
+        setError('CIE score must be a number between 0 and 25.');
+        return;
+      }
     }
     if (marksDate > today()) {
       setError('Cannot record marks for future dates.');
@@ -497,7 +965,8 @@ function ManualEntryModal({ isOpen, onClose, userRole, assignedSubjects, allStud
         25,
         marksDate,
         assessmentType,
-        marksReason.trim()
+        marksReason.trim(),
+        marksStatus
       );
       setNotice(`Recorded ${assessmentType} marks (${numScore}/25) for ${selectedStudent.name} with source='manual'.`);
       setScoreVal('');
@@ -617,25 +1086,34 @@ function ManualEntryModal({ isOpen, onClose, userRole, assignedSubjects, allStud
           </form>
         ) : (
           <form onSubmit={submitMarks}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
               <label>
                 Assessment
                 <select value={assessmentType} onChange={(e) => setAssessmentType(e.target.value)}>
                   <option value="CIE 1">CIE 1</option>
                   <option value="CIE 2">CIE 2</option>
+                  <option value="CIE 3">CIE 3 (Re-attempt)</option>
+                </select>
+              </label>
+              <label>
+                Status
+                <select value={marksStatus} onChange={(e) => setMarksStatus(e.target.value)}>
+                  <option value="scored">Scored</option>
+                  <option value="absent">Absent</option>
                 </select>
               </label>
               <label>
                 Marks (Max 25)
                 <input
                   type="number"
-                  required
+                  required={marksStatus === 'scored'}
+                  disabled={marksStatus === 'absent'}
                   min="0"
                   max="25"
                   step="0.5"
-                  value={scoreVal}
+                  value={marksStatus === 'absent' ? '' : scoreVal}
                   onChange={(e) => setScoreVal(e.target.value)}
-                  placeholder="0 to 25"
+                  placeholder={marksStatus === 'absent' ? 'Absent (No mark)' : '0 to 25'}
                 />
               </label>
               <label>
@@ -855,6 +1333,7 @@ function StudentDetail({ studentId, onBack, auth }) {
 
 function AdminWorkspace({ auth, onLogout }) {
   const [users, setUsers] = useState([]);
+  const [showComposeNotif, setShowComposeNotif] = useState(false);
   const [students, setStudents] = useState(ROSTER);
   const [subjects, setSubjects] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -867,6 +1346,7 @@ function AdminWorkspace({ auth, onLogout }) {
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showManualModal, setShowManualModal] = useState(false);
+  const [showComposeNotif, setShowComposeNotif] = useState(false);
 
   const reload = () =>
     Promise.all([getAdminUsers(), getStudents(1, 100), getAdminSubjects(), getAdminClasses()])
@@ -1010,6 +1490,7 @@ function AdminWorkspace({ auth, onLogout }) {
           <span>VISTA <b>Admin / HOD</b></span>
         </div>
         <div className="top-actions">
+          <NotificationCenter user={auth} onOpenCompose={() => setShowComposeNotif(true)} />
           <span>{auth.name}</span>
           <button type="button" className="ghost" onClick={onLogout}>Sign out</button>
         </div>
@@ -1204,6 +1685,13 @@ function AdminWorkspace({ auth, onLogout }) {
           allStudents={students}
           onDone={reload}
         />
+
+        <ComposeNotificationModal
+          isOpen={showComposeNotif}
+          onClose={() => setShowComposeNotif(false)}
+          user={auth}
+          assignedSubjects={subjects.length ? subjects : SUBJECTS.map((s) => ({ name: s[0], code: s[1] }))}
+        />
       </main>
     </div>
   );
@@ -1381,6 +1869,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
           <span>VISTA <b>Attendance</b></span>
         </div>
         <div className="top-actions">
+          <NotificationCenter user={auth} onOpenCompose={() => setShowComposeNotif(true)} />
           <span>{auth?.name || auth?.email || 'Teacher'}</span>
           <button className="ghost" onClick={onLogout}>Sign out</button>
         </div>
@@ -1539,6 +2028,13 @@ function AttendanceWorkspace({ auth, onLogout }) {
           assignedSubjects={assignments.length ? assignments : SUBJECTS.map((s) => ({ name: s[0], code: s[1] }))}
           allStudents={students}
           onDone={() => getAttendanceLog(classroom, date).then((log) => setRecords(log.records || []))}
+        />
+
+        <ComposeNotificationModal
+          isOpen={showComposeNotif}
+          onClose={() => setShowComposeNotif(false)}
+          user={auth}
+          assignedSubjects={assignments.length ? assignments : SUBJECTS.map((s) => ({ name: s[0], code: s[1] }))}
         />
       </main>
     </div>

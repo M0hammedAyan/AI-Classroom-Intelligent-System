@@ -26,6 +26,7 @@ from ..models.attendance import Score
 from ..models.organization import ClassSection, Subject, TeacherSubjectAssignment
 from ..models.student import Student
 from ..routes.auth import get_current_user, require_admin
+from ..cie_policy import evaluate_cie
 
 router = APIRouter(prefix="/api/v1/lms", tags=["lms"])
 
@@ -80,31 +81,35 @@ def add_score(
     if current_user.role not in ("admin", "teacher"):
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Only admins and assigned teachers can add marks."})
 
-    required = {"student_id", "subject", "score"}
-    missing = required - set(body.keys())
-    if missing:
-        raise HTTPException(status_code=400, detail={"code": "MISSING_FIELDS", "message": f"Missing required fields: {missing}"})
+    if "student_id" not in body or "subject" not in body:
+        raise HTTPException(status_code=400, detail={"code": "MISSING_FIELDS", "message": "Missing required fields: student_id and subject"})
 
     student = db.query(Student).filter(Student.student_id == body["student_id"]).first()
     if not student:
         raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"Student {body['student_id']} not found."})
 
-    # Validate numeric score
-    try:
-        score_val = float(body["score"])
-    except (ValueError, TypeError):
-        raise HTTPException(status_code=400, detail={"code": "INVALID_SCORE", "message": "Score must be a valid number."})
+    status = str(body.get("status", "scored")).strip().lower()
+    if status not in ("scored", "absent"):
+        raise HTTPException(status_code=400, detail={"code": "INVALID_STATUS", "message": "Status must be 'scored' or 'absent'."})
 
     assessment_type = str(body.get("assessment_type", "CIE 1")).strip()
     max_score = float(body.get("max_score", 25.0))
     if "CIE" in assessment_type.upper():
         max_score = 25.0
 
-    if score_val < 0.0 or score_val > max_score:
-        raise HTTPException(status_code=400, detail={
-            "code": "SCORE_OUT_OF_RANGE",
-            "message": f"Score must be between 0 and {max_score}.",
-        })
+    score_val = None
+    if status == "scored":
+        if "score" not in body or body["score"] is None:
+            raise HTTPException(status_code=400, detail={"code": "MISSING_SCORE", "message": "Score is required when status is 'scored'."})
+        try:
+            score_val = float(body["score"])
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=400, detail={"code": "INVALID_SCORE", "message": "Score must be a valid number."})
+        if score_val < 0.0 or score_val > max_score:
+            raise HTTPException(status_code=400, detail={
+                "code": "SCORE_OUT_OF_RANGE",
+                "message": f"Score must be between 0 and {max_score}.",
+            })
 
     # Mandatory reason
     reason = str(body.get("reason", "") or body.get("note", "")).strip()
@@ -128,6 +133,15 @@ def add_score(
     ).first()
     if not subject:
         raise HTTPException(status_code=404, detail={"code": "SUBJECT_NOT_FOUND", "message": f"Subject {body['subject']} not found."})
+
+    # CIE 3 eligibility check
+    if assessment_type == "CIE 3":
+        cie_eval = evaluate_cie(student.student_id, subject.name, db)
+        if not cie_eval["cie3_eligible"] and current_user.role != "admin":
+            raise HTTPException(status_code=400, detail={
+                "code": "CIE3_NOT_ELIGIBLE",
+                "message": f"Student is not eligible for CIE 3 ({cie_eval['cie3_reason']}). Admin override required.",
+            })
 
     # Scope validation for teacher
     if current_user.role == "teacher":
@@ -158,6 +172,7 @@ def add_score(
     old_score = existing.score if existing else None
     if existing:
         existing.score = score_val
+        existing.status = status
         existing.max_score = max_score
         existing.date = score_date
         existing.source = "manual"
@@ -171,6 +186,7 @@ def add_score(
             subject=subject.name,
             assessment_type=assessment_type,
             score=score_val,
+            status=status,
             max_score=max_score,
             date=score_date,
             source="manual",
@@ -230,14 +246,20 @@ def get_student_marks(
         query = query.filter((Score.subject == subject) | (Score.subject.like(f"%{subject}%")))
     scores = query.order_by(Score.date.asc()).all()
 
+    eval_res = None
+    if subject:
+        eval_res = evaluate_cie(student_id, subject, db)
+
     return {
         "student_id": student_id,
+        "cie_evaluation": eval_res,
         "scores": [
             {
                 "id": s.id,
                 "subject": s.subject,
                 "assessment_type": s.assessment_type or "Assessment",
                 "score": s.score,
+                "status": s.status or ("scored" if s.score is not None else "absent"),
                 "max_score": s.max_score,
                 "date": s.date,
                 "source": s.source or "seed",

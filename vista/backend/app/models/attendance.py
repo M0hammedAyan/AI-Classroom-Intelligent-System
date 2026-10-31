@@ -41,9 +41,10 @@ class Score(Base):
     id = Column(Text, primary_key=True)
     student_id = Column(Text, ForeignKey("students.student_id"), nullable=False)
     subject = Column(Text, nullable=False)
-    assessment_type = Column(Text, nullable=True, default="CIE 1")  # CIE 1 | CIE 2 | assignment
-    score = Column(Float, nullable=False)
-    max_score = Column(Float, nullable=False)
+    assessment_type = Column(Text, nullable=True, default="CIE 1")  # CIE 1 | CIE 2 | CIE 3
+    score = Column(Float, nullable=True)          # NULL if absent
+    status = Column(Text, default="scored")       # scored | absent
+    max_score = Column(Float, nullable=False, default=25.0)
     date = Column(Text, nullable=False)           # YYYY-MM-DD
     source = Column(Text, nullable=False, default="seed")  # seed | manual
     created_at = Column(Text, nullable=False)

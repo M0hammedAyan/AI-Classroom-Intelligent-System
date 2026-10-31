@@ -30,7 +30,7 @@ Login: `admin@vista.local` / `admin123`
 | **Vision** | Identify students from classroom photos (InsightFace ArcFace / ResNet-50 classifier: 100% on 14-image 2-student pilot test set; 90.10% test accuracy on 20-class .npz split B) |
 | **ML** | Predict dropout risk from attendance + scores (Rule-based engine + XGBoost F1=0.957 on synthetic validation data, SHAP) |
 | **Platform** | 6-role dashboard for Admin, Teacher, and Student |
-| **Alerts** | In-app notifications for mentors & admins; parent alert queuing in database (external SMS/email gateway planned) |
+| **Alerts** | In-app notifications for admins & teachers; parent alert queuing in database (external SMS/email gateway planned) |
 
 ---
 
@@ -44,7 +44,7 @@ Login: `admin@vista.local` / `admin123`
 - Student PDF reports
 - Dark/light mode for all users (ocean green accent dark theme)
 - Real-time WebSocket dashboard updates
-- Role-specific dashboards (Teacher, Mentor, Student, Admin)
+- Role-specific dashboards (Admin, Teacher, Student)
 - Organization tree management (Admin creates Schools → Depts → Classes → Subjects → Users)
 - Docker production deployment
 - Clean build (zero warnings)
@@ -94,7 +94,7 @@ Login: `admin@vista.local` / `admin123`
 Login as any role to see role-specific dashboards:
 - **Admin**: Organization tree (Schools → Departments → Classes → Subjects → Users)
 - **Teacher**: My subjects, at-risk students, quick actions (mark attendance, enter marks)
-- **Mentor**: Watchlist, assigned students, risk alerts
+- ~~**Mentor**: Watchlist, assigned students, risk alerts~~ *(role deprecated)*
 - **Student**: Today's timetable, attendance heatmap, assignments, notices
 
 ---

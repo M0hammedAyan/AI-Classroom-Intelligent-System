@@ -99,7 +99,7 @@ def compute_marks_average(
     normalised = [
         (s / m) * 100.0
         for s, m in zip(scores, max_scores)
-        if m > 0
+        if m > 0 and s is not None
     ]
     if not normalised:
         return 0.0
@@ -118,8 +118,8 @@ def compute_marks_decline(
     if len(scores) < 2 or not max_scores:
         return 0.0
 
-    recent_raw = list(zip(scores, max_scores))[-3:]
-    normalised = [(s / m) * 100.0 for s, m in recent_raw if m > 0]
+    recent_raw = [(s, m) for s, m in zip(scores, max_scores) if s is not None and m > 0][-3:]
+    normalised = [(s / m) * 100.0 for s, m in recent_raw]
 
     if len(normalised) < 2:
         return 0.0
@@ -177,8 +177,8 @@ def compute_performance_trend(
     if len(scores) < 2 or not max_scores:
         return "INSUFFICIENT_DATA"
 
-    recent_raw = list(zip(scores, max_scores))[-3:]
-    normalised = [(s / m) * 100.0 for s, m in recent_raw if m > 0]
+    recent_raw = [(s, m) for s, m in zip(scores, max_scores) if s is not None and m > 0][-3:]
+    normalised = [(s / m) * 100.0 for s, m in recent_raw]
 
     if len(normalised) < 2:
         return "INSUFFICIENT_DATA"

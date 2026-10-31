@@ -41,6 +41,7 @@ from app.models.student import Student, Classroom
 from app.models.organization import ClassSection, Subject, TeacherSubjectAssignment
 from app.models.attendance import Attendance, Score, RiskFlag
 from app.models.user import User
+from app.cie_policy import evaluate_cie
 
 # Subject Code Mapping
 SUBJECT_CODES = {
@@ -210,9 +211,10 @@ def run_seed():
         else:
             print("Attendance records are already seeded (idempotent no-op).")
 
-        # 3. Generate CIE 1 and CIE 2 Marks
+        # 3. Generate CIE 1, CIE 2, and selective CIE 3 Marks
         # CIE 1 Date: 2026-09-18
         # CIE 2 Date: 2026-10-23
+        # CIE 3 Date: 2026-10-29 (for eligible re-attempt students)
         cie_assessments = [
             ("CIE 1", "2026-09-18"),
             ("CIE 2", "2026-10-23"),
@@ -225,7 +227,6 @@ def run_seed():
         new_scores = []
         for assessment_type, cie_date in cie_assessments:
             for s in students:
-                # Student baseline academic aptitude (correlated with attendance but with variance)
                 base_pct = student_baselines[s.student_id]
 
                 for subject_code in SUBJECT_CODES.values():
@@ -234,20 +235,25 @@ def run_seed():
                     if score_key in existing_scores:
                         continue
 
-                    # CIE max marks = 25
-                    # Mean marks around 17-18, spread mostly between 12 and 24, a few lower
-                    raw_score = (base_pct * 22) + random.uniform(-4.0, 3.5)
-                    # Round to nearest 0.5 mark
-                    clamped_score = round(max(0.0, min(25.0, raw_score)) * 2) / 2
-
                     rec_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{s.student_id}_{subj.id}_{assessment_type}"))
+
+                    # Small probability of student being absent (~3%)
+                    is_absent = random.random() < 0.035
+                    if is_absent:
+                        status = "absent"
+                        score_val = None
+                    else:
+                        status = "scored"
+                        raw_score = (base_pct * 22) + random.uniform(-4.0, 3.5)
+                        score_val = round(max(0.0, min(25.0, raw_score)) * 2) / 2
 
                     new_scores.append(Score(
                         id=rec_id,
                         student_id=s.student_id,
                         subject=subj.name,
                         assessment_type=assessment_type,
-                        score=clamped_score,
+                        score=score_val,
+                        status=status,
                         max_score=25.0,
                         date=cie_date,
                         source="seed",
@@ -257,9 +263,46 @@ def run_seed():
         if new_scores:
             db.bulk_save_objects(new_scores)
             db.commit()
-            print(f"Seeded {len(new_scores)} CIE marks records (source='seed').")
+            print(f"Seeded {len(new_scores)} CIE 1 & 2 marks records (source='seed').")
         else:
-            print("CIE marks are already seeded (idempotent no-op).")
+            print("CIE 1 & 2 marks are already seeded.")
+
+        # Seed CIE 3 selectively for eligible students
+        # Roughly half of eligible students take CIE 3, the other half left as 'eligible, not yet written'
+        cie3_scores = []
+        for s in students:
+            for subject_code in SUBJECT_CODES.values():
+                subj = subj_by_code[subject_code]
+                cie3_key = (s.student_id, subj.name, "CIE 3")
+                if cie3_key in existing_scores:
+                    continue
+
+                eval_res = evaluate_cie(s.student_id, subj.name, db)
+                if eval_res["cie3_eligible"]:
+                    # Seed for roughly 50% of eligible
+                    if random.random() < 0.50:
+                        rec_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{s.student_id}_{subj.id}_CIE 3"))
+                        # CIE 3 re-attempt score typically shows improvement (18 to 23.5)
+                        score_val = round(random.uniform(18.0, 23.5) * 2) / 2
+                        cie3_scores.append(Score(
+                            id=rec_id,
+                            student_id=s.student_id,
+                            subject=subj.name,
+                            assessment_type="CIE 3",
+                            score=score_val,
+                            status="scored",
+                            max_score=25.0,
+                            date="2026-10-29",
+                            source="seed",
+                            created_at=now_iso,
+                        ))
+
+        if cie3_scores:
+            db.bulk_save_objects(cie3_scores)
+            db.commit()
+            print(f"Seeded {len(cie3_scores)} CIE 3 re-attempt marks records for eligible students.")
+        else:
+            print("CIE 3 marks already up to date.")
 
         # 4. Recompute Risk for all students
         print("Recomputing risk flags for all students with new attendance and scores...")

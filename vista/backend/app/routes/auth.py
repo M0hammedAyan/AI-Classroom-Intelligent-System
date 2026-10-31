@@ -93,6 +93,12 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail={"code": "INVALID_CREDENTIALS", "message": "Invalid email or password."})
     if not user.is_active:
         raise HTTPException(status_code=403, detail={"code": "ACCOUNT_DISABLED", "message": "Account is disabled."})
+    ALLOWED_ROLES = {"admin", "teacher", "student"}
+    if user.role not in ALLOWED_ROLES:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "ROLE_DEPRECATED", "message": f"Role '{user.role}' is deprecated. Only 'admin', 'teacher', and 'student' roles are supported."},
+        )
     if not bcrypt.checkpw(body.password.encode(), user.password_hash.encode()):
         attempts.append(now)
         _login_attempts[client_ip] = attempts

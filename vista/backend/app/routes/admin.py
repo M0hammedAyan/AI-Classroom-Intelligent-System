@@ -65,6 +65,8 @@ def create_user(
     allowed_roles = creation_rules.get(current_user.role, [])
     if not allowed_roles:
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": f"Role '{current_user.role}' cannot create users."})
+    if body.role not in ("admin", "teacher", "student"):
+        raise HTTPException(status_code=400, detail={"code": "INVALID_ROLE", "message": f"Role '{body.role}' is not supported. Only 'admin', 'teacher', and 'student' are permitted."})
 
     if body.role not in allowed_roles:
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": f"Your role ({current_user.role}) cannot create '{body.role}' users. Allowed: {allowed_roles}"})
