@@ -65,45 +65,186 @@ def add_score(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    """Add a score manually; teachers may edit only their assigned subject."""
+    """
+    Add or update a score manually (upsert).
+    - Teachers may edit only their assigned subject and class.
+    - Admins can edit any student and subject.
+    - Students are strictly forbidden.
+    - Reason is mandatory.
+    - Validation: numeric marks, 0 <= score <= max_score (CIE max = 25).
+    - Date: no future dates, no dates before 2026-08-03 unless admin.
+    - Writes an audit log on every change with source='manual'.
+    """
+    if current_user.role == "student":
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Student accounts cannot add or edit marks."})
     if current_user.role not in ("admin", "teacher"):
-        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Only admins and teachers can add marks."})
-    required = {"student_id", "subject", "score", "max_score", "date"}
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Only admins and assigned teachers can add marks."})
+
+    required = {"student_id", "subject", "score"}
     missing = required - set(body.keys())
     if missing:
-        raise HTTPException(status_code=400, detail={"code": "MISSING_FIELDS", "message": f"Missing: {missing}"})
+        raise HTTPException(status_code=400, detail={"code": "MISSING_FIELDS", "message": f"Missing required fields: {missing}"})
 
     student = db.query(Student).filter(Student.student_id == body["student_id"]).first()
     if not student:
-        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"Student {body['student_id']} not found"})
+        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"Student {body['student_id']} not found."})
 
+    # Validate numeric score
+    try:
+        score_val = float(body["score"])
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail={"code": "INVALID_SCORE", "message": "Score must be a valid number."})
+
+    assessment_type = str(body.get("assessment_type", "CIE 1")).strip()
+    max_score = float(body.get("max_score", 25.0))
+    if "CIE" in assessment_type.upper():
+        max_score = 25.0
+
+    if score_val < 0.0 or score_val > max_score:
+        raise HTTPException(status_code=400, detail={
+            "code": "SCORE_OUT_OF_RANGE",
+            "message": f"Score must be between 0 and {max_score}.",
+        })
+
+    # Mandatory reason
+    reason = str(body.get("reason", "") or body.get("note", "")).strip()
+    if not reason:
+        raise HTTPException(status_code=400, detail={
+            "code": "REASON_REQUIRED",
+            "message": "A reason is mandatory for manual marks entry.",
+        })
+
+    # Date validation: no future dates, no dates before 2026-08-03 unless admin
+    today_str = datetime.now(timezone.utc).date().isoformat()
+    score_date = str(body.get("date", today_str)).strip()
+    if score_date > today_str:
+        raise HTTPException(status_code=400, detail={"code": "FUTURE_DATE", "message": "Cannot record marks for future dates."})
+    if current_user.role != "admin" and score_date < "2026-08-03":
+        raise HTTPException(status_code=400, detail={"code": "DATE_OUT_OF_RANGE", "message": "Date cannot be before semester start (03-Aug-2026)."})
+
+    # Subject matching
+    subject = db.query(Subject).filter(
+        (Subject.id == body["subject"]) | (Subject.code == body["subject"]) | (Subject.name == body["subject"])
+    ).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail={"code": "SUBJECT_NOT_FOUND", "message": f"Subject {body['subject']} not found."})
+
+    # Scope validation for teacher
     if current_user.role == "teacher":
-        class_section = db.query(ClassSection).filter(ClassSection.code == student.class_).first()
-        subject = db.query(Subject).filter(
-            (Subject.id == body["subject"]) | (Subject.code == body["subject"]) | (Subject.name == body["subject"])
+        class_section = db.query(ClassSection).filter(
+            (ClassSection.id == student.classroom_id) |
+            (ClassSection.code == student.classroom_id) |
+            (ClassSection.code == student.class_) |
+            (ClassSection.name == student.class_)
         ).first()
-        allowed = subject and class_section and db.query(TeacherSubjectAssignment).filter(
+
+        allowed = class_section and db.query(TeacherSubjectAssignment).filter(
             TeacherSubjectAssignment.teacher_id == current_user.id,
             TeacherSubjectAssignment.subject_id == subject.id,
             TeacherSubjectAssignment.class_section_id == class_section.id,
             TeacherSubjectAssignment.is_active == True,
         ).first()
         if not allowed:
-            raise HTTPException(status_code=403, detail={"code": "SUBJECT_SCOPE", "message": "You can only add marks for your assigned subjects."})
+            raise HTTPException(status_code=403, detail={"code": "SUBJECT_SCOPE", "message": "Teachers can only add marks for their assigned subjects and class."})
+
+    # Upsert score record
+    existing = db.query(Score).filter(
+        Score.student_id == student.student_id,
+        (Score.subject == subject.name) | (Score.subject == subject.code),
+        Score.assessment_type == assessment_type,
+    ).first()
 
     now = datetime.now(timezone.utc).isoformat()
-    score = Score(
-        id=str(uuid.uuid4()),
-        student_id=body["student_id"],
-        subject=body["subject"],
-        score=float(body["score"]),
-        max_score=float(body["max_score"]),
-        date=body["date"],
-        created_at=now,
+    old_score = existing.score if existing else None
+    if existing:
+        existing.score = score_val
+        existing.max_score = max_score
+        existing.date = score_date
+        existing.source = "manual"
+        db.commit()
+        db.refresh(existing)
+        row = existing
+    else:
+        row = Score(
+            id=str(uuid.uuid4()),
+            student_id=student.student_id,
+            subject=subject.name,
+            assessment_type=assessment_type,
+            score=score_val,
+            max_score=max_score,
+            date=score_date,
+            source="manual",
+            created_at=now,
+        )
+        db.add(row)
+        db.commit()
+        db.refresh(row)
+
+    # Write audit log
+    from ..audit import log_action
+    import json
+    log_action(
+        db,
+        user_id=current_user.id,
+        action="manual_marks_update",
+        target_type="student",
+        target_id=student.student_id,
+        details=json.dumps({
+            "subject": subject.name,
+            "assessment_type": assessment_type,
+            "old_score": old_score,
+            "new_score": score_val,
+            "max_score": max_score,
+            "reason": reason,
+            "source": "manual",
+        }),
     )
-    db.add(score)
     db.commit()
-    return {"added": True, "student_id": body["student_id"], "subject": body["subject"]}
+
+    return {
+        "status": "ok",
+        "score_id": row.id,
+        "student_id": row.student_id,
+        "subject": row.subject,
+        "assessment_type": row.assessment_type,
+        "score": row.score,
+        "max_score": row.max_score,
+        "source": row.source,
+        "is_update": old_score is not None,
+    }
+
+
+@router.get("/student/{student_id}/marks")
+def get_student_marks(
+    student_id: str,
+    subject: str | None = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Fetch marks for a student and optional subject for review/manual entry."""
+    if current_user.role == "student" and current_user.id != f"student-{student_id}":
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    query = db.query(Score).filter(Score.student_id == student_id)
+    if subject:
+        query = query.filter((Score.subject == subject) | (Score.subject.like(f"%{subject}%")))
+    scores = query.order_by(Score.date.asc()).all()
+
+    return {
+        "student_id": student_id,
+        "scores": [
+            {
+                "id": s.id,
+                "subject": s.subject,
+                "assessment_type": s.assessment_type or "Assessment",
+                "score": s.score,
+                "max_score": s.max_score,
+                "date": s.date,
+                "source": s.source or "seed",
+            }
+            for s in scores
+        ],
+    }
 
 
 @router.post("/import-csv")

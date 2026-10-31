@@ -35,7 +35,7 @@ graph TD
 The backend is built with FastAPI and Uvicorn, listening on port **8002** under the `/api/v1/` prefix. The service architecture separates routing, business logic, ORM models, and background tasks:
 - **`app/main.py`:** Creates the FastAPI application factory, configures CORS middleware for frontend origins, instruments Prometheus metrics handlers (`/metrics`), mounts all 14 modular routers, and initializes database tables.
 - **`app/db.py`:** Initializes the SQLAlchemy 2.0 engine, manages scoped session generators (`get_db`), and executes an idempotent startup database seeder that populates multi-tier institution trees, course subjects, sample students, and timetable slots.
-- **`app/permissions.py`:** Implements role-based access control (RBAC). Defines `get_current_user` to decode and validate JWT bearer tokens, and provides parameterized dependencies `require_role([...])` scoping endpoints to permitted roles (`admin`, `hos`, `hop`, `mentor`, `teacher`, `student`).
+- **`app/permissions.py`:** Implements role-based access control (RBAC). Defines `get_current_user` to decode and validate JWT bearer tokens, and provides parameterized dependencies `require_role([...])` scoping endpoints to permitted roles (`admin`, `teacher`, `student`).
 - **`app/scheduler.py`:** Uses APScheduler's `BackgroundScheduler` to register an automated cron job executing daily at midnight (`00:00:00`). The job iterates through all active students, computes longitudinal risk indicators, updates `risk_flags`, and queues parent absence notices in `parent_alerts`.
 - **`app/websocket.py`:** Implements `ConnectionManager` to maintain active client WebSocket connections at `/ws/dashboard`. It broadcasts JSON event payloads whenever attendance is marked or risk scores change.
 - **`app/routes/`:** Encompasses 14 distinct route modules exposing 110 endpoints, detailed in Table 5.1.
@@ -48,7 +48,7 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 | `academics.py` | `/api/v1/academics` | 23 | Classrooms, departments, sections, subjects, timetables, and teacher allocations |
 | `admin.py` | `/api/v1/admin` | 29 | Enterprise user provisioning, organization hierarchy tree, audit trail inspection |
 | `attendance.py` | `/api/v1/attendance` | 8 | Image-based attendance marking, manual roll calls, session logs, teacher overrides |
-| `dashboards.py` | `/api/v1/dashboards` | 7 | Scoped KPI analytics aggregated for Admin, HOS, HOP, Mentor, Teacher, Student |
+| `dashboards.py` | `/api/v1/dashboards` | 7 | Scoped KPI analytics aggregated for Admin, Teacher, and Student |
 | `enroll.py` | `/api/v1/enroll` | 2 | Single and batch facial image feature extraction and database enrollment |
 | `export.py` | `/api/v1/export` | 1 | Streaming CSV export of attendance and academic performance records |
 | `lms.py` | `/api/v1/lms` | 4 | Course assignments, student file submissions, syllabus progress tracking |
@@ -75,7 +75,7 @@ The database architecture comprises 24 tables declared across 8 model modules in
 | `organization.py` | `subjects` | `id` (UUID) | `department_id` $\to$ `departments.id` | Academic course units and credit values |
 | `organization.py` | `teacher_subjects` | `id` (UUID) | `teacher_id` $\to$ `users.id`, `subject_id` $\to$ `subjects.id` | Teacher allocation to courses and sections |
 | `organization.py` | `access_requests` | `id` (UUID) | `requester_id` $\to$ `users.id` | Permission escalation and access approvals |
-| `user.py` | `users` | `id` (UUID) | None (Stores hashed credentials & role) | System user accounts across all 6 roles |
+| `user.py` | `users` | `id` (UUID) | None (Stores hashed credentials & role) | System user accounts across all 3 roles (Admin, Teacher, Student) |
 | `student.py` | `students` | `student_id` (TEXT) | `class_section_id` $\to$ `class_sections.id` | Student roster, roll number, and 512-d embedding |
 | `student.py` | `semester_results` | `id` (UUID) | `student_id` $\to$ `students.student_id` | Historical semester SGPA, CGPA, backlogs |
 | `student.py` | `study_materials` | `id` (UUID) | `subject_id` $\to$ `subjects.id` | Uploaded lecture notes and syllabi |
@@ -172,4 +172,4 @@ The platform is containerized using Docker Compose and configured for on-premise
 ---
 
 ## 5.5 Summary
-The implementation successfully establishes a robust, decoupled, and highly performant architecture. By uniting InsightFace SCRFD and ArcFace with a secondary PyTorch ResNet-50 classifier, the vision subsystem achieves resilient face localization and identification. The backend implements 114 endpoints and 24 relational tables, enforcing 6-role RBAC security and scheduled midnight risk computations. Finally, the longitudinal risk engine couples XGBoost classification with SHAP XAI attributions, delivering full operational transparency to academic stakeholders.
+The implementation successfully establishes a robust, decoupled, and highly performant architecture. By uniting InsightFace SCRFD and ArcFace with a secondary PyTorch ResNet-50 classifier, the vision subsystem achieves resilient face localization and identification. The backend implements 114 endpoints and 24 relational tables, enforcing 3-role RBAC security (Admin, Teacher, Student) and scheduled midnight risk computations. Finally, the longitudinal risk engine couples XGBoost classification with SHAP XAI attributions, delivering full operational transparency to academic stakeholders.

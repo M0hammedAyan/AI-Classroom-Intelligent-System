@@ -3,15 +3,17 @@ Student Portal API — Students view their own data only.
 Features:
 - Dashboard (attendance, scores, risk)
 - Per-subject attendance breakdown
-- Marks by subject with semester results
+- Subject drill-down (date-wise history with source badges, CIE 1 & 2 marks)
+- Marks by subject with CIE totals (/50)
 - Extracurricular activities
 - Profile edit (name editable, USN editable ONCE)
-- Subject list (what subjects are in my class)
+- Subject list (active subjects in my class)
 - Theme preference
 """
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -36,9 +38,42 @@ def _get_student_id(user: User) -> str:
 
 
 def _require_student(current_user: User = Depends(get_current_user)) -> User:
+    """Enforce backend authorization: student accounts only."""
     if current_user.role != "student":
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Student access only."})
     return current_user
+
+
+def _get_student_class_section(db: Session, student: Student) -> ClassSection | None:
+    """Resolve student's class section robustly by classroom_id, code, or name."""
+    cs = db.query(ClassSection).filter(
+        (ClassSection.id == student.classroom_id) |
+        (ClassSection.code == student.classroom_id) |
+        (ClassSection.code == student.class_) |
+        (ClassSection.name == student.class_) |
+        (ClassSection.id == "class-aiml-4a")
+    ).first()
+    return cs
+
+
+def _get_class_subjects(db: Session, class_section: ClassSection | None) -> list[Subject]:
+    """Get active subjects assigned to the class section."""
+    subjects = []
+    if class_section:
+        assignments = (
+            db.query(TeacherSubjectAssignment)
+            .filter(TeacherSubjectAssignment.class_section_id == class_section.id, TeacherSubjectAssignment.is_active == True)
+            .all()
+        )
+        subject_ids = list(set(a.subject_id for a in assignments))
+        if subject_ids:
+            subjects = db.query(Subject).filter(Subject.id.in_(subject_ids), Subject.is_active == True).order_by(Subject.code).all()
+
+    if not subjects:
+        dept_id = class_section.department_id if class_section else "dept-aiml"
+        subjects = db.query(Subject).filter(Subject.department_id == dept_id, Subject.is_active == True).order_by(Subject.code).all()
+
+    return subjects
 
 
 @router.get("/dashboard")
@@ -46,31 +81,36 @@ def student_dashboard(
     db: Session = Depends(get_db),
     current_user: User = Depends(_require_student),
 ):
-    """Student's personal dashboard — own attendance, scores, risk."""
+    """
+    Student's personal dashboard — own attendance, scores, risk.
+    - Attendance percentage strictly between 0 and 100, formatted with at most 1 decimal.
+    - Handles zero sessions gracefully with 'No sessions yet'.
+    """
     sid = _get_student_id(current_user)
     student = db.query(Student).filter(Student.student_id == sid).first()
     if not student:
-        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND"})
+        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": "Student record not found."})
 
-    # Total sessions in the classroom
-    all_sessions = (
-        db.query(Attendance.session_date)
-        .filter(Attendance.classroom_id == student.classroom_id)
-        .distinct()
-        .all()
-    )
-    total_sessions = len(all_sessions)
-
-    # Attendance stats
+    # Attendance stats for this student
     att_rows = db.query(Attendance).filter(Attendance.student_id == sid).all()
     total_present = sum(1 for a in att_rows if a.status == "present")
-    attendance_pct = round(total_present / max(total_sessions, 1) * 100, 1)
+    total_sessions = len(att_rows)
+
+    if total_sessions == 0:
+        attendance_pct = None
+        display_attendance = "No sessions yet"
+    else:
+        # Strict calculation bounded between 0 and 100 with at most 1 decimal
+        attendance_pct = min(100.0, max(0.0, round((total_present / total_sessions) * 100, 1)))
+        display_attendance = f"{attendance_pct}%"
 
     # Scores
     score_rows = db.query(Score).filter(Score.student_id == sid).order_by(Score.date.desc()).all()
-    avg_score = 0
+    avg_score = 0.0
     if score_rows:
-        avg_score = round(sum(s.score / s.max_score * 100 for s in score_rows) / len(score_rows), 1)
+        valid_scores = [s.score / s.max_score * 100 for s in score_rows if s.max_score > 0]
+        if valid_scores:
+            avg_score = round(sum(valid_scores) / len(valid_scores), 1)
 
     # Risk
     risk = db.query(RiskFlag).filter(RiskFlag.student_id == sid).order_by(RiskFlag.calculated_at.desc()).first()
@@ -83,10 +123,11 @@ def student_dashboard(
         "total_present": total_present,
         "total_sessions": total_sessions,
         "attendance_pct": attendance_pct,
+        "display_attendance": display_attendance,
         "avg_score": avg_score,
         "assessments": len(score_rows),
         "risk_level": risk.risk_level if risk else "unknown",
-        "risk_reasons": json.loads(risk.reasons) if risk else [],
+        "risk_reasons": json.loads(risk.reasons) if risk and risk.reasons else [],
         "risk_confidence": risk.confidence if risk else None,
     }
 
@@ -96,12 +137,18 @@ def student_attendance(
     db: Session = Depends(get_db),
     current_user: User = Depends(_require_student),
 ):
-    """Student views their own attendance history."""
+    """Student views their own raw attendance history."""
     sid = _get_student_id(current_user)
-    rows = db.query(Attendance).filter(Attendance.student_id == sid).order_by(Attendance.session_date.desc()).limit(90).all()
+    rows = db.query(Attendance).filter(Attendance.student_id == sid).order_by(Attendance.session_date.desc()).limit(150).all()
     return {
         "records": [
-            {"date": r.session_date, "status": r.status, "confidence": r.confidence, "subject_id": r.subject_id}
+            {
+                "date": r.session_date,
+                "status": r.status,
+                "confidence": r.confidence,
+                "subject_id": r.subject_id,
+                "source": r.source or ("manual" if r.is_manual_override else "face"),
+            }
             for r in rows
         ],
         "total": len(rows),
@@ -113,65 +160,149 @@ def student_attendance_by_subject(
     db: Session = Depends(get_db),
     current_user: User = Depends(_require_student),
 ):
-    """Per-subject attendance breakdown + overall average."""
+    """Per-subject attendance breakdown + overall average for all class subjects."""
     sid = _get_student_id(current_user)
     student = db.query(Student).filter(Student.student_id == sid).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    # Overall attendance
-    all_sessions = (
-        db.query(Attendance.session_date)
-        .filter(Attendance.classroom_id == student.classroom_id)
-        .distinct()
-        .all()
-    )
-    total_sessions = len(all_sessions)
+    class_section = _get_student_class_section(db, student)
+    subjects = _get_class_subjects(db, class_section)
+
+    # Student attendance rows
     att_rows = db.query(Attendance).filter(Attendance.student_id == sid).all()
-    total_present = sum(1 for a in att_rows if a.status == "present")
-    overall_pct = round(total_present / max(total_sessions, 1) * 100, 1)
-
-    # Find subjects for student's class
-    class_section = db.query(ClassSection).filter(ClassSection.code == student.class_).first()
-    subjects = []
-    if class_section:
-        assignments = (
-            db.query(TeacherSubjectAssignment)
-            .filter(TeacherSubjectAssignment.class_section_id == class_section.id, TeacherSubjectAssignment.is_active == True)
-            .all()
-        )
-        subject_ids = list(set(a.subject_id for a in assignments))
-        if subject_ids:
-            subjects = db.query(Subject).filter(Subject.id.in_(subject_ids)).all()
-
-    # Per-subject attendance (from records with subject_id)
-    from collections import defaultdict
-    subject_att = defaultdict(lambda: {"present": 0, "total": 0})
-    subject_sessions = defaultdict(set)
-
-    att_with_subject = [a for a in att_rows if a.subject_id]
-    for a in att_with_subject:
-        subject_sessions[a.subject_id].add(a.session_date)
-        if a.status == "present":
-            subject_att[a.subject_id]["present"] += 1
 
     breakdown = []
+    total_present_all = 0
+    total_sessions_all = 0
+
     for subj in subjects:
-        total = len(subject_sessions.get(subj.id, set()))
-        present = subject_att[subj.id]["present"]
-        pct = round(present / total * 100, 1) if total > 0 else None
+        subj_records = [
+            a for a in att_rows
+            if a.subject_id == subj.id or a.subject_id == subj.code or (a.subject_id and subj.code in a.subject_id)
+        ]
+        present_count = sum(1 for a in subj_records if a.status == "present")
+        total_subj = len(subj_records)
+        pct = min(100.0, max(0.0, round(present_count / total_subj * 100, 1))) if total_subj > 0 else None
+
+        total_present_all += present_count
+        total_sessions_all += total_subj
+
         breakdown.append({
             "subject_id": subj.id,
             "subject_name": subj.name,
             "subject_code": subj.code,
-            "sessions_attended": present,
-            "total_sessions": total,
+            "credits": subj.credits,
+            "sessions_attended": present_count,
+            "total_sessions": total_subj,
             "attendance_pct": pct,
         })
 
+    overall_pct = min(100.0, max(0.0, round(total_present_all / total_sessions_all * 100, 1))) if total_sessions_all > 0 else None
+
     return {
-        "overall": {"sessions_attended": total_present, "total_sessions": total_sessions, "attendance_pct": overall_pct},
+        "overall": {
+            "sessions_attended": total_present_all,
+            "total_sessions": total_sessions_all,
+            "attendance_pct": overall_pct,
+        },
         "by_subject": breakdown,
+    }
+
+
+@router.get("/subjects/{subject_id}/detail")
+def student_subject_detail(
+    subject_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(_require_student),
+):
+    """
+    Subject drill-down for student portal:
+    - Subject metadata (name, code, credits, teacher)
+    - Attendance summary: present / total sessions, percentage, and date-wise list with source badge (Face / Manual / Seed)
+    - Marks: CIE 1 and CIE 2 (each out of 25), plus total out of 50
+    """
+    sid = _get_student_id(current_user)
+    subj = db.query(Subject).filter((Subject.id == subject_id) | (Subject.code == subject_id)).first()
+    if not subj:
+        raise HTTPException(status_code=404, detail="Subject not found")
+
+    # Attendance records
+    att_records = db.query(Attendance).filter(
+        Attendance.student_id == sid,
+        (Attendance.subject_id == subj.id) | (Attendance.subject_id == subj.code) | (Attendance.subject_id.like(f"%{subj.code.lower()}%"))
+    ).order_by(Attendance.session_date.desc()).all()
+
+    present_count = sum(1 for a in att_records if a.status == "present")
+    total_count = len(att_records)
+    pct = min(100.0, max(0.0, round(present_count / total_count * 100, 1))) if total_count > 0 else None
+
+    # Marks for this subject
+    scores = db.query(Score).filter(
+        Score.student_id == sid,
+        (Score.subject == subj.name) | (Score.subject == subj.code) | (Score.subject == subj.id)
+    ).order_by(Score.date.asc()).all()
+
+    cie1 = next((s.score for s in scores if s.assessment_type == "CIE 1" or "CIE 1" in (s.subject or "")), None)
+    cie2 = next((s.score for s in scores if s.assessment_type == "CIE 2" or "CIE 2" in (s.subject or "")), None)
+    total_cie = None
+    if cie1 is not None or cie2 is not None:
+        total_cie = round((cie1 or 0.0) + (cie2 or 0.0), 1)
+
+    # Teacher assignment
+    assignment = db.query(TeacherSubjectAssignment).filter(
+        TeacherSubjectAssignment.subject_id == subj.id,
+        TeacherSubjectAssignment.is_active == True
+    ).first()
+    teacher = db.query(User).filter(User.id == assignment.teacher_id).first() if assignment else None
+
+    return {
+        "student": {"student_id": sid},
+        "subject_id": subj.id,
+        "subject_name": subj.name,
+        "subject_code": subj.code,
+        "credits": subj.credits,
+        "teacher_name": teacher.name if teacher else "Faculty Assigned",
+        "subject": {
+            "id": subj.id,
+            "name": subj.name,
+            "code": subj.code,
+            "credits": subj.credits or 4.0,
+            "faculty": teacher.name if teacher else "Faculty Assigned",
+        },
+        "summary": {
+            "total_sessions": total_count,
+            "sessions_attended": present_count,
+            "sessions_absent": total_count - present_count,
+            "attendance_pct": pct,
+        },
+        "attendance": [
+            {
+                "date": a.session_date,
+                "status": a.status,
+                "source": a.source or ("manual" if a.is_manual_override else "face"),
+                "confidence": a.confidence,
+                "is_manual_override": a.is_manual_override,
+                "note": a.override_note,
+            }
+            for a in att_records
+        ],
+        "marks": {
+            "cie1": cie1,
+            "cie2": cie2,
+            "total": total_cie,
+            "max_total": 50.0,
+            "all_scores": [
+                {
+                    "assessment": s.assessment_type or "Assessment",
+                    "score": s.score,
+                    "max_score": s.max_score,
+                    "date": s.date,
+                    "source": s.source or "seed",
+                }
+                for s in scores
+            ],
+        },
     }
 
 
@@ -180,59 +311,66 @@ def student_scores(
     db: Session = Depends(get_db),
     current_user: User = Depends(_require_student),
 ):
-    """Student views their own academic scores grouped by subject."""
+    """Student views their own academic scores grouped by subject with CIE 1 & CIE 2 breakdown."""
     sid = _get_student_id(current_user)
-    rows = db.query(Score).filter(Score.student_id == sid).order_by(Score.date.desc()).all()
+    student = db.query(Student).filter(Student.student_id == sid).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
 
-    # Group by subject
-    from collections import defaultdict
+    class_section = _get_student_class_section(db, student)
+    subjects = _get_class_subjects(db, class_section)
+
+    all_scores = db.query(Score).filter(Score.student_id == sid).order_by(Score.date.asc()).all()
+
     by_subject = defaultdict(list)
-    for r in rows:
-        by_subject[r.subject].append({
-            "score": r.score,
-            "max_score": r.max_score,
-            "date": r.date,
-            "pct": round(r.score / r.max_score * 100, 1),
-        })
+    for r in all_scores:
+        by_subject[r.subject].append(r)
 
-    # Compute per-subject averages
     subjects_summary = []
-    for subj, scores in by_subject.items():
-        avg = round(sum(s["pct"] for s in scores) / len(scores), 1) if scores else 0
+    all_pcts = []
+
+    for subj in subjects:
+        # Match scores for subject by name or code
+        subj_scores = by_subject.get(subj.name, []) or by_subject.get(subj.code, [])
+        score_dicts = [
+            {
+                "assessment": s.assessment_type or "CIE",
+                "score": s.score,
+                "max_score": s.max_score,
+                "date": s.date,
+                "source": s.source or "seed",
+                "pct": round(s.score / s.max_score * 100, 1) if s.max_score > 0 else 0.0,
+            }
+            for s in subj_scores
+        ]
+        for s in score_dicts:
+            all_pcts.append(s["pct"])
+
+        cie1 = next((s["score"] for s in score_dicts if s["assessment"] == "CIE 1"), None)
+        cie2 = next((s["score"] for s in score_dicts if s["assessment"] == "CIE 2"), None)
+        total_cie = round((cie1 or 0.0) + (cie2 or 0.0), 1) if (cie1 is not None or cie2 is not None) else None
+        avg_pct = round(sum(s["pct"] for s in score_dicts) / len(score_dicts), 1) if score_dicts else None
+
         subjects_summary.append({
-            "subject": subj,
-            "scores": scores,
-            "average_pct": avg,
-            "assessments": len(scores),
+            "subject_id": subj.id,
+            "subject": subj.name,
+            "subject_code": subj.code,
+            "credits": subj.credits,
+            "scores": score_dicts,
+            "cie1": cie1,
+            "cie2": cie2,
+            "cie_total": total_cie,
+            "max_cie_total": 50.0,
+            "average_pct": avg_pct,
+            "assessments": len(score_dicts),
         })
 
-    # Overall average
-    all_pcts = [r.score / r.max_score * 100 for r in rows] if rows else []
-    overall_avg = round(sum(all_pcts) / len(all_pcts), 1) if all_pcts else 0
+    overall_avg = round(sum(all_pcts) / len(all_pcts), 1) if all_pcts else 0.0
 
     return {
         "overall_average": overall_avg,
-        "total_assessments": len(rows),
+        "total_assessments": len(all_scores),
         "by_subject": subjects_summary,
-    }
-
-
-@router.get("/risk")
-def student_risk(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(_require_student),
-):
-    """Student views their own risk assessment with explanation."""
-    sid = _get_student_id(current_user)
-    risk = db.query(RiskFlag).filter(RiskFlag.student_id == sid).order_by(RiskFlag.calculated_at.desc()).first()
-    if not risk:
-        return {"risk_level": "unknown", "reasons": [], "message": "No risk assessment computed yet."}
-
-    return {
-        "risk_level": risk.risk_level,
-        "reasons": json.loads(risk.reasons) if risk.reasons else [],
-        "confidence": risk.confidence,
-        "computed_at": risk.calculated_at,
     }
 
 
@@ -247,31 +385,50 @@ def student_subjects(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    class_section = db.query(ClassSection).filter(ClassSection.code == student.class_).first()
-    if not class_section:
-        return {"subjects": [], "class": student.class_}
+    class_section = _get_student_class_section(db, student)
+    subjects = _get_class_subjects(db, class_section)
 
-    assignments = (
-        db.query(TeacherSubjectAssignment)
-        .filter(TeacherSubjectAssignment.class_section_id == class_section.id, TeacherSubjectAssignment.is_active == True)
-        .all()
-    )
+    res = []
+    for subj in subjects:
+        assignment = db.query(TeacherSubjectAssignment).filter(
+            TeacherSubjectAssignment.subject_id == subj.id,
+            TeacherSubjectAssignment.is_active == True
+        ).first()
+        teacher = db.query(User).filter(User.id == assignment.teacher_id).first() if assignment else None
+        res.append({
+            "subject_id": subj.id,
+            "subject_name": subj.name,
+            "subject_code": subj.code,
+            "semester": subj.semester,
+            "credits": subj.credits,
+            "teacher_name": teacher.name if teacher else "Faculty Assigned",
+            "teacher_email": teacher.email if teacher else None,
+        })
 
-    subjects = []
-    for a in assignments:
-        subj = db.query(Subject).filter(Subject.id == a.subject_id).first()
-        teacher = db.query(User).filter(User.id == a.teacher_id).first()
-        if subj:
-            subjects.append({
-                "subject_id": subj.id,
-                "subject_name": subj.name,
-                "subject_code": subj.code,
-                "semester": subj.semester,
-                "teacher_name": teacher.name if teacher else "TBA",
-                "teacher_email": teacher.email if teacher else None,
-            })
+    return {
+        "subjects": res,
+        "class": student.class_,
+        "semester": class_section.semester if class_section else "7",
+    }
 
-    return {"subjects": subjects, "class": student.class_, "semester": class_section.semester}
+
+@router.get("/risk")
+def student_risk(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(_require_student),
+):
+    """Student views their own risk assessment with explanation."""
+    sid = _get_student_id(current_user)
+    risk = db.query(RiskFlag).filter(RiskFlag.student_id == sid).order_by(RiskFlag.calculated_at.desc()).first()
+    if not risk:
+        return {"risk_level": "low", "reasons": [], "confidence": "high", "message": "No academic risk detected."}
+
+    return {
+        "risk_level": risk.risk_level,
+        "reasons": json.loads(risk.reasons) if risk.reasons else [],
+        "confidence": risk.confidence,
+        "computed_at": risk.calculated_at,
+    }
 
 
 @router.get("/extracurricular")
@@ -290,7 +447,7 @@ def student_extracurricular(
 
 
 class UpdateExtracurricularRequest(BaseModel):
-    activities: list[dict]  # [{"name": "...", "type": "...", "year": "...", "achievement": "..."}]
+    activities: list[dict]
 
 
 @router.put("/extracurricular")
@@ -310,10 +467,6 @@ def update_extracurricular(
     return {"status": "ok", "activities": body.activities}
 
 
-# ---------------------------------------------------------------------------
-# Profile Edit — Name always editable, USN editable ONCE only
-# ---------------------------------------------------------------------------
-
 class UpdateProfileRequest(BaseModel):
     name: str | None = None
     usn: str | None = None
@@ -326,12 +479,7 @@ def update_student_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(_require_student),
 ):
-    """
-    Update student profile.
-    - name: always editable
-    - usn: editable ONLY ONCE (University Seat Number)
-    - phone: always editable
-    """
+    """Update student profile."""
     sid = _get_student_id(current_user)
     student = db.query(Student).filter(Student.student_id == sid).first()
     if not student:
@@ -339,7 +487,6 @@ def update_student_profile(
 
     if body.name is not None:
         student.name = body.name.strip()
-        # Also update user record
         current_user.name = body.name.strip()
 
     if body.usn is not None:

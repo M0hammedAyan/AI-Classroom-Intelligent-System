@@ -11,19 +11,19 @@
 ---
 
 ### Submitted By:
-- **Mohammed Ayan** (1DA22AI031)
-- **Saheel Pradhan** (1DA22AI044)
-- **Sujal Agrahari** (1DA22AI055)
-- **Aryan Raj Singh** (1DA22AI010)
+- **Mohammed Ayan** (1DA24AI403)
+- **Saheel Pradhan** (1DA23AI042)
+- **Aryan Raj Singh** (1DA23AI009)
+- **Sujala Agrahari** (1DA23AI050)
 
 ### Under the Guidance of:
-**[Faculty Advisor Name]**  
-Assistant Professor, Department of Artificial Intelligence & Machine Learning  
+**Dr. Ajayprakash B V**  
+Associate Professor & Head of Programme (HOP), Department of Artificial Intelligence & Machine Learning  
 
 ---
 
 ### DEPARTMENT OF ARTIFICIAL INTELLIGENCE & MACHINE LEARNING
-**DR. AMBEDKAR INSTITUTE OF TECHNOLOGY / DSATM**  
+**DR. AMBEDKAR INSTITUTE OF TECHNOLOGY, BENGALURU**  
 *(An Autonomous Institution Affiliated to Visvesvaraya Technological University, Belagavi)*  
 Bengaluru – 560056, Karnataka, India  
 **Academic Year: 2026–2027**
@@ -34,12 +34,13 @@ Bengaluru – 560056, Karnataka, India
 
 ## CERTIFICATE
 
-Certified that the project work entitled **"VISTA: AI-Based Classroom Attendance Monitoring and Academic Risk Prediction System"** is a bona fide work carried out by **Mohammed Ayan (1DA22AI031)**, **Saheel Pradhan (1DA22AI044)**, **Sujal Agrahari (1DA22AI055)**, and **Aryan Raj Singh (1DA22AI010)** in partial fulfillment for the award of the degree of **Bachelor of Engineering in Artificial Intelligence & Machine Learning** of the Visvesvaraya Technological University, Belagavi during the academic year 2026–2027. It is certified that all corrections/suggestions indicated for internal assessment have been incorporated in the report deposited in the departmental library. The project report has been approved as it satisfies the academic requirements in respect of project work prescribed for the said degree.
+Certified that the project work entitled **"VISTA: AI-Based Classroom Attendance Monitoring and Academic Risk Prediction System"** is a bona fide work carried out by **Mohammed Ayan (1DA24AI403)**, **Saheel Pradhan (1DA23AI042)**, **Aryan Raj Singh (1DA23AI009)**, and **Sujala Agrahari (1DA23AI050)** in partial fulfillment for the award of the degree of **Bachelor of Engineering in Artificial Intelligence & Machine Learning** of the Visvesvaraya Technological University, Belagavi during the academic year 2026–2027. It is certified that all corrections/suggestions indicated for internal assessment have been incorporated in the report deposited in the departmental library. The project report has been approved as it satisfies the academic requirements in respect of project work prescribed for the said degree.
 
 <br><br>
 
 ----------------------------------- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -----------------------------------  
-**[Guide Name]** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Head of Department**  
+**Dr. Ajayprakash B V** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Dr. Ajayprakash B V**  
+Project Guide &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Head of Programme (HOP)  
 Project Guide &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dept. of AI & ML  
 Dept. of AI & ML  
 
@@ -62,14 +63,14 @@ We express our profound gratitude to our institution and management for providin
 
 We convey our heartfelt gratitude to our Head of the Department, **Department of Artificial Intelligence & Machine Learning**, for continuous support and valuable advice throughout the tenure of the course.
 
-We express our sincere and heartfelt thanks to our guide, **[Guide Name]**, Assistant Professor, Department of Artificial Intelligence & Machine Learning, for invaluable guidance, constructive suggestions, and keen interest shown throughout the course of this work.
+We express our sincere and heartfelt thanks to our guide, **Dr. Ajayprakash B V**, Assistant Professor, Department of Artificial Intelligence & Machine Learning, for invaluable guidance, constructive suggestions, and keen interest shown throughout the course of this work.
 
 Finally, we express our gratitude to our family members and friends who helped us directly or indirectly in completing this project successfully.
 
 <br>
 **Mohammed Ayan**  
 **Saheel Pradhan**  
-**Sujal Agrahari**  
+**Sujala Agrahari**  
 **Aryan Raj Singh**
 
 ---
@@ -80,7 +81,7 @@ Finally, we express our gratitude to our family members and friends who helped u
 
 Manual attendance marking in higher educational institutions consumes approximately 10 to 15 minutes per lecture session and remains vulnerable to proxy attendance, physical record tampering, and human administrative errors. Concurrently, academic institutions lack proactive mechanisms to identify academically vulnerable students until after end-semester examinations conclude, by which time remediation is impossible. This project presents **VISTA (Vision-based Intelligent Student Tracking & Academics)**, an end-to-end, on-premise intelligent classroom management system integrating deep facial recognition attendance marking with early academic risk prediction and explainable artificial intelligence (XAI).
 
-The biometric vision subsystem employs a multi-stage architecture consisting of the Sample and Computation Redistribution for Efficient Face Detection (SCRFD) model for robust face localization, an ArcFace ResNet-50 backbone for extracting 512-dimensional angular margin facial embeddings, a cosine distance gallery matcher, and a secondary ResNet-50 personal classification fallback trained on local institutional datasets. Anti-spoofing is enforced using multi-metric texture and geometry heuristics. For academic monitoring, the platform computes 8 longitudinal temporal features and 3 critical override flags, feeding an XGBoost decision tree classifier paired with SHAP (SHapley Additive exPlanations) to transparently identify feature drivers pushing students toward low, medium, or high risk. The backend is implemented in FastAPI providing 114 RESTful endpoints, 24 relational database tables, role-based access control across 6 institutional roles (Admin, Head of School, Head of Program, Mentor, Teacher, and Student), automated midnight risk recalculation via APScheduler, and real-time dashboard updates via WebSockets.
+The biometric vision subsystem employs a multi-stage architecture consisting of the Sample and Computation Redistribution for Efficient Face Detection (SCRFD) model for robust face localization, an ArcFace ResNet-50 backbone for extracting 512-dimensional angular margin facial embeddings, a cosine distance gallery matcher, and a secondary ResNet-50 personal classification fallback trained on local institutional datasets. Anti-spoofing is enforced using multi-metric texture and geometry heuristics. For academic monitoring, the platform computes 8 longitudinal temporal features and 3 critical override flags, feeding an XGBoost decision tree classifier paired with SHAP (SHapley Additive exPlanations) to transparently identify feature drivers pushing students toward low, medium, or high risk. The backend is implemented in FastAPI providing 114 RESTful endpoints, 24 relational database tables, role-based access control across 3 institutional roles (Admin, Teacher, and Student), automated midnight risk recalculation via APScheduler, and real-time dashboard updates via WebSockets.
 
 Empirical evaluation on a 20-student cohort across 20,130 processed face samples achieves a **90.10% test accuracy** (Split B) on the ResNet-50 classifier and an optimal ArcFace F1-score of **0.9246** at a cosine similarity threshold of 0.30, with a controlled pilot accuracy of **100%** on 14 images of 2 enrolled students. Latency profiling demonstrates full-frame face detection at **71.23 ms** and single-vector matching at **0.318 ms**, processing a full classroom of 60 students in **0.683 seconds** on standard x86 consumer CPUs without GPU requirements. The entire system operates strictly on-premise, preserving data sovereignty and providing higher education institutions with a scalable, privacy-preserving automated intelligence solution.
 

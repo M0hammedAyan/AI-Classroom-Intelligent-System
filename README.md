@@ -29,7 +29,7 @@ Login: `admin@vista.local` / `admin123`
 |--------|----------|
 | **Vision** | Identify students from classroom photos (InsightFace ArcFace / ResNet-50 classifier: 100% on 14-image 2-student pilot test set; 90.10% test accuracy on 20-class .npz split B) |
 | **ML** | Predict dropout risk from attendance + scores (Rule-based engine + XGBoost F1=0.957 on synthetic validation data, SHAP) |
-| **Platform** | 6-role dashboard for Admin, HOS, HOP, Mentor, Teacher, Student |
+| **Platform** | 6-role dashboard for Admin, Teacher, and Student |
 | **Alerts** | In-app notifications for mentors & admins; parent alert queuing in database (external SMS/email gateway planned) |
 
 ---

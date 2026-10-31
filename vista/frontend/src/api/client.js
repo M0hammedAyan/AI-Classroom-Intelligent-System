@@ -37,8 +37,11 @@ export const enrollStudent = (id, images) => request(`/students/${encodeURICompo
 export const getStudentDashboard = () => request('/student-portal/dashboard');
 export const getStudentAttendance = () => request('/student-portal/attendance/by-subject');
 export const getStudentScores = () => request('/student-portal/scores');
+export const getStudentSubjectDetail = (subjectId) => request(`/student-portal/subjects/${encodeURIComponent(subjectId)}/detail`);
+export const getStudentMarks = (studentId, subject = '') => request(`/lms/student/${encodeURIComponent(studentId)}/marks${subject ? `?subject=${encodeURIComponent(subject)}` : ''}`);
+export const getStudentAttendanceHistory = (studentId, subjectId = '') => request(`/attendance/student/${encodeURIComponent(studentId)}${subjectId ? `?subject_id=${encodeURIComponent(subjectId)}` : ''}`);
 export const markAttendanceBatch = (image, classroomId, sessionDate, subjectId) => request('/attendance/mark-batch', { method: 'POST', body: JSON.stringify({ image, classroom_id: classroomId, session_date: sessionDate, subject_id: subjectId }) });
 export const getAttendanceLog = (classroomId, date) => request(`/attendance/log?classroom_id=${encodeURIComponent(classroomId)}&date=${date}`);
 export const patchAttendance = (id, status, note) => request(`/attendance/${id}`, { method: 'PATCH', body: JSON.stringify({ status, note }) });
 export const createManualAttendance = (studentId, classroomId, sessionDate, subjectId, status, note) => request('/attendance/manual', { method: 'POST', body: JSON.stringify({ student_id: studentId, classroom_id: classroomId, session_date: sessionDate, subject_id: subjectId, status, note }) });
-export const addScore = (studentId, subject, score, maxScore, date) => request('/lms/add-score', { method: 'POST', body: JSON.stringify({ student_id: studentId, subject, score, max_score: maxScore, date }) });
+export const addScore = (studentId, subject, score, maxScore = 25, date = '', assessmentType = 'CIE 1', reason = '') => request('/lms/add-score', { method: 'POST', body: JSON.stringify({ student_id: studentId, subject, score, max_score: maxScore, date, assessment_type: assessmentType, reason }) });

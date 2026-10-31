@@ -26,6 +26,7 @@ class Attendance(Base):
     confidence = Column(Float, nullable=True)
     is_manual_override = Column(Boolean, nullable=False, default=False)
     override_note = Column(Text, nullable=True)
+    source = Column(Text, nullable=False, default="face")  # face | manual | seed
     created_at = Column(Text, nullable=False)
 
     student = relationship("Student", back_populates="attendance_records")
@@ -40,9 +41,11 @@ class Score(Base):
     id = Column(Text, primary_key=True)
     student_id = Column(Text, ForeignKey("students.student_id"), nullable=False)
     subject = Column(Text, nullable=False)
+    assessment_type = Column(Text, nullable=True, default="CIE 1")  # CIE 1 | CIE 2 | assignment
     score = Column(Float, nullable=False)
     max_score = Column(Float, nullable=False)
     date = Column(Text, nullable=False)           # YYYY-MM-DD
+    source = Column(Text, nullable=False, default="seed")  # seed | manual
     created_at = Column(Text, nullable=False)
 
     student = relationship("Student", back_populates="scores")

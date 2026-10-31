@@ -9,7 +9,7 @@ graph TD
         UI1["Admin Command Center"]
         UI2["Head of School (HOS) Portal"]
         UI3["Head of Program (HOP) Portal"]
-        UI4["Faculty Mentor Watchlist"]
+        UI4["Faculty Teacher / Admin Watchlist"]
         UI5["Teacher Attendance Console"]
         UI6["Student Self-Service Portal"]
     end
@@ -70,18 +70,15 @@ graph TD
 ## 4.2 Use Cases and Actor Interactions
 
 ### 4.2.1 Actor Roles and Operational Scopes
-The platform partitions operations across six human actors as defined in Table 4.1.
+The platform partitions operations across three primary human actors as defined in Table 4.1.
 
 **Table 4.1: Actor Roles and Scope of Operations**
 
 | Actor | Institutional Scope | Core Responsibilities |
 |---|---|---|
-| **Admin** | Institution-Wide | Provisions schools, departments, and users; reviews security audit logs; system configuration. |
-| **HOS** | School-Level | Monitors cross-departmental staff performance, aggregate enrollment, and faculty retention. |
-| **HOP** | Department-Level | Manages course catalogs, teacher-subject mappings, class timetables, and departmental at-risk watchlists. |
-| **Mentor** | Assigned Students | Tracks longitudinal risk flags, inspects SHAP diagnostic factors, and logs remedial counseling sessions. |
-| **Teacher** | Assigned Classes | Captures or uploads lecture photos for automated attendance, executes manual overrides, records marks. |
-| **Student** | Self-Service (Own Record) | Views verified personal attendance percentages, class timetable schedules, assessment grades, and study notes. |
+| **Admin** | Institution & Department Wide | System-wide control centre; provisions teacher and student accounts; manages class sections and 4th Year AIML curriculum; registers student face prototypes; executes manual attendance and CIE marks entry with audit logging; inspects full cohort risk analytics. |
+| **Teacher** | Assigned Classes & Subjects | Captures lecture images via live web camera or image upload; automated SCRFD + ArcFace attendance marking; inspects confidence rates; toggles roster attendance corrections; enters CIE 1 & 2 marks; executes manual entries with mandatory audit reasons. |
+| **Student** | Self-Service (Own Record Only) | Strictly read-only portal; views bounded attendance percentage (0–100%); tracks subject-wise attendance across all 5 active courses; inspects CIE 1 and CIE 2 results; drills down into date-wise attendance history with source badges (`Face`, `Manual`, `Seed`). |
 
 ### 4.2.2 System Use Case Specifications
 Table 4.2 details the primary functional use cases supported by the platform.
@@ -94,9 +91,9 @@ Table 4.2 details the primary functional use cases supported by the platform.
 | **UC-02** | Mark Attendance via Photo | Teacher | Teacher assigned to class session; classroom photo captured. | Present records written to DB; attendance summary broadcasted. |
 | **UC-03** | Manual Attendance Override | Teacher / Admin | Attendance session exists for specified date and classroom. | Attendance status updated; audit record logged with reason. |
 | **UC-04** | Enroll Student Face | Teacher / Admin | Minimum 3 unoccluded facial photographs uploaded. | Normalized 512-dim ArcFace prototype embedding persisted in DB. |
-| **UC-05** | View Academic Risk Watchlist| Mentor / HOP / Admin| Daily risk recalculation executed or triggered on-demand. | At-risk student list displayed with severity levels and SHAP drivers. |
-| **UC-06** | Log Mentorship Intervention | Mentor | Student flagged in risk watchlist; counseling session conducted.| Intervention note, action item, and review date stored in DB. |
-| **UC-07** | Export Attendance Report | Teacher / Mentor / HOP| Attendance session records exist for specified date range. | Formatted CSV or ReportLab PDF report downloaded. |
+| **UC-05** | View Academic Risk Watchlist| Admin| Daily risk recalculation executed or triggered on-demand. | At-risk student list displayed with severity levels and SHAP drivers. |
+| **UC-06** | Log Teacher / Adminship Intervention | Teacher / Admin | Student flagged in risk watchlist; counseling session conducted.| Intervention note, action item, and review date stored in DB. |
+| **UC-07** | Export Attendance Report | Teacher / Teacher / Admin / HOP| Attendance session records exist for specified date range. | Formatted CSV or ReportLab PDF report downloaded. |
 | **UC-08** | Access Student Self-Portal | Student | Student authenticated with active enrollment status. | Personal attendance stats, timetable, and study materials displayed. |
 
 ### 4.2.3 Use Case Diagram
@@ -108,7 +105,7 @@ graph LR
         A((Admin))
         HOS((Head of School))
         HOP((Head of Program))
-        M((Mentor))
+        M((Teacher / Admin))
         T((Teacher))
         S((Student))
     end
@@ -183,12 +180,12 @@ Figure 4.3 depicts the top-level context diagram representing external entity in
 graph TD
     Teacher[Teacher] -->|1. Classroom Photo & Marks| VISTA[VISTA System Boundary]
     Admin[Administrator] -->|2. Org Structure & User Credentials| VISTA
-    Mentor[Faculty Mentor] -->|3. Counseling Log & Interventions| VISTA
+    Teacher / Admin[Faculty Teacher / Admin] -->|3. Counseling Log & Interventions| VISTA
     Student[Student] -->|4. Profile Queries & LMS Access| VISTA
 
     VISTA -->|5. Verified Attendance & Session Stats| Teacher
     VISTA -->|6. Audit Trails & System KPI Reports| Admin
-    VISTA -->|7. At-Risk Watchlists & SHAP Diagnoses| Mentor
+    VISTA -->|7. At-Risk Watchlists & SHAP Diagnoses| Teacher / Admin
     VISTA -->|8. Attendance Heatmaps & Timetables| Student
     VISTA -->|9. Automated Absence Alerts (Queued)| ParentAlerts[(Parent Alerts Queue)]
 ```
@@ -220,8 +217,8 @@ graph TD
     P4 -->|Store Risk Scores & Drivers| D4[(D4: Risk Flags & Interventions)]
     P4 -->|Queue Critical Absence Notice| D5[(D5: Parent Alerts)]
 
-    Mentor([Mentor / HOP]) -->|Query Watchlist| P4
-    Mentor -->|Log Intervention Action| D4
+    Teacher / Admin([Teacher / Admin / HOP]) -->|Query Watchlist| P4
+    Teacher / Admin -->|Log Intervention Action| D4
 
     User -->|Request CSV / PDF| P5
     P5 -->|Read Records| D2

@@ -696,9 +696,9 @@ def reconcile_current_roster(db: Session) -> None:
         return
 
     now = datetime.now(timezone.utc).isoformat()
-    classroom = db.query(Classroom).filter(Classroom.classroom_id == "class-ai-2022").first()
+    classroom = db.query(Classroom).filter(Classroom.classroom_id == "class-aiml-4a").first()
     if not classroom:
-        classroom = Classroom(classroom_id="class-ai-2022", name="AIML Current Roster")
+        classroom = Classroom(classroom_id="class-aiml-4a", name="4th Year AIML")
         db.add(classroom)
         db.flush()
 
@@ -709,7 +709,7 @@ def reconcile_current_roster(db: Session) -> None:
                 student_id=usn,
                 name=name,
                 usn=usn,
-                class_="AIML-3A",
+                class_="4th Year AIML",
                 classroom_id=classroom.classroom_id,
                 is_active=True,
                 enrolled_at=now[:10],
@@ -720,7 +720,7 @@ def reconcile_current_roster(db: Session) -> None:
             student.name = name
             student.usn = usn
             student.classroom_id = classroom.classroom_id
-            student.class_ = "AIML-3A"
+            student.class_ = "4th Year AIML"
             student.is_active = True
 
         student_user = db.query(User).filter(User.id == f"student-{usn}").first()
@@ -762,15 +762,15 @@ def reconcile_current_roster(db: Session) -> None:
     class_section = db.query(ClassSection).filter(ClassSection.id == "class-aiml-4a").first()
     teacher = db.query(User).filter(User.email == "teacher@vista.local", User.role == "teacher", User.is_active == True).first()
     if class_section:
-        class_section.code = "class-ai-2022"
-        class_section.name = "AIML 3rd Year"
-        class_section.semester = "6"
+        class_section.code = "AIML-4A"
+        class_section.name = "4th Year AIML"
+        class_section.semester = "7"
     current_subjects = [
         ("22AIU701", "Deep Learning", "Rajeshwari", "rajeshwari", "22AIU701"),
         ("22AIU702", "Generative AI", "Ajayprakash B V", "ajayprakash", "22AIU702"),
-        ("22AIT703", "Data Engineering & Analytics", "Ganesh H J", "ganesh", "22AIT703"),
+        ("22AIT703", "Data Engineering and Analytics", "Ganesh H J", "ganesh", "22AIT703"),
         ("22AIT704C", "Data Security and Privacy", "Bharat V S", "bharat", "22AIT704C"),
-        ("22AIP706", "Major Project Phase 2", "Ganesh H J", "ganesh", "22AIP706"),
+        ("22AIP706", "Major Project Phase-II", "Ganesh H J", "ganesh", "22AIP706"),
     ]
     teacher_accounts = {}
     desired_assignments = set()
@@ -782,7 +782,7 @@ def reconcile_current_roster(db: Session) -> None:
                 department_id="dept-aiml",
                 name=name,
                 code=code,
-                semester="6",
+                semester="7",
                 created_at=now,
             )
             db.add(subject)

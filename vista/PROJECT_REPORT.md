@@ -70,7 +70,7 @@ VISTA implements a hierarchical Role-Based Access Control system mirroring a rea
 Institution
   └── School (e.g., School of CS, School of Mechanical)
         └── Department (e.g., AIML, CSE, ISE, ME, Civil)
-              └── Class Section (e.g., AIML-3A, CSE-2B)
+              └── Class Section (e.g., AIML-4A, CSE-2B)
                     └── Students (auto-assigned on admission)
 ```
 

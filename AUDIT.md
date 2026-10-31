@@ -20,13 +20,10 @@ The VISTA system (**Vision-based Intelligent Student Tracking & Academics**) is 
 - **Institutional Data Privacy:** Operates fully on-premise without cloud API dependencies, ensuring biometric vectors and institutional records never leave local hardware.
 
 ### 3. Target User Roles
-VISTA implements a hierarchical, 6-role Role-Based Access Control (RBAC) architecture:
-1. **Admin:** Full institution infrastructure management, audit trails, user account provisioning, system configuration.
-2. **HOS (Head of School):** Cross-departmental academic oversight, staff rosters, institution-level analytics.
-3. **HOP (Head of Program / Department):** Departmental curriculum oversight, teacher-subject mappings, class-section scheduling, departmental risk triage center.
-4. **Mentor:** Assigned mentee watchlists, individual student risk tracking, SHAP-explained driver analysis, remedial counseling log entries.
-5. **Teacher:** Subject-session timetable dashboard, single-click classroom photo attendance capture, manual verification/override, internal score recording, assignment management.
-6. **Student:** Self-service portal displaying real-time personal attendance percentage, timetable slots, score trends, study material downloads, and academic standing.
+VISTA implements a streamlined, 3-role Role-Based Access Control (RBAC) architecture aligned with the production deployment:
+1. **Admin (Administrator):** Institution-wide and department-wide administration, academic control centre, teacher and student account provisioning, class and division organization (`4th Year AIML`), curriculum configuration, student face biometric registration, manual attendance/marks entry with audit logging, and cohort risk diagnostics.
+2. **Teacher (Instructor):** Lecture facial attendance capture via live web camera or image upload using the SCRFD + ArcFace biometric pipeline, recognition confidence inspection, manual roster attendance toggles, CIE 1 & 2 marks entry, and manual entry console with mandatory audit justification.
+3. **Student (Learner):** Strictly read-only self-service academic portal, verified personal attendance percentage tracking (bounded 0–100%), subject-wise attendance progress across all 5 active courses, CIE assessment results, and interactive date-wise attendance drill-down with source audit badges (`Face`, `Manual`, `Seed`).
 
 ### 4. End-to-End System Workflow
 ```
@@ -138,7 +135,7 @@ AI-Classroom-Intelligent-System/
     │   ├── app/
     │   │   ├── main.py                # App entrypoint, middleware, router mount (port 8002)
     │   │   ├── db.py                  # SQLAlchemy engine, session lifecycle, seed loader
-    │   │   ├── permissions.py         # RBAC dependencies for 6 roles
+    │   │   ├── permissions.py         # RBAC dependencies for 3 roles
     │   │   ├── scheduler.py           # APScheduler daily automated midnight job
     │   │   ├── websocket.py           # WebSocket broadcasting manager
     │   │   ├── monitoring.py          # Prometheus metrics exporter
@@ -151,7 +148,7 @@ AI-Classroom-Intelligent-System/
     │   ├── src/
     │   │   ├── api/client.js          # Centralized Axios API client
     │   │   ├── components/            # Reusable UI widgets and navigation layouts
-    │   │   └── pages/                 # Role-specific workspaces for all 6 roles
+    │   │   └── pages/                 # Role-specific workspaces for 3 roles
     │   ├── package.json               # Frontend dependencies
     │   └── vite.config.js             # Dev server proxying to http://localhost:8002
     ├── ml/                            # Academic risk prediction engine
@@ -187,7 +184,7 @@ Verified in `vista/backend/app/main.py:40-54` and `vista/backend/app/routes/*.py
 | `academics` | `/api/v1/academics` | 23 | CRUD for classrooms, subjects, sections, timetable slots, syllabus mappings |
 | `admin` | `/api/v1/admin` | 29 | User CRUD, org tree (schools, depts), role management, audit log filtering |
 | `attendance` | `/api/v1/attendance` | 8 | `POST /mark` (photo capture), manual mark, date session logs, status overrides |
-| `dashboards` | `/api/v1/dashboards` | 7 | Scoped analytics for Admin, HOS, HOP, Mentor, Teacher, Student |
+| `dashboards` | `/api/v1/dashboards` | 7 | Scoped analytics for Admin, Teacher, Student |
 | `enroll` | `/api/v1/enroll` | 2 | `POST /students/{id}/enroll`, `POST /batch` (single & batch ArcFace embeddings) |
 | `export` | `/api/v1/export` | 1 | `GET /report` (dynamic CSV attendance export) |
 | `lms` | `/api/v1/lms` | 4 | Assignments, submissions, file tracking, grading |
@@ -325,7 +322,7 @@ Source: `training_results/results_npz_splitB.txt` (evaluated on 101 unaugmented 
   - **Result:** **100% correct match** (14/14 faces matched to true student ID, zero false accepts, zero false rejects).
   - *Caveat:* This figure represents an initial feasibility check and must not be conflated with larger cohort benchmarks.
 - **Live Classroom Group Verification (`docs/screenshots/fig_7_2_teacher_attendance.png`):**
-  - **Session Details:** Course *Deep Learning (22AIU701)*, *AIML 3rd Year* (66 total students), conducted on 30-Oct-2026.
+  - **Session Details:** Course *Deep Learning (22AIU701)*, *4th Year AIML* (66 total students), conducted on 30-Oct-2026.
   - **Sample Ingested:** Single laboratory group capture containing 7 seated students.
   - **Result:** **100% detection and recognition (7/7 faces)**:
     1. Saheel Pradhan (96% confidence)
@@ -429,11 +426,11 @@ Source: `evaluation/results/risk_model_evaluation.json` and `vista/ml/train.py`.
 | **SHAP Explainability** | ✅ Implemented & Working | `vista/ml/explainer.py` | TreeExplainer per-feature attribution |
 | **FastAPI REST API** | ✅ Implemented & Working | `vista/backend/app/main.py` | 114 endpoints across 14 modules |
 | **Relational Database** | ✅ Implemented & Working | `vista/backend/app/models/*.py` | 24 tables across 8 modules |
-| **RBAC Authorization** | ✅ Implemented & Working | `vista/backend/app/permissions.py`| 6 roles enforced |
+| **RBAC Authorization** | ✅ Implemented & Working | `vista/backend/app/permissions.py`| 3 roles enforced (Admin, Teacher, Student) |
 | **WebSocket Broadcast** | ✅ Implemented & Working | `vista/backend/app/websocket.py` | `/ws/dashboard` live updates |
 | **Scheduler Automation** | ✅ Implemented & Working | `vista/backend/app/scheduler.py` | APScheduler midnight daily job |
 | **Prometheus Exporter** | ✅ Implemented & Working | `vista/backend/app/monitoring.py` | `/metrics` and `/metrics/json` |
-| **Role-scoped Portals** | ✅ Implemented & Working | `vista/frontend/src/pages/` | All 6 role dashboards functional |
+| **Role-scoped Portals** | ✅ Implemented & Working | `vista/frontend/src/pages/` | All 3 role workspaces functional (Admin, Teacher, Student) |
 | **Parent SMS/Email Dispatch**| ⚠️ Partially Implemented | `models/attendance.py` | DB queue implemented; credentials missing |
 
 ---

@@ -50,11 +50,11 @@ flowchart LR
 
 In end-to-end testing with real classroom group photographs, the SCRFD detector reliably isolates individual faces under ambient institutional lighting and mild angular tilt ($< 30^\circ$).
 
-Figure 7.2 illustrates a live classroom attendance run conducted on October 30, 2026, for the course **Deep Learning (22AIU701)** in the **AIML 3rd Year** section (cohort size: 66 students). A group capture containing 7 students seated in the department laboratory was ingested:
+Figure 7.2 illustrates a live classroom attendance run conducted on October 30, 2026, for the course **Deep Learning (22AIU701)** in the **4th Year AIML** section (cohort size: 66 students). A group capture containing 7 students seated in the department laboratory was ingested:
 
 ![Figure 7.2: Teacher Facial Attendance Live Verification View](docs/screenshots/fig_7_2_teacher_attendance.png)
 
-*Figure 7.2: Teacher Facial Attendance Interface (`/teacher/attendance`) processing a live multi-student laboratory capture in AIML 3rd Year (Deep Learning · 22AIU701).*
+*Figure 7.2: Teacher Facial Attendance Interface (`/teacher/attendance`) processing a live multi-student laboratory capture in 4th Year AIML (Deep Learning · 22AIU701).*
 
 As shown in Figure 7.2, the vision pipeline achieved **100% detection and recognition across all 7 candidates** in the capture:
 1. **SAHEEL PRADHAN:** Present · $96\%$ confidence
@@ -238,22 +238,69 @@ Academic integrity requires transparent disclosure of the empirical boundaries a
 
 ---
 
-## 7.5 List of Required Interface Screenshots for Report
+## 7.5 Interface Realization and Operational Dashboards
 
-To complete the institutional submission dossier, the candidate must capture live interface screenshots from the frontend client application (`http://localhost:5173`) and insert them into the designated figure locations listed in Table 7.7.
+The complete VISTA operational system integrates three dedicated user workspaces—**Teacher Console**, **Student Portal**, and **Admin Control Centre**—implemented in React 18 and powered by FastAPI REST endpoints. All interface views have been verified in production and captured below.
 
-#### Table 7.7: Required Frontend Interface Screenshots Catalog
+#### Table 7.7: Production Frontend Interface Deployment Catalog
 
-| Figure Identifier | Target View / Component | URL / Navigation Path | Key Elements to Highlight in Screenshot | Status |
+| Figure Identifier | Target View / Component | URL / Navigation Path | Key Elements Highlighted in Interface | Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **Figure 7.2** | Teacher Facial Attendance Capture View | `/teacher/attendance` | Web camera feed, detected face bounding boxes, recognition badges, and confirmation table. | **Captured & Embedded** |
-| **Figure 7.3** | Student Self-Service Portal Dashboard | `/student/dashboard` | Subject-wise attendance gauge charts, overall attendance percentage, upcoming timetable, and alerts. | Pending Capture |
-| **Figure 7.4** | Mentor Academic Watchlist with SHAP Insights | `/mentor/watchlist` | Ranked student risk table, color-coded badges (`HIGH`/`MED`/`LOW`), and expandable SHAP reason popover. | Pending Capture |
-| **Figure 7.5** | Admin Multi-Tier Organizational Tree View | `/admin/organization` | Hierarchical department nodes, faculty assignments, batch management, and user creation modal. | Pending Capture |
-| **Figure 7.6** | Head of School (HOS) Institution Analytics | `/hos/overview` | College-wide attendance trends, department comparison bar charts, and multi-term filter controls. | Pending Capture |
-| **Figure 7.7** | Manual Attendance Fallback Override Form | `/teacher/attendance/manual` | Attendance grid with Present/Absent/Late radio buttons and bulk commit confirmation button. | Pending Capture |
+| **Figure 7.2** | Teacher Facial Attendance Live Verification View | `/teacher/attendance` | Classroom photo capture, multi-face bounding boxes, recognition badges, and 7 marked present. | **Captured & Embedded** |
+| **Figure 7.3** | Student Self-Service Portal Dashboard | `/student/dashboard` | Overall attendance (81.2%), Average marks (71.2%), class identifier (`4th Year AIML`), and subject list. | **Captured & Embedded** |
+| **Figure 7.4** | Student Subject Attendance & CIE Marks Drill-Down | `/student-portal/subjects/{id}/detail` | Date-wise attendance history with `[Face]`, `[Manual]`, `[Seed]` badges, CIE 1 & 2 scores out of 25. | **Captured & Embedded** |
+| **Figure 7.5** | Admin Academic Control Centre | `/admin` | Summary metrics (66 students, 5 subjects), class division chips, teacher and subject configurations. | **Captured & Embedded** |
+| **Figure 7.6** | Admin Student Roster and Face Enrollment View | `/admin` | Complete 66-student roster table, USN directory, class mapping, and face biometric enrollment triggers. | **Captured & Embedded** |
+| **Figure 7.7** | Comprehensive Student Profile & Academic Risk View | `/admin/students/{id}` | Longitudinal attendance bar chart, CIE marks trajectory, and XGBoost + SHAP risk indicator. | **Captured & Embedded** |
+| **Figure 7.8** | Teacher & Admin Manual Attendance & Marks Console | Modal Component | Student USN search, date bounds validation, mandatory audit reasons, and existing record history. | **Captured & Embedded** |
 
 ---
+
+### 7.5.1 Teacher Attendance Verification Console
+Figure 7.2 illustrates the live teacher attendance workspace during an active lecture session for **Deep Learning (22AIU701)** in **4th Year AIML**.
+
+![Figure 7.2: Teacher Facial Attendance Live Verification View](docs/screenshots/fig_7_2_teacher_attendance.png)
+*Fig 7.2: Live Teacher Facial Attendance capture interface displaying simultaneous multi-face detection and confirmation of 7 present students (Saheel Pradhan 96%, Mohammed Ayyan 76%, Sujala Agrahari 75%, MC Chethan Patil 73%, Shreyas K T 71%, Mallikarjuna C 70%, Vignesh V 58%).*
+
+---
+
+### 7.5.2 Student Academic Dashboard and Subject Drill-Down
+Figure 7.3 depicts the read-only student self-service portal for **Mohammed Ayan (USN: 1DA24AI403)**, displaying bounded personal attendance (81.2%) and subject breakdown. Figure 7.4 showcases the modal drill-down view revealing date-wise attendance records with audit source badges and CIE assessments.
+
+![Figure 7.3: Student Self-Service Portal Dashboard](docs/screenshots/fig_7_3_student_dashboard.png)
+*Fig 7.3: Student Portal Dashboard displaying verified personal attendance (81.2%), average assessment score (71.2%), and subject-wise attendance progress across all 5 active courses.*
+
+<br>
+
+![Figure 7.4: Student Subject Attendance & CIE Marks Drill-Down](docs/screenshots/fig_7_4_student_subject_drilldown.png)
+*Fig 7.4: Interactive Subject Drill-down modal presenting date-wise session records with source audit badges (`Face`, `Manual`, `Seed`), recognition match percentages, and CIE 1 + CIE 2 assessment breakdown.*
+
+---
+
+### 7.5.3 Administrator Academic Control Centre and Roster Management
+Figure 7.5 illustrates the administrative control console for managing institutional entities, classes, faculty assignments, and curriculum subjects. Figure 7.6 displays the comprehensive 66-student roster table and biometric enrollment actions.
+
+![Figure 7.5: Admin Academic Control Centre](docs/screenshots/fig_7_5_admin_control_centre.png)
+*Fig 7.5: Administrator Control Centre showing institutional statistics, class division selection chips, and teacher/subject management panels.*
+
+<br>
+
+![Figure 7.6: Admin Student Roster and Face Enrollment View](docs/screenshots/fig_7_6_admin_student_roster.png)
+*Fig 7.6: Centralized student roster table displaying student USN directory, class section tags, and one-click facial embedding enrollment buttons.*
+
+---
+
+### 7.5.4 Student Profile Risk Diagnostic and Manual Entry Fallback
+Figure 7.7 displays the comprehensive student profile and longitudinal risk overview. Figure 7.8 illustrates the manual entry console with student USN search, date validation, and mandatory audit justification fields.
+
+![Figure 7.7: Comprehensive Student Profile & Academic Risk View](docs/screenshots/fig_7_7_student_profile_risk.png)
+*Fig 7.7: Student academic profile detailing longitudinal attendance trend bars, assessment history, and automated XGBoost early risk classification.*
+
+<br>
+
+![Figure 7.8: Teacher & Admin Manual Attendance & Marks Console](docs/screenshots/fig_7_8_manual_entry_console.png)
+*Fig 7.8: Manual Attendance & CIE Marks entry console showing student search filter, date constraint validation, and mandatory audit justification.*
+
 
 ## 7.6 Summary
 

@@ -11,19 +11,19 @@
 ---
 
 ### Submitted By:
-- **Mohammed Ayan** (1DA22AI031)
-- **Saheel Pradhan** (1DA22AI044)
-- **Sujal Agrahari** (1DA22AI055)
-- **Aryan Raj Singh** (1DA22AI010)
+- **Mohammed Ayan** (1DA24AI403)
+- **Saheel Pradhan** (1DA23AI042)
+- **Aryan Raj Singh** (1DA23AI009)
+- **Sujala Agrahari** (1DA23AI050)
 
 ### Under the Guidance of:
-**[Faculty Advisor Name]**  
-Assistant Professor, Department of Artificial Intelligence & Machine Learning  
+**Dr. Ajayprakash B V**  
+Associate Professor & Head of Programme (HOP), Department of Artificial Intelligence & Machine Learning  
 
 ---
 
 ### DEPARTMENT OF ARTIFICIAL INTELLIGENCE & MACHINE LEARNING
-**DR. AMBEDKAR INSTITUTE OF TECHNOLOGY / DSATM**  
+**DR. AMBEDKAR INSTITUTE OF TECHNOLOGY, BENGALURU**  
 *(An Autonomous Institution Affiliated to Visvesvaraya Technological University, Belagavi)*  
 Bengaluru – 560056, Karnataka, India  
 **Academic Year: 2026–2027**
@@ -34,12 +34,13 @@ Bengaluru – 560056, Karnataka, India
 
 ## CERTIFICATE
 
-Certified that the project work entitled **"VISTA: AI-Based Classroom Attendance Monitoring and Academic Risk Prediction System"** is a bona fide work carried out by **Mohammed Ayan (1DA22AI031)**, **Saheel Pradhan (1DA22AI044)**, **Sujal Agrahari (1DA22AI055)**, and **Aryan Raj Singh (1DA22AI010)** in partial fulfillment for the award of the degree of **Bachelor of Engineering in Artificial Intelligence & Machine Learning** of the Visvesvaraya Technological University, Belagavi during the academic year 2026–2027. It is certified that all corrections/suggestions indicated for internal assessment have been incorporated in the report deposited in the departmental library. The project report has been approved as it satisfies the academic requirements in respect of project work prescribed for the said degree.
+Certified that the project work entitled **"VISTA: AI-Based Classroom Attendance Monitoring and Academic Risk Prediction System"** is a bona fide work carried out by **Mohammed Ayan (1DA24AI403)**, **Saheel Pradhan (1DA23AI042)**, **Aryan Raj Singh (1DA23AI009)**, and **Sujala Agrahari (1DA23AI050)** in partial fulfillment for the award of the degree of **Bachelor of Engineering in Artificial Intelligence & Machine Learning** of the Visvesvaraya Technological University, Belagavi during the academic year 2026–2027. It is certified that all corrections/suggestions indicated for internal assessment have been incorporated in the report deposited in the departmental library. The project report has been approved as it satisfies the academic requirements in respect of project work prescribed for the said degree.
 
 <br><br>
 
 ----------------------------------- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -----------------------------------  
-**[Guide Name]** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Head of Department**  
+**Dr. Ajayprakash B V** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Dr. Ajayprakash B V**  
+Project Guide &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Head of Programme (HOP)  
 Project Guide &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dept. of AI & ML  
 Dept. of AI & ML  
 
@@ -62,14 +63,14 @@ We express our profound gratitude to our institution and management for providin
 
 We convey our heartfelt gratitude to our Head of the Department, **Department of Artificial Intelligence & Machine Learning**, for continuous support and valuable advice throughout the tenure of the course.
 
-We express our sincere and heartfelt thanks to our guide, **[Guide Name]**, Assistant Professor, Department of Artificial Intelligence & Machine Learning, for invaluable guidance, constructive suggestions, and keen interest shown throughout the course of this work.
+We express our sincere and heartfelt thanks to our guide, **Dr. Ajayprakash B V**, Assistant Professor, Department of Artificial Intelligence & Machine Learning, for invaluable guidance, constructive suggestions, and keen interest shown throughout the course of this work.
 
 Finally, we express our gratitude to our family members and friends who helped us directly or indirectly in completing this project successfully.
 
 <br>
 **Mohammed Ayan**  
 **Saheel Pradhan**  
-**Sujal Agrahari**  
+**Sujala Agrahari**  
 **Aryan Raj Singh**
 
 ---
@@ -80,7 +81,7 @@ Finally, we express our gratitude to our family members and friends who helped u
 
 Manual attendance marking in higher educational institutions consumes approximately 10 to 15 minutes per lecture session and remains vulnerable to proxy attendance, physical record tampering, and human administrative errors. Concurrently, academic institutions lack proactive mechanisms to identify academically vulnerable students until after end-semester examinations conclude, by which time remediation is impossible. This project presents **VISTA (Vision-based Intelligent Student Tracking & Academics)**, an end-to-end, on-premise intelligent classroom management system integrating deep facial recognition attendance marking with early academic risk prediction and explainable artificial intelligence (XAI).
 
-The biometric vision subsystem employs a multi-stage architecture consisting of the Sample and Computation Redistribution for Efficient Face Detection (SCRFD) model for robust face localization, an ArcFace ResNet-50 backbone for extracting 512-dimensional angular margin facial embeddings, a cosine distance gallery matcher, and a secondary ResNet-50 personal classification fallback trained on local institutional datasets. Anti-spoofing is enforced using multi-metric texture and geometry heuristics. For academic monitoring, the platform computes 8 longitudinal temporal features and 3 critical override flags, feeding an XGBoost decision tree classifier paired with SHAP (SHapley Additive exPlanations) to transparently identify feature drivers pushing students toward low, medium, or high risk. The backend is implemented in FastAPI providing 114 RESTful endpoints, 24 relational database tables, role-based access control across 6 institutional roles (Admin, Head of School, Head of Program, Mentor, Teacher, and Student), automated midnight risk recalculation via APScheduler, and real-time dashboard updates via WebSockets.
+The biometric vision subsystem employs a multi-stage architecture consisting of the Sample and Computation Redistribution for Efficient Face Detection (SCRFD) model for robust face localization, an ArcFace ResNet-50 backbone for extracting 512-dimensional angular margin facial embeddings, a cosine distance gallery matcher, and a secondary ResNet-50 personal classification fallback trained on local institutional datasets. Anti-spoofing is enforced using multi-metric texture and geometry heuristics. For academic monitoring, the platform computes 8 longitudinal temporal features and 3 critical override flags, feeding an XGBoost decision tree classifier paired with SHAP (SHapley Additive exPlanations) to transparently identify feature drivers pushing students toward low, medium, or high risk. The backend is implemented in FastAPI providing 114 RESTful endpoints, 24 relational database tables, role-based access control across 3 institutional roles (Admin, Teacher, and Student), automated midnight risk recalculation via APScheduler, and real-time dashboard updates via WebSockets.
 
 Empirical evaluation on a 20-student cohort across 20,130 processed face samples achieves a **90.10% test accuracy** (Split B) on the ResNet-50 classifier and an optimal ArcFace F1-score of **0.9246** at a cosine similarity threshold of 0.30, with a controlled pilot accuracy of **100%** on 14 images of 2 enrolled students. Latency profiling demonstrates full-frame face detection at **71.23 ms** and single-vector matching at **0.318 ms**, processing a full classroom of 60 students in **0.683 seconds** on standard x86 consumer CPUs without GPU requirements. The entire system operates strictly on-premise, preserving data sovereignty and providing higher education institutions with a scalable, privacy-preserving automated intelligence solution.
 
@@ -417,7 +418,7 @@ graph TD
 ## 4.2 Use Cases and Actor Interactions
 
 ### 4.2.1 Actor Roles and Operational Scopes
-The platform partitions operations across six human actors as defined in Table 4.1.
+The platform partitions operations across three human actors as defined in Table 4.1.
 
 **Table 4.1: Actor Roles and Scope of Operations**
 
@@ -441,9 +442,9 @@ Table 4.2 details the primary functional use cases supported by the platform.
 | **UC-02** | Mark Attendance via Photo | Teacher | Teacher assigned to class session; classroom photo captured. | Present records written to DB; attendance summary broadcasted. |
 | **UC-03** | Manual Attendance Override | Teacher / Admin | Attendance session exists for specified date and classroom. | Attendance status updated; audit record logged with reason. |
 | **UC-04** | Enroll Student Face | Teacher / Admin | Minimum 3 unoccluded facial photographs uploaded. | Normalized 512-dim ArcFace prototype embedding persisted in DB. |
-| **UC-05** | View Academic Risk Watchlist| Mentor / HOP / Admin| Daily risk recalculation executed or triggered on-demand. | At-risk student list displayed with severity levels and SHAP drivers. |
+| **UC-05** | View Academic Risk Watchlist| Admin| Daily risk recalculation executed or triggered on-demand. | At-risk student list displayed with severity levels and SHAP drivers. |
 | **UC-06** | Log Mentorship Intervention | Mentor | Student flagged in risk watchlist; counseling session conducted.| Intervention note, action item, and review date stored in DB. |
-| **UC-07** | Export Attendance Report | Teacher / Mentor / HOP| Attendance session records exist for specified date range. | Formatted CSV or ReportLab PDF report downloaded. |
+| **UC-07** | Export Attendance Report | Teacher / Admin| Attendance session records exist for specified date range. | Formatted CSV or ReportLab PDF report downloaded. |
 | **UC-08** | Access Student Self-Portal | Student | Student authenticated with active enrollment status. | Personal attendance stats, timetable, and study materials displayed. |
 
 ### 4.2.3 Use Case Diagram
@@ -453,9 +454,6 @@ Figure 4.2 models the interactions between the institutional actors and core fun
 graph LR
     subgraph Actors
         A((Admin))
-        HOS((Head of School))
-        HOP((Head of Program))
-        M((Mentor))
         T((Teacher))
         S((Student))
     end
@@ -465,37 +463,26 @@ graph LR
         UC2([UC-02: Mark Photo Attendance])
         UC3([UC-03: Manual Attendance Override])
         UC4([UC-04: Enroll Student Face])
-        UC5([UC-05: View Risk Watchlist & SHAP])
-        UC6([UC-06: Log Remedial Intervention])
+        UC5([UC-05: View Risk Analytics & SHAP])
+        UC6([UC-06: Manual Marks Entry])
         UC7([UC-07: Export CSV / PDF Reports])
-        UC8([UC-08: View Personal Stats & LMS])
-        UC9([UC-09: Institutional Structure CRUD])
+        UC8([UC-08: View Personal Stats & Drilldown])
+        UC9([UC-09: Curriculum & User CRUD])
     end
 
     A --> UC1
+    A --> UC3
     A --> UC4
     A --> UC5
+    A --> UC6
     A --> UC7
     A --> UC9
-
-    HOS --> UC1
-    HOS --> UC5
-    HOS --> UC7
-
-    HOP --> UC1
-    HOP --> UC4
-    HOP --> UC5
-    HOP --> UC7
-
-    M --> UC1
-    M --> UC5
-    M --> UC6
-    M --> UC7
 
     T --> UC1
     T --> UC2
     T --> UC3
     T --> UC4
+    T --> UC6
     T --> UC7
 
     S --> UC1
@@ -528,16 +515,13 @@ Figure 4.3 depicts the top-level context diagram representing external entity in
 
 ```mermaid
 graph TD
-    Teacher[Teacher] -->|1. Classroom Photo & Marks| VISTA[VISTA System Boundary]
-    Admin[Administrator] -->|2. Org Structure & User Credentials| VISTA
-    Mentor[Faculty Mentor] -->|3. Counseling Log & Interventions| VISTA
-    Student[Student] -->|4. Profile Queries & LMS Access| VISTA
+    Teacher[Teacher] -->|1. Classroom Photo, Attendance & Marks| VISTA[VISTA System Boundary]
+    Admin[Administrator] -->|2. Org Structure, Curriculum & User Credentials| VISTA
+    Student[Student] -->|3. Read-Only Attendance & Marks Queries| VISTA
 
-    VISTA -->|5. Verified Attendance & Session Stats| Teacher
-    VISTA -->|6. Audit Trails & System KPI Reports| Admin
-    VISTA -->|7. At-Risk Watchlists & SHAP Diagnoses| Mentor
-    VISTA -->|8. Attendance Heatmaps & Timetables| Student
-    VISTA -->|9. Automated Absence Alerts (Queued)| ParentAlerts[(Parent Alerts Queue)]
+    VISTA -->|4. Verified Attendance, Recognition & Session Stats| Teacher
+    VISTA -->|5. Audit Trails, Roster & System KPI Reports| Admin
+    VISTA -->|6. Attendance Overview, Subject Progress & CIE Results| Student
 ```
 **Fig 4.3: Data Flow Diagram (Level 0 — Context Diagram)**
 
@@ -641,7 +625,7 @@ graph TD
 The backend is built with FastAPI and Uvicorn, listening on port **8002** under the `/api/v1/` prefix. The service architecture separates routing, business logic, ORM models, and background tasks:
 - **`app/main.py`:** Creates the FastAPI application factory, configures CORS middleware for frontend origins, instruments Prometheus metrics handlers (`/metrics`), mounts all 14 modular routers, and initializes database tables.
 - **`app/db.py`:** Initializes the SQLAlchemy 2.0 engine, manages scoped session generators (`get_db`), and executes an idempotent startup database seeder that populates multi-tier institution trees, course subjects, sample students, and timetable slots.
-- **`app/permissions.py`:** Implements role-based access control (RBAC). Defines `get_current_user` to decode and validate JWT bearer tokens, and provides parameterized dependencies `require_role([...])` scoping endpoints to permitted roles (`admin`, `hos`, `hop`, `mentor`, `teacher`, `student`).
+- **`app/permissions.py`:** Implements role-based access control (RBAC). Defines `get_current_user` to decode and validate JWT bearer tokens, and provides parameterized dependencies `require_role([...])` scoping endpoints to permitted roles (`admin`, `teacher`, `student`).
 - **`app/scheduler.py`:** Uses APScheduler's `BackgroundScheduler` to register an automated cron job executing daily at midnight (`00:00:00`). The job iterates through all active students, computes longitudinal risk indicators, updates `risk_flags`, and queues parent absence notices in `parent_alerts`.
 - **`app/websocket.py`:** Implements `ConnectionManager` to maintain active client WebSocket connections at `/ws/dashboard`. It broadcasts JSON event payloads whenever attendance is marked or risk scores change.
 - **`app/routes/`:** Encompasses 14 distinct route modules exposing 110 endpoints, detailed in Table 5.1.
@@ -654,7 +638,7 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 | `academics.py` | `/api/v1/academics` | 23 | Classrooms, departments, sections, subjects, timetables, and teacher allocations |
 | `admin.py` | `/api/v1/admin` | 29 | Enterprise user provisioning, organization hierarchy tree, audit trail inspection |
 | `attendance.py` | `/api/v1/attendance` | 8 | Image-based attendance marking, manual roll calls, session logs, teacher overrides |
-| `dashboards.py` | `/api/v1/dashboards` | 7 | Scoped KPI analytics aggregated for Admin, HOS, HOP, Mentor, Teacher, Student |
+| `dashboards.py` | `/api/v1/dashboards` | 7 | Scoped KPI analytics aggregated for Admin, Teacher, and Student |
 | `enroll.py` | `/api/v1/enroll` | 2 | Single and batch facial image feature extraction and database enrollment |
 | `export.py` | `/api/v1/export` | 1 | Streaming CSV export of attendance and academic performance records |
 | `lms.py` | `/api/v1/lms` | 4 | Course assignments, student file submissions, syllabus progress tracking |
@@ -681,7 +665,7 @@ The database architecture comprises 24 tables declared across 8 model modules in
 | `organization.py` | `subjects` | `id` (UUID) | `department_id` $\to$ `departments.id` | Academic course units and credit values |
 | `organization.py` | `teacher_subjects` | `id` (UUID) | `teacher_id` $\to$ `users.id`, `subject_id` $\to$ `subjects.id` | Teacher allocation to courses and sections |
 | `organization.py` | `access_requests` | `id` (UUID) | `requester_id` $\to$ `users.id` | Permission escalation and access approvals |
-| `user.py` | `users` | `id` (UUID) | None (Stores hashed credentials & role) | System user accounts across all 6 roles |
+| `user.py` | `users` | `id` (UUID) | None (Stores hashed credentials & role) | System user accounts across all 3 roles |
 | `student.py` | `students` | `student_id` (TEXT) | `class_section_id` $\to$ `class_sections.id` | Student roster, roll number, and 512-d embedding |
 | `student.py` | `semester_results` | `id` (UUID) | `student_id` $\to$ `students.student_id` | Historical semester SGPA, CGPA, backlogs |
 | `student.py` | `study_materials` | `id` (UUID) | `subject_id` $\to$ `subjects.id` | Uploaded lecture notes and syllabi |
@@ -884,7 +868,7 @@ Integration testing verifies that interconnected modules function harmoniously u
 
 ### 6.3.1 Role-Based Access Control (RBAC) Verification
 
-The VISTA backend implements 6 distinct user roles (`admin`, `hos`, `hop`, `mentor`, `teacher`, `student`). Each endpoint is decorated with dependency-injected permission checks (`require_role` in `vista/backend/app/permissions.py`).
+The VISTA backend implements 6 distinct user roles (`admin`, `teacher`, `student`). Each endpoint is decorated with dependency-injected permission checks (`require_role` in `vista/backend/app/permissions.py`).
 
 Testing verified that:
 1. **Unauthorized Access Rejection:** Any request omitting the `Authorization: Bearer <token>` header is rejected immediately with HTTP `401 Unauthorized`.
@@ -980,11 +964,11 @@ flowchart LR
 
 In end-to-end testing with real classroom group photographs, the SCRFD detector reliably isolates individual faces under ambient institutional lighting and mild angular tilt ($< 30^\circ$).
 
-Figure 7.2 illustrates a live classroom attendance run conducted on October 30, 2026, for the course **Deep Learning (22AIU701)** in the **AIML 3rd Year** section (cohort size: 66 students). A group capture containing 7 students seated in the department laboratory was ingested:
+Figure 7.2 illustrates a live classroom attendance run conducted on October 30, 2026, for the course **Deep Learning (22AIU701)** in the **4th Year AIML** section (cohort size: 66 students). A group capture containing 7 students seated in the department laboratory was ingested:
 
 ![Figure 7.2: Teacher Facial Attendance Live Verification View](docs/screenshots/fig_7_2_teacher_attendance.png)
 
-*Figure 7.2: Teacher Facial Attendance Interface (`/teacher/attendance`) processing a live multi-student laboratory capture in AIML 3rd Year (Deep Learning · 22AIU701).*
+*Figure 7.2: Teacher Facial Attendance Interface (`/teacher/attendance`) processing a live multi-student laboratory capture in 4th Year AIML (Deep Learning · 22AIU701).*
 
 As shown in Figure 7.2, the vision pipeline achieved **100% detection and recognition across all 7 candidates** in the capture:
 1. **SAHEEL PRADHAN:** Present · $96\%$ confidence
@@ -1168,22 +1152,69 @@ Academic integrity requires transparent disclosure of the empirical boundaries a
 
 ---
 
-## 7.5 List of Required Interface Screenshots for Report
+## 7.5 Interface Realization and Operational Dashboards
 
-To complete the institutional submission dossier, the candidate must capture live interface screenshots from the frontend client application (`http://localhost:5173`) and insert them into the designated figure locations listed in Table 7.7.
+The complete VISTA operational system integrates three dedicated user workspaces—**Teacher Console**, **Student Portal**, and **Admin Control Centre**—implemented in React 18 and powered by FastAPI REST endpoints. All interface views have been verified in production and captured below.
 
-#### Table 7.7: Required Frontend Interface Screenshots Catalog
+#### Table 7.7: Production Frontend Interface Deployment Catalog
 
-| Figure Identifier | Target View / Component | URL / Navigation Path | Key Elements to Highlight in Screenshot | Status |
+| Figure Identifier | Target View / Component | URL / Navigation Path | Key Elements Highlighted in Interface | Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **Figure 7.2** | Teacher Facial Attendance Capture View | `/teacher/attendance` | Web camera feed, detected face bounding boxes, recognition badges, and confirmation table. | **Captured & Embedded** |
-| **Figure 7.3** | Student Self-Service Portal Dashboard | `/student/dashboard` | Subject-wise attendance gauge charts, overall attendance percentage, upcoming timetable, and alerts. | Pending Capture |
-| **Figure 7.4** | Mentor Academic Watchlist with SHAP Insights | `/mentor/watchlist` | Ranked student risk table, color-coded badges (`HIGH`/`MED`/`LOW`), and expandable SHAP reason popover. | Pending Capture |
-| **Figure 7.5** | Admin Multi-Tier Organizational Tree View | `/admin/organization` | Hierarchical department nodes, faculty assignments, batch management, and user creation modal. | Pending Capture |
-| **Figure 7.6** | Head of School (HOS) Institution Analytics | `/hos/overview` | College-wide attendance trends, department comparison bar charts, and multi-term filter controls. | Pending Capture |
-| **Figure 7.7** | Manual Attendance Fallback Override Form | `/teacher/attendance/manual` | Attendance grid with Present/Absent/Late radio buttons and bulk commit confirmation button. | Pending Capture |
+| **Figure 7.2** | Teacher Facial Attendance Live Verification View | `/teacher/attendance` | Classroom photo capture, multi-face bounding boxes, recognition badges, and 7 marked present. | **Captured & Embedded** |
+| **Figure 7.3** | Student Self-Service Portal Dashboard | `/student/dashboard` | Overall attendance (81.2%), Average marks (71.2%), class identifier (`4th Year AIML`), and subject list. | **Captured & Embedded** |
+| **Figure 7.4** | Student Subject Attendance & CIE Marks Drill-Down | `/student-portal/subjects/{id}/detail` | Date-wise attendance history with `[Face]`, `[Manual]`, `[Seed]` badges, CIE 1 & 2 scores out of 25. | **Captured & Embedded** |
+| **Figure 7.5** | Admin Academic Control Centre | `/admin` | Summary metrics (66 students, 5 subjects), class division chips, teacher and subject configurations. | **Captured & Embedded** |
+| **Figure 7.6** | Admin Student Roster and Face Enrollment View | `/admin` | Complete 66-student roster table, USN directory, class mapping, and face biometric enrollment triggers. | **Captured & Embedded** |
+| **Figure 7.7** | Comprehensive Student Profile & Academic Risk View | `/admin/students/{id}` | Longitudinal attendance bar chart, CIE marks trajectory, and XGBoost + SHAP risk indicator. | **Captured & Embedded** |
+| **Figure 7.8** | Teacher & Admin Manual Attendance & Marks Console | Modal Component | Student USN search, date bounds validation, mandatory audit reasons, and existing record history. | **Captured & Embedded** |
 
 ---
+
+### 7.5.1 Teacher Attendance Verification Console
+Figure 7.2 illustrates the live teacher attendance workspace during an active lecture session for **Deep Learning (22AIU701)** in **4th Year AIML**.
+
+![Figure 7.2: Teacher Facial Attendance Live Verification View](docs/screenshots/fig_7_2_teacher_attendance.png)
+*Fig 7.2: Live Teacher Facial Attendance capture interface displaying simultaneous multi-face detection and confirmation of 7 present students (Saheel Pradhan 96%, Mohammed Ayyan 76%, Sujala Agrahari 75%, MC Chethan Patil 73%, Shreyas K T 71%, Mallikarjuna C 70%, Vignesh V 58%).*
+
+---
+
+### 7.5.2 Student Academic Dashboard and Subject Drill-Down
+Figure 7.3 depicts the read-only student self-service portal for **Mohammed Ayan (USN: 1DA24AI403)**, displaying bounded personal attendance (81.2%) and subject breakdown. Figure 7.4 showcases the modal drill-down view revealing date-wise attendance records with audit source badges and CIE assessments.
+
+![Figure 7.3: Student Self-Service Portal Dashboard](docs/screenshots/fig_7_3_student_dashboard.png)
+*Fig 7.3: Student Portal Dashboard displaying verified personal attendance (81.2%), average assessment score (71.2%), and subject-wise attendance progress across all 5 active courses.*
+
+<br>
+
+![Figure 7.4: Student Subject Attendance & CIE Marks Drill-Down](docs/screenshots/fig_7_4_student_subject_drilldown.png)
+*Fig 7.4: Interactive Subject Drill-down modal presenting date-wise session records with source audit badges (`Face`, `Manual`, `Seed`), recognition match percentages, and CIE 1 + CIE 2 assessment breakdown.*
+
+---
+
+### 7.5.3 Administrator Academic Control Centre and Roster Management
+Figure 7.5 illustrates the administrative control console for managing institutional entities, classes, faculty assignments, and curriculum subjects. Figure 7.6 displays the comprehensive 66-student roster table and biometric enrollment actions.
+
+![Figure 7.5: Admin Academic Control Centre](docs/screenshots/fig_7_5_admin_control_centre.png)
+*Fig 7.5: Administrator Control Centre showing institutional statistics, class division selection chips, and teacher/subject management panels.*
+
+<br>
+
+![Figure 7.6: Admin Student Roster and Face Enrollment View](docs/screenshots/fig_7_6_admin_student_roster.png)
+*Fig 7.6: Centralized student roster table displaying student USN directory, class section tags, and one-click facial embedding enrollment buttons.*
+
+---
+
+### 7.5.4 Student Profile Risk Diagnostic and Manual Entry Fallback
+Figure 7.7 displays the comprehensive student profile and longitudinal risk overview. Figure 7.8 illustrates the manual entry console with student USN search, date validation, and mandatory audit justification fields.
+
+![Figure 7.7: Comprehensive Student Profile & Academic Risk View](docs/screenshots/fig_7_7_student_profile_risk.png)
+*Fig 7.7: Student academic profile detailing longitudinal attendance trend bars, assessment history, and automated XGBoost early risk classification.*
+
+<br>
+
+![Figure 7.8: Teacher & Admin Manual Attendance & Marks Console](docs/screenshots/fig_7_8_manual_entry_console.png)
+*Fig 7.8: Manual Attendance & CIE Marks entry console showing student search filter, date constraint validation, and mandatory audit justification.*
+
 
 ## 7.6 Summary
 

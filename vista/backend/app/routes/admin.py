@@ -245,7 +245,7 @@ def update_student(
 class CreateStudentRequest(BaseModel):
             name: str
             usn: str
-            class_code: str = "AIML-3A"
+            class_code: str = "AIML-4A"
 
 
 @router.post("/students")
@@ -880,10 +880,17 @@ def teacher_get_subjects(
         # Get students in this class section
         students = []
         if class_section:
-            # Match students by class code (classroom_id matches class_section code)
+            # Match students by class section id, code, or name
             student_rows = (
                 db.query(Student)
-                .filter(Student.classroom_id == class_section.code, Student.is_active == True)
+                .filter(
+                    (Student.classroom_id == class_section.id) |
+                    (Student.classroom_id == class_section.code) |
+                    (Student.class_ == class_section.name) |
+                    (Student.class_ == class_section.code),
+                    Student.is_active == True,
+                )
+                .order_by(Student.name.asc())
                 .all()
             )
             students = [{"student_id": s.student_id, "name": s.name} for s in student_rows]

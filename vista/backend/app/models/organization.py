@@ -6,7 +6,7 @@ Roles: admin, hos, hop, mentor, teacher
 """
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Column, ForeignKey, Text
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from ..db import Base
@@ -39,13 +39,13 @@ class Department(Base):
 
 
 class ClassSection(Base):
-    """A class/section within a department (e.g., AIML-3A, CSE-2B)"""
+    """A class/section within a department (e.g., AIML-4A, CSE-2B)"""
     __tablename__ = "class_sections"
 
     id = Column(Text, primary_key=True)           # e.g., "class-aiml-3a"
     department_id = Column(Text, ForeignKey("departments.id"), nullable=False)
-    name = Column(Text, nullable=False)            # "AIML 3rd Year A"
-    code = Column(Text, unique=True, nullable=False)  # "AIML-3A"
+    name = Column(Text, nullable=False)            # "4th Year AIML"
+    code = Column(Text, unique=True, nullable=False)  # "AIML-4A"
     semester = Column(Text, nullable=True)         # "6"
     is_active = Column(Boolean, default=True)
     created_at = Column(Text, nullable=False)
@@ -61,6 +61,8 @@ class Subject(Base):
     name = Column(Text, nullable=False)            # "Data Structures"
     code = Column(Text, nullable=False)            # "CS301"
     semester = Column(Text, nullable=True)
+    credits = Column(Float, nullable=True)
+    is_active = Column(Boolean, default=True)
     created_at = Column(Text, nullable=False)
 
 

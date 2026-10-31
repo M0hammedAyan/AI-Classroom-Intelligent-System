@@ -174,7 +174,7 @@ Any student name/ID → Student Profile
 │                                                                     │
 │ ┌─────────────────────────────────────────────────────────────┐    │
 │ │ Class-wise Performance                                       │    │
-│ │ [AIML-3A: 76%] [AIML-3B: 71%] [AIML-2A: 82%]             │    │
+│ │ [AIML-4A: 76%] [AIML-3B: 71%] [AIML-2A: 82%]             │    │
 │ │ Click → Class students → Individual profiles                │    │
 │ └─────────────────────────────────────────────────────────────┘    │
 │                                                                     │
@@ -248,7 +248,7 @@ Any student name/ID → Student Profile
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│ TEACHER WORKSPACE — Prof. Kumar (DS, OS for AIML-3A, AIML-3B)       │
+│ TEACHER WORKSPACE — Prof. Kumar (DS, OS for AIML-4A, AIML-3B)       │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │ ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
@@ -302,7 +302,7 @@ Any student name/ID → Student Profile
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STUDENT PROFILE — CS22B003 Rohan Mehta                              │
-│ Class: AIML-3A │ Department: AIML │ School: Computing │ Risk: HIGH  │
+│ Class: AIML-4A │ Department: AIML │ School: Computing │ Risk: HIGH  │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │ [Overview] [Attendance] [Academics] [Risk & AI] [Interventions]     │

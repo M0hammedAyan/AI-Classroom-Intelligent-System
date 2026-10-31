@@ -55,8 +55,8 @@ def _check_attendance_scope(db: Session, current_user, classroom_id: str, subjec
         .filter(
             TeacherSubjectAssignment.teacher_id == current_user.id,
             TeacherSubjectAssignment.is_active == True,
-            Subject.code == subject_id,
-            ClassSection.code == classroom_id,
+            (Subject.code == subject_id) | (Subject.id == subject_id),
+            (ClassSection.code == classroom_id) | (ClassSection.id == classroom_id) | (ClassSection.name == classroom_id),
         )
         .first()
     )
@@ -369,9 +369,25 @@ def create_manual_attendance(
     db: Session = Depends(get_db),
     _current_user=Depends(get_current_user),
 ):
-    """Create or update a teacher-corrected attendance row for an absent student."""
+    """Create or update a teacher/admin-corrected attendance row (upsert)."""
+    if _current_user.role == "student":
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Student accounts cannot edit attendance."})
+
     if body.status not in {"present", "absent"}:
         raise HTTPException(status_code=400, detail={"code": "INVALID_STATUS", "message": "status must be 'present' or 'absent'."})
+
+    # Mandatory reason validation
+    reason = (body.note or "").strip()
+    if not reason:
+        raise HTTPException(status_code=400, detail={"code": "REASON_REQUIRED", "message": "A reason is mandatory for manual attendance entry."})
+
+    # Date validation: no future dates, no dates before semester start (03-Aug-2026) unless admin
+    today_str = datetime.now(timezone.utc).date().isoformat()
+    if body.session_date > today_str:
+        raise HTTPException(status_code=400, detail={"code": "FUTURE_DATE", "message": "Cannot mark attendance for future dates."})
+    if _current_user.role != "admin" and body.session_date < "2026-08-03":
+        raise HTTPException(status_code=400, detail={"code": "DATE_OUT_OF_RANGE", "message": "Date cannot be before semester start (03-Aug-2026)."})
+
     _check_attendance_scope(db, _current_user, body.classroom_id, body.subject_id)
     body.subject_id = _normalize_subject_id(db, body.subject_id)
     student = db.query(Student).filter(Student.student_id == body.student_id, Student.is_active == True).first()
@@ -382,17 +398,18 @@ def create_manual_attendance(
         db.query(Attendance)
         .filter(
             Attendance.student_id == body.student_id,
-            Attendance.classroom_id == body.classroom_id,
             Attendance.session_date == body.session_date,
             Attendance.subject_id == body.subject_id,
         )
         .first()
     )
     now = datetime.now(timezone.utc).isoformat()
+    old_status = existing.status if existing else None
     if existing:
         existing.status = body.status
         existing.is_manual_override = True
-        existing.override_note = body.note
+        existing.source = "manual"
+        existing.override_note = reason
         db.commit()
         db.refresh(existing)
         row = existing
@@ -400,19 +417,40 @@ def create_manual_attendance(
         row = Attendance(
             id=str(uuid.uuid4()),
             student_id=body.student_id,
-            classroom_id=body.classroom_id,
+            classroom_id=body.classroom_id or student.classroom_id,
             subject_id=body.subject_id,
             session_date=body.session_date,
             timestamp=now,
             status=body.status,
             confidence=None,
             is_manual_override=True,
-            override_note=body.note,
+            source="manual",
+            override_note=reason,
             created_at=now,
         )
         db.add(row)
         db.commit()
         db.refresh(row)
+
+    # Write audit record
+    from ..audit import log_action
+    import json
+    log_action(
+        db,
+        user_id=_current_user.id,
+        action="manual_attendance_update",
+        target_type="student",
+        target_id=student.student_id,
+        details=json.dumps({
+            "subject_id": body.subject_id,
+            "session_date": body.session_date,
+            "old_status": old_status,
+            "new_status": body.status,
+            "reason": reason,
+            "source": "manual",
+        }),
+    )
+    db.commit()
 
     return {
         "attendance_id": row.id,
@@ -420,8 +458,48 @@ def create_manual_attendance(
         "student_name": student.name,
         "status": row.status,
         "confidence": row.confidence,
+        "source": row.source,
         "marked_at": row.timestamp,
         "is_manual_override": row.is_manual_override,
+        "is_update": old_status is not None,
+    }
+
+
+@router.get("/student/{student_id}")
+def get_student_attendance_history(
+    student_id: str,
+    subject_id: str | None = None,
+    db: Session = Depends(get_db),
+    _current_user=Depends(get_current_user),
+):
+    """Fetch a student's attendance records for manual review / edit."""
+    if _current_user.role == "student" and _current_user.id != f"student-{student_id}":
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    query = db.query(Attendance).filter(Attendance.student_id == student_id)
+    if subject_id:
+        query = query.filter((Attendance.subject_id == subject_id) | (Attendance.subject_id.like(f"%{subject_id.lower()}%")))
+    records = query.order_by(Attendance.session_date.desc()).limit(100).all()
+
+    return {
+        "student_id": student.student_id,
+        "student_name": student.name,
+        "records": [
+            {
+                "id": r.id,
+                "date": r.session_date,
+                "status": r.status,
+                "source": r.source or ("manual" if r.is_manual_override else "face"),
+                "note": r.override_note,
+                "confidence": r.confidence,
+                "subject_id": r.subject_id,
+            }
+            for r in records
+        ],
     }
 
 
