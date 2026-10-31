@@ -20,6 +20,12 @@ import urllib.request
 import uuid
 from datetime import datetime, timezone
 from typing import Any
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Ensure .env is loaded
+load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
 from sqlalchemy.orm import Session
 
@@ -416,6 +422,7 @@ def _call_openrouter(user_msg: str, facts: dict[str, Any], api_key: str, model: 
         ],
         "temperature": 0.2,
         "max_tokens": 500,
+        "reasoning": {"max_tokens": 0},
     }
 
     req_url = f"{base_url}/chat/completions"
@@ -431,10 +438,14 @@ def _call_openrouter(user_msg: str, facts: dict[str, Any], api_key: str, model: 
     for attempt in range(2):
         try:
             req = urllib.request.Request(req_url, data=data_bytes, headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=25) as resp:
                 result = json.loads(resp.read().decode("utf-8"))
                 choice = result.get("choices", [{}])[0]
-                text = choice.get("message", {}).get("content", "").strip()
+                msg_obj = choice.get("message") or {}
+                raw_content = msg_obj.get("content")
+                if not raw_content and msg_obj.get("reasoning"):
+                    raw_content = msg_obj.get("reasoning")
+                text = (raw_content or "").strip()
                 if text:
                     return text
         except Exception as exc:
