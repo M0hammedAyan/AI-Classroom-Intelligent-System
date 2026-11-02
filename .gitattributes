@@ -1,3 +1,4 @@
 data/processed/*.npz filter=lfs diff=lfs merge=lfs -text
-agumented[[:space:]]data/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+augmented[[:space:]]data/**/*.jpg filter=lfs diff=lfs merge=lfs -text
 *.pth filter=lfs diff=lfs merge=lfs -text
+.env filter=env diff=env merge=env -text

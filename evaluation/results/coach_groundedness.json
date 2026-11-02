@@ -1,0 +1,102 @@
+{
+  "student_id": "1DA24AI403",
+  "total_queries": 10,
+  "grounded_count": 10,
+  "hallucination_count": 0,
+  "groundedness_accuracy_pct": 100.0,
+  "hallucination_rate_pct": 0.0,
+  "provider": "openrouter",
+  "model": "nvidia/nemotron-3.5-super-vl:free",
+  "detailed_results": [
+    {
+      "id": "Q1",
+      "query": "What is my overall attendance percentage?",
+      "expected_fact": "78.2%",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "Your overall attendance percentage is 78.2%."
+    },
+    {
+      "id": "Q2",
+      "query": "How many total classes have I attended out of how many sessions?",
+      "expected_fact": "176 attended out of 225",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "You have attended 176 out of 225 total sessions, giving you an overall attendance of 78.2%.\n\nHere are a few practical steps to maintain or improve your attendance:\n\n- Prioritize attending classes in s"
+    },
+    {
+      "id": "Q3",
+      "query": "How many more classes can I miss before falling below the 75% threshold?",
+      "expected_fact": "9 classes",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "Based on your academic file:\n\n- **Overall attendance:** You can miss **9 more classes** before falling below the 75% threshold.\n- **Deep Learning:** You cannot miss any more classes (0 missable); you "
+    },
+    {
+      "id": "Q4",
+      "query": "What is my attendance in Deep Learning (22AIU701)?",
+      "expected_fact": "73.2% (30/41)",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "Your attendance in Deep Learning (22AIU701) is 73.2% (30 out of 41 sessions attended). This is below the 75% target threshold, and you need a recovery streak of 3 consecutive attended classes to get b"
+    },
+    {
+      "id": "Q5",
+      "query": "How many consecutive classes do I need to attend in Deep Learning to reach 75%?",
+      "expected_fact": "3 classes",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "Based on your academic file for Deep Learning (22AIU701):\n\n\u2022 You need to attend **3 consecutive classes** to reach the 75% attendance threshold.\n\u2022 Your current attendance is 73.2% (30 out of 41 sessio"
+    },
+    {
+      "id": "Q6",
+      "query": "What are my CIE 1 and CIE 2 scores in Deep Learning?",
+      "expected_fact": "CIE 1: 17.0, CIE 2: 19.0",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "Here are your CIE scores for Deep Learning (22AIU701):\n\n- **CIE 1:** 17.0 / 25\n- **CIE 2:** 19.0 / 25\n\nYour average for CIE 1 and CIE 2 is 18.0 / 25.\n\n**Actionable steps:**\n- Since your average is bel"
+    },
+    {
+      "id": "Q7",
+      "query": "Am I eligible to write CIE 3 in Deep Learning?",
+      "expected_fact": "Eligible (average 18.0 is below 20.0)",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "Yes, you are eligible to write CIE 3 in Deep Learning (ML101).\n\nYour average CIE 1 and CIE 2 score is 18.0/25, which is below the 20.0 benchmark, making you eligible for CIE 3.\n\nHere are some practica"
+    },
+    {
+      "id": "Q8",
+      "query": "What is my academic risk level in the system?",
+      "expected_fact": "LOW",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "Based on your academic file, your academic risk level is **LOW** with **moderate** confidence.\n\nHere are a few practical steps to maintain your progress:\n\n- Continue attending classes regularly to kee"
+    },
+    {
+      "id": "Q9",
+      "query": "What is my score in Computer Networks?",
+      "expected_fact": "Not recorded / pending / not scheduled",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "That information is not recorded in your academic file.\n\nHere are some practical steps to help you stay on track:\n\n- Check your student portal or course dashboard regularly for scheduled CIE dates and"
+    },
+    {
+      "id": "Q10",
+      "query": "What is my CIE score in Generative AI including CIE 3?",
+      "expected_fact": "CIE 1: 14.5, CIE 2: 14.5, CIE 3: 22.5, final /25 is 18.5",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "passed": true,
+      "sample_snippet": "Based on your academic file, here are your CIE scores for Generative AI (22AIU702):\n\n- CIE 1: 14.5 / 25\n- CIE 2: 14.5 / 25\n- CIE 3: 22.5 / 25\n\nYour final CIE score is **18.5 / 25** (calculated from th"
+    }
+  ]
+}

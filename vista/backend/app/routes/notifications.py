@@ -76,7 +76,7 @@ def get_user_enrolled_subjects_and_classes(user: User, db: Session) -> tuple[set
                 class_identifiers.add(cs.code)
                 class_identifiers.add(cs.name)
     elif user.role == "student":
-        student_id = user.id.replace("student-", "") if user.id.startswith("student-") else user.username
+        student_id = user.id.replace("student-", "") if user.id.startswith("student-") else user.email.split("@")[0].upper()
         student = db.query(Student).filter((Student.student_id == student_id) | (Student.student_id == user.email.split("@")[0].upper())).first()
         if student:
             if student.classroom_id:

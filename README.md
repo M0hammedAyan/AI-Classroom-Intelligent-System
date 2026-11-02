@@ -6,13 +6,40 @@ AI-powered academic monitoring: face recognition attendance + ML risk prediction
 
 ---
 
+## Setup
+
+The backend is tested with Python 3.11 on Windows. Create and use the virtual
+environment from the repository root:
+
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install -r vista\backend\requirements.txt
+```
+
+Start the services with module execution so the commands always use the
+selected environment:
+
+```powershell
+cd vista\backend
+..\..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8002 --reload
+```
+
+In another terminal:
+
+```powershell
+cd vista\frontend
+npm install
+npm run dev
+```
+
 ## Quick Start
 
 ```bash
 # Backend
 cd vista/backend
-pip install -r requirements.txt
-uvicorn app.main:app --port 8002 --reload
+..\..\.venv\Scripts\python.exe -m pip install -r requirements.txt
+..\..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8002 --reload
 
 # Frontend
 cd vista/frontend

@@ -1,0 +1,62 @@
+flowchart TB
+    subgraph ClientLayer["Client Layer (React Single Page Application)"]
+        UI_Admin["Admin Control Centre\n(Curriculum, Biometrics, Roster)"]
+        UI_Teacher["Teacher Attendance Console\n(Live Camera / Roster Marking)"]
+        UI_Student["Student Self-Service Portal\n(Attendance Drill-down & AI Coach)"]
+    end
+
+    subgraph VisionPipeline["On-Premise Vision Pipeline (No Cloud Offloading)"]
+        Camera["Classroom Camera / Upload"] --> SCRFD["SCRFD Face Detector\n(det_10g.onnx · 640x480)"]
+        SCRFD --> Liveness["Heuristic Liveness\n(EAR + Laplacian Blur Check)"]
+        Liveness --> ArcFace["ArcFace Embedder\n(w600k_r50.onnx · 512-d)"]
+        ArcFace --> CosineMatch{"Cosine Similarity\nvs. Gallery\n(Threshold tau = 0.55)"}
+        CosineMatch -- ">= 0.55" --> VerifiedMatch["Enrolled Student ID"]
+        CosineMatch -- "< 0.55" --> ResNetFallback["PyTorch ResNet-50 Classifier\n(Split-B Checkpoint)"]
+        ResNetFallback -- "Softmax >= 0.60" --> VerifiedMatch
+        ResNetFallback -- "< 0.60" --> UnknownFace["Unknown Face\n(Rejected / Flagged)"]
+    end
+
+    subgraph BackendLayer["VISTA Core Backend (FastAPI + SQLAlchemy)"]
+        RBAC["3-Role Authorization Guard\n(Admin, Teacher, Student)"]
+        AttendanceEngine["Attendance Engine\n(source='face' | 'manual' | 'seed')"]
+        AuditService["Append-Only Audit Log\n(Relational Provenance + Reason)"]
+        CIEEngine["Unified CIE Policy Engine\n(CIE 1/2/3 · Best 2 of 3)"]
+        Scheduler["APScheduler Nightly Batch\n(Cron: 02:00 UTC)"]
+        RiskRuleEngine["Deterministic Risk Engine\n(Active Operational Flags)"]
+        XGB_SHAP["XGBoost + SHAP Diagnostics\n(Auxiliary Explainer Endpoint)"]
+        CoachFacts["Deterministic Coach Fact Engine\n(Attendance Margins & CIE Targets)"]
+    end
+
+    subgraph DataLayer["Relational Storage (SQLite on Server)"]
+        DB_Attendance[("Attendance Records\n(Provenance Tagged)")]
+        DB_Scores[("CIE & Term Scores\n(Status: scored | absent)")]
+        DB_Audit[("Audit Logs Table")]
+        DB_Embeddings[("Student Biometric Gallery\n(student_embeddings.npz)")]
+        DB_Notifs[("Audience-Scoped Notifications\n& Read Receipts")]
+    end
+
+    subgraph ExternalLLM["External AI Coach Privacy Boundary"]
+        OpenRouter["Cloud LLM Gateway (OpenRouter / Ollama)\nTelemetry: Aggregated Numbers ONLY\nNO Student Name · NO USN · NO Email"]
+    end
+
+    VerifiedMatch --> AttendanceEngine
+    AttendanceEngine --> DB_Attendance
+    AttendanceEngine -.-> AuditService
+    AuditService --> DB_Audit
+    
+    UI_Admin --> RBAC
+    UI_Teacher --> RBAC
+    UI_Student --> RBAC
+    
+    RBAC --> AttendanceEngine
+    RBAC --> CIEEngine
+    CIEEngine --> DB_Scores
+
+    Scheduler --> RiskRuleEngine
+    DB_Attendance --> RiskRuleEngine
+    DB_Scores --> RiskRuleEngine
+    RiskRuleEngine --> XGB_SHAP
+
+    UI_Student --> CoachFacts
+    CoachFacts --> OpenRouter
+    OpenRouter --> UI_Student

@@ -3,6 +3,7 @@ import {
   login,
   getStudents,
   getStudentAcademicRecord,
+  getStudentImages,
   getTeacherSubjects,
   getAdminUsers,
   createAdminUser,
@@ -55,7 +56,7 @@ CHETHAN KUMAR R|1DA22AI010
 DHANVANTHA JANARDHANA|1DA22AI013
 SHRUTI P|1DA22AI044
 VISHWAS K|1DA22AI050
-ABHAY B SUVARNА|1DA23AI001
+ABHAY B SUVARNA|1DA23AI001
 AKASH KIRAN GOWDA|1DA23AI002
 AKASH KUMAR SINGH|1DA23AI003
 ANUJ PATEL|1DA23AI004
@@ -1191,12 +1192,19 @@ function StudentDetail({ studentId, onBack, auth }) {
   const [record, setRecord] = useState(null);
   const [subjectId, setSubjectId] = useState('all');
   const [showMarks, setShowMarks] = useState(false);
+  const [faceImages, setFaceImages] = useState(null);
   const [form, setForm] = useState({ subject: '', score: '', maxScore: '25', assessmentType: 'CIE 1', reason: '', date: today() });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const load = () => getStudentAcademicRecord(studentId).then(setRecord).catch((err) => setError(err.message));
   useEffect(() => { load(); }, [studentId]);
+
+  useEffect(() => {
+    getStudentImages(studentId)
+      .then((data) => setFaceImages(data))
+      .catch(() => setFaceImages(null));
+  }, [studentId]);
 
   if (!record) return <div className="app-shell"><main className="workspace"><p className="notice">Loading student profile...</p>{error && <p className="error">{error}</p>}</main></div>;
 
@@ -1254,6 +1262,32 @@ function StudentDetail({ studentId, onBack, auth }) {
           <small>{record.risk?.confidence || 'No risk assessment'}</small>
         </div>
       </section>
+      {faceImages && faceImages.total > 0 && (
+        <section className="card" style={{ marginBottom: '1rem' }}>
+          <div className="card-title"><div><p className="eyebrow">Face enrollment</p><h2>Enrollment photos</h2></div></div>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            {faceImages.images.map((img, i) => (
+              <div key={i} style={{ width: '120px', textAlign: 'center' }}>
+                <img
+                  src={`data:image/jpeg;base64,${img.data}`}
+                  alt={`Enrollment ${i + 1}`}
+                  style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--border, #333)' }}
+                />
+                <small style={{ display: 'block', marginTop: '0.25rem', opacity: 0.6 }}>{img.source}</small>
+              </div>
+            ))}
+          </div>
+          <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>
+            {faceImages.has_embedding ? `✅ Face embedding active (enrolled ${faceImages.enrolled_at ? faceImages.enrolled_at.slice(0, 10) : 'previously'})` : '⚠️ No face embedding — not enrolled for face recognition.'}
+          </p>
+        </section>
+      )}
+      {faceImages && faceImages.total === 0 && (
+        <section className="card" style={{ marginBottom: '1rem' }}>
+          <div className="card-title"><div><p className="eyebrow">Face enrollment</p><h2>No enrollment photos</h2></div></div>
+          <p style={{ opacity: 0.6 }}>No face images found on disk for {studentId}. Upload enrollment photos via the Admin → Students → Enrol face button.</p>
+        </section>
+      )}
       <section className="detail-grid">
         <div className="card">
           <div className="card-title"><div><p className="eyebrow">Subject view</p><h2>{selectedSubject ? selectedSubject.name : 'All subjects'}</h2></div></div>
@@ -1346,7 +1380,6 @@ function AdminWorkspace({ auth, onLogout }) {
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showManualModal, setShowManualModal] = useState(false);
-  const [showComposeNotif, setShowComposeNotif] = useState(false);
 
   const reload = () =>
     Promise.all([getAdminUsers(), getStudents(1, 100), getAdminSubjects(), getAdminClasses()])
@@ -1714,6 +1747,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
   const streamRef = useRef(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showManualModal, setShowManualModal] = useState(false);
+  const [showComposeNotif, setShowComposeNotif] = useState(false);
 
   useEffect(() => {
     if (auth.role === 'teacher') {

@@ -18,6 +18,7 @@ async function request(path, options = {}) {
 export const login = (email, password) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
 export const getStudents = (page = 1, pageSize = 100) => request(`/students?page=${page}&page_size=${pageSize}`);
 export const getStudentAcademicRecord = (studentId) => request(`/students/${encodeURIComponent(studentId)}/academic-record`);
+export const getStudentImages = (studentId) => request(`/students/${encodeURIComponent(studentId)}/images`);
 export const getTeacherSubjects = () => request('/admin/teacher/my-subjects');
 export const getAdminUsers = () => request('/admin/users');
 export const createAdminUser = (body) => request('/admin/users', { method: 'POST', body: JSON.stringify(body) });

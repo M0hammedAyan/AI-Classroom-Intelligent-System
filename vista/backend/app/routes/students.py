@@ -9,7 +9,10 @@ Students API — Scoped by role.
 """
 from __future__ import annotations
 
+import base64
 import json
+import os
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -242,7 +245,7 @@ def _student_dict(s: Student, db: Session | None = None) -> dict:
     session_dates = {row[0] for row in db.query(Attendance.session_date).filter(Attendance.classroom_id == s.classroom_id).distinct().all()}
     present = sum(1 for row in attendance if row.status == "present")
     scores = db.query(Score).filter(Score.student_id == s.student_id).all()
-    percentages = [row.score / row.max_score * 100 for row in scores if row.max_score]
+    percentages = [row.score / row.max_score * 100 for row in scores if row.max_score and row.score is not None]
     risk = db.query(RiskFlag).filter(RiskFlag.student_id == s.student_id).order_by(RiskFlag.calculated_at.desc()).first()
     result.update({
         "attendance_pct": round(present / len(session_dates) * 100, 1) if session_dates else 0,
@@ -251,3 +254,79 @@ def _student_dict(s: Student, db: Session | None = None) -> dict:
         "risk_confidence": risk.confidence if risk else None,
     })
     return result
+
+
+# ---------------------------------------------------------------------------
+# Enrollment images — return sample face images for a student by USN
+# ---------------------------------------------------------------------------
+
+# Root of augmented data folder (relative to project root)
+_AUG_DATA_ROOT = Path(__file__).resolve().parents[4] / "agumented data"
+# Also check Downloads/enrol folder
+_ENROL_DATA_ROOT = Path.home() / "Downloads" / "enrol"
+
+
+@router.get("/{student_id}/images")
+def get_student_images(
+    student_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return up to 5 enrollment face images for a student as base64-encoded JPEGs."""
+    # Verify student exists
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail={"code": "STUDENT_NOT_FOUND", "message": f"No student with id {student_id}."})
+
+    images = []
+
+    # 1. Check Downloads/enrol folder first (original enrollment photos)
+    if _ENROL_DATA_ROOT.exists():
+        for folder in _ENROL_DATA_ROOT.iterdir():
+            if not folder.is_dir():
+                continue
+            # Folder name ends with the USN (handle typos: 1DA23A001 -> 1DA23AI001)
+            folder_usn = folder.name.split("_")[-1].upper()
+            import re
+            fixed_usn = re.sub(r'(1DA\d+)A(\d{3}$)', r'\1AI\2', folder_usn)
+            if fixed_usn == student_id or folder_usn == student_id:
+                for img in sorted(folder.glob("*.jpg")) + sorted(folder.glob("*.jpeg")) + sorted(folder.glob("*.png")):
+                    if len(images) >= 5:
+                        break
+                    try:
+                        with open(img, "rb") as f:
+                            b64 = base64.b64encode(f.read()).decode()
+                        images.append({"source": "enrollment", "data": b64})
+                    except Exception:
+                        pass
+                break
+
+    # 2. Fallback: check augmented data folder
+    if len(images) < 5 and _AUG_DATA_ROOT.exists():
+        student_folder = _AUG_DATA_ROOT / student_id
+        if student_folder.exists():
+            # Pick first 5 images from the first subfolder
+            subfolders = sorted(student_folder.iterdir())
+            for sub in subfolders:
+                if len(images) >= 5:
+                    break
+                if not sub.is_dir():
+                    continue
+                for img in sorted(sub.glob("*.jpg")) + sorted(sub.glob("*.jpeg")) + sorted(sub.glob("*.png")):
+                    if len(images) >= 5:
+                        break
+                    try:
+                        with open(img, "rb") as f:
+                            b64 = base64.b64encode(f.read()).decode()
+                        images.append({"source": "augmented", "data": b64})
+                    except Exception:
+                        pass
+
+    return {
+        "student_id": student_id,
+        "name": student.name,
+        "has_embedding": bool(student.embedding),
+        "enrolled_at": student.enrolled_at,
+        "images": images,
+        "total": len(images),
+    }

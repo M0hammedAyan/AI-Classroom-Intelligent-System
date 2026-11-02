@@ -14,6 +14,8 @@ import tempfile
 import uuid
 from datetime import datetime, timezone
 
+import cv2
+import numpy as np
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -34,11 +36,36 @@ def _require_enroll_access(current_user: User = Depends(get_current_user)) -> Us
 
 
 class EnrollRequest(BaseModel):
-    images: list[str]  # List of base64-encoded JPEG/PNG images (1-5)
+    images: list[str]  # List of base64-encoded JPEG/PNG images
 
 
-# Rate limiting: max 10 enrollments per 10 minutes per user
-_enroll_attempts: dict[str, list[float]] = {}
+def _decode_image(img_b64: str, index: int) -> bytes:
+    try:
+        img_bytes = base64.b64decode(img_b64, validate=True)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "INVALID_IMAGE", "message": f"Image {index + 1} is not valid base64."},
+        ) from exc
+
+    if len(img_bytes) > 30 * 1024 * 1024:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "UPLOAD_TOO_LARGE", "message": f"Image {index + 1} exceeds 30 MB."},
+        )
+
+    if not (img_bytes.startswith(b"\xff\xd8\xff") or img_bytes.startswith(b"\x89PNG\r\n\x1a\n")):
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "UNSUPPORTED_FORMAT", "message": f"Image {index + 1} must be a JPEG or PNG."},
+        )
+    if cv2.imdecode(np.frombuffer(img_bytes, dtype="uint8"), cv2.IMREAD_COLOR) is None:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "INVALID_IMAGE", "message": f"Image {index + 1} is not a readable JPEG or PNG."},
+        )
+    return img_bytes
+
 
 @router.post("/{student_id}/enroll")
 def enroll_student(
@@ -48,20 +75,9 @@ def enroll_student(
     _user=Depends(_require_enroll_access),
 ):
     """
-    Enroll a student's face by providing 1-5 base64-encoded images.
+    Enroll a student's face by providing base64-encoded images.
     Extracts embeddings, averages them, and stores in the students table.
     """
-    import time as _time
-    # Rate limit check
-    user_id = _user.id
-    now = _time.time()
-    attempts = _enroll_attempts.get(user_id, [])
-    attempts = [t for t in attempts if now - t < 600]  # 10 min window
-    if len(attempts) >= 10:
-        raise HTTPException(status_code=429, detail={"code": "RATE_LIMITED", "message": "Too many enrollment attempts. Try again in 10 minutes."})
-    attempts.append(now)
-    _enroll_attempts[user_id] = attempts
-
     # Validate student exists
     student = db.query(Student).filter(Student.student_id == student_id).first()
     if not student:
@@ -76,28 +92,12 @@ def enroll_student(
             status_code=400,
             detail={"code": "NO_IMAGES", "message": "At least 1 image is required."},
         )
-    if len(body.images) > 5:
-        raise HTTPException(
-            status_code=400,
-            detail={"code": "TOO_MANY_IMAGES", "message": "Maximum 5 images allowed."},
-        )
 
     # Decode images to temp files
     temp_paths = []
     try:
         for i, img_b64 in enumerate(body.images):
-            try:
-                img_bytes = base64.b64decode(img_b64)
-            except Exception:
-                raise HTTPException(
-                    status_code=400,
-                    detail={"code": "INVALID_IMAGE", "message": f"Image {i+1} is not valid base64."},
-                )
-            if len(img_bytes) > 5 * 1024 * 1024:
-                raise HTTPException(
-                    status_code=400,
-                    detail={"code": "UPLOAD_TOO_LARGE", "message": f"Image {i+1} exceeds 5 MB."},
-                )
+            img_bytes = _decode_image(img_b64, i)
 
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
             tmp.write(img_bytes)
@@ -116,10 +116,11 @@ def enroll_student(
                 os.remove(path)
 
     if not result["enrolled"]:
+        no_face = (result["error"] or "").startswith("No faces detected")
         raise HTTPException(
             status_code=400,
             detail={
-                "code": "ENROLLMENT_FAILED",
+                "code": "NO_FACE_DETECTED" if no_face else "ENROLLMENT_FAILED",
                 "message": result["error"] or "Enrollment failed.",
                 "details": {
                     "images_processed": result["images_processed"],
@@ -186,7 +187,7 @@ async def bulk_enroll(
                 results.append({"student_id": sid, "enrolled": False, "error": "Student not found"})
                 continue
 
-            result = vision_enroll(sid, img_paths[:5])  # Max 5 images per student
+            result = vision_enroll(sid, img_paths)  # All images per student
             results.append({
                 "student_id": sid,
                 "enrolled": result["enrolled"],

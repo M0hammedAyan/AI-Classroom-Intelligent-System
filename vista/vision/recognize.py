@@ -121,7 +121,7 @@ def _classify_detected_face(image_path: str, face: dict) -> dict:
     }
 
 
-def recognize_all(image_path: str) -> list[dict]:
+def recognize_all(image_path: str, skip_liveness: bool = False) -> list[dict]:
     """
     Recognize ALL student faces in an image.
 
@@ -133,6 +133,9 @@ def recognize_all(image_path: str) -> list[dict]:
 
     Args:
         image_path: Path to image file (JPEG/PNG).
+        skip_liveness: If True, bypass the liveness check and treat every
+            detected face as live. Use for uploaded/static images only —
+            never for live webcam frames.
 
     Returns:
         List of dicts, each containing:
@@ -152,9 +155,12 @@ def recognize_all(image_path: str) -> list[dict]:
     results: list[dict] = []
 
     for face in faces:
-        # Liveness check per face
-        liveness = check_liveness(face, image_path)
-        liveness_passed = liveness["liveness_passed"]
+        # Liveness check per face — skipped for uploaded static images
+        if skip_liveness:
+            liveness_passed = True
+        else:
+            liveness = check_liveness(face, image_path)
+            liveness_passed = liveness["liveness_passed"]
 
         classification = _classify_detected_face(image_path, face)
 
@@ -180,7 +186,7 @@ def recognize_all(image_path: str) -> list[dict]:
     return deduped
 
 
-def recognize(image_path: str) -> dict:
+def recognize(image_path: str, skip_liveness: bool = False) -> dict:
     """
     Recognize a student face in an image.
 
@@ -188,6 +194,9 @@ def recognize(image_path: str) -> dict:
 
     Args:
         image_path: Path to image file (JPEG/PNG).
+        skip_liveness: If True, bypass the liveness check and treat the
+            detected face as live. Use for uploaded/static images only —
+            never for live webcam frames.
 
     Returns:
         {
@@ -207,10 +216,14 @@ def recognize(image_path: str) -> dict:
             "liveness_passed": False,
         }
 
-    # Step 2: Liveness check
-    liveness = check_liveness(face, image_path)
+    # Step 2: Liveness check — skipped for uploaded static images
+    if skip_liveness:
+        liveness_passed = True
+    else:
+        liveness = check_liveness(face, image_path)
+        liveness_passed = liveness["liveness_passed"]
 
-    if not liveness["liveness_passed"]:
+    if not liveness_passed:
         # Still try to identify who it might be (for logging purposes)
         classification = _classify_detected_face(image_path, face)
         return {

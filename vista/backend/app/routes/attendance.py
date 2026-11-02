@@ -19,7 +19,7 @@ from ..routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/v1/attendance", tags=["attendance"])
 
-MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5 MB
+MAX_IMAGE_BYTES = 30 * 1024 * 1024  # 30 MB
 
 
 class MarkRequest(BaseModel):
@@ -87,7 +87,7 @@ def mark_attendance(
     except Exception:
         raise HTTPException(status_code=400, detail={"code": "INVALID_IMAGE", "message": "Image must be valid base64."})
     if len(image_bytes) > MAX_IMAGE_BYTES:
-        raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 5 MB limit."})
+        raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 30 MB limit."})
 
     # Validate file magic bytes (JPEG or PNG only)
     JPEG_MAGIC = b'\xff\xd8\xff'
@@ -103,7 +103,7 @@ def mark_attendance(
             tmp.write(image_bytes)
             tmp_path = tmp.name
 
-        vision_result = _call_vision(tmp_path)
+        vision_result = _call_vision(tmp_path, skip_liveness=True)
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)
@@ -215,7 +215,7 @@ def mark_attendance_batch(
     except Exception:
         raise HTTPException(status_code=400, detail={"code": "INVALID_IMAGE", "message": "Image must be valid base64."})
     if len(image_bytes) > MAX_IMAGE_BYTES:
-        raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 5 MB limit."})
+        raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 30 MB limit."})
 
     # Write to temp file, call vision.recognize_all(), delete temp file
     suffix = ".jpg"
@@ -225,7 +225,7 @@ def mark_attendance_batch(
             tmp.write(image_bytes)
             tmp_path = tmp.name
 
-        vision_results = _call_vision_all(tmp_path)
+        vision_results = _call_vision_all(tmp_path, skip_liveness=True)
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)
@@ -537,7 +537,7 @@ def patch_attendance(
 # Vision integration
 # ---------------------------------------------------------------------------
 
-def _call_vision(image_path: str) -> dict | None:
+def _call_vision(image_path: str, skip_liveness: bool = False) -> dict | None:
     """
     Call vision.recognize(image_path) for face detection + recognition.
 
@@ -549,7 +549,7 @@ def _call_vision(image_path: str) -> dict | None:
         - Face detection (SCRFD)
         - Embedding extraction (ArcFace R50)
         - Matching against enrolled students (cosine similarity)
-        - Liveness check (heuristic-based)
+        - Liveness check (heuristic-based, skipped when skip_liveness=True)
 
     Falls back to a stub if InsightFace model is not available (first run / no model).
     """
@@ -558,7 +558,7 @@ def _call_vision(image_path: str) -> dict | None:
 
     try:
         from vista.vision.recognize import recognize
-        result = recognize(image_path)
+        result = recognize(image_path, skip_liveness=skip_liveness)
 
         # If confidence is 0 and no student matched, treat as no face detected
         if result["confidence"] == 0.0 and result["student_id"] is None and not result["liveness_passed"]:
@@ -580,7 +580,7 @@ def _call_vision(image_path: str) -> dict | None:
         return {"student_id": None, "confidence": 0.0, "liveness_passed": False}
 
 
-def _call_vision_all(image_path: str) -> list[dict]:
+def _call_vision_all(image_path: str, skip_liveness: bool = False) -> list[dict]:
     """
     Call vision.recognize_all(image_path) for multi-face detection + recognition.
 
@@ -595,7 +595,7 @@ def _call_vision_all(image_path: str) -> list[dict]:
 
     try:
         from vista.vision.recognize import recognize_all
-        results = recognize_all(image_path)
+        results = recognize_all(image_path, skip_liveness=skip_liveness)
         return results
 
     except ImportError:
@@ -753,7 +753,7 @@ async def mark_attendance_video(
     except Exception:
         raise HTTPException(status_code=400, detail={"code": "INVALID_IMAGE", "message": "Image must be valid base64."})
     if len(image_bytes) > MAX_IMAGE_BYTES:
-        raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 5 MB limit."})
+        raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 30 MB limit."})
 
     suffix = ".jpg"
     tmp_path = None
@@ -762,7 +762,7 @@ async def mark_attendance_video(
             tmp.write(image_bytes)
             tmp_path = tmp.name
 
-        # Use recognize_all for multi-face
+        # Use recognize_all for multi-face — liveness ON (live webcam frames)
         vision_results = _call_vision_all(tmp_path)
     finally:
         if tmp_path and os.path.exists(tmp_path):

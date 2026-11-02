@@ -1,0 +1,14 @@
+flowchart TD
+    InputFace["Input Detected Face Crop\n(640x480 Frame -> 112x112 / 160x160)"] --> Embed["ArcFace R50 Embedder\n(512-dim Normalized Vector)"]
+    Embed --> CosineCalc["Compute Cosine Similarity Matrix:\ns_i = dot(probe, gallery_i)"]
+    CosineCalc --> MaxSim["Identify Maximum Similarity:\ns_max = max(s_i), Class = c*"]
+    MaxSim --> CheckCosine{"s_max >= 0.55 ?"}
+
+    CheckCosine -- "Yes (High Confidence)" --> AcceptCosine["Accept Match: Student c*\n(Fast Path: ~1.07ms)"]
+    CheckCosine -- "No (sim < 0.55)" --> ResNetInference["Invoke PyTorch ResNet-50 Classifier\n(Fallback Path: ~32.5ms)"]
+    
+    ResNetInference --> Softmax["Compute Softmax Probabilities:\np_max = max(softmax(logits)), Class = c_res*"]
+    Softmax --> CheckSoftmax{"p_max >= 0.60 ?"}
+    
+    CheckSoftmax -- "Yes (Recovered Match)" --> AcceptResNet["Accept Match: Student c_res*\n(Cascade Recovery)"]
+    CheckSoftmax -- "No (Confidence < 0.60)" --> RejectUnknown["Reject as Unknown / Impostor\n(Flagged for Manual Verification)"]
