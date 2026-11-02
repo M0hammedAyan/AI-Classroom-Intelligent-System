@@ -77,3 +77,16 @@ test_folders/
 
 terminal.txt
 db_backup/
+
+# ── Generated graph reports ──
+graphify-out/
+
+# ── Vite temp build files ──
+vista/frontend/*.timestamp-*.mjs
+
+# ── Debug / scratch outputs ──
+server_out.txt
+server_err.txt
+check_env.py
+freeze_new.txt
+freeze_old.txt
