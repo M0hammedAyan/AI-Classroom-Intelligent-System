@@ -1,0 +1,164 @@
+================================================================= test session starts ==================================================================
+platform win32 -- Python 3.11.9, pytest-8.2.2, pluggy-1.6.0 -- C:\Program Files\Python311\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: D:\CipherTECH\Projects\AI-Classroom-Intelligent-System
+plugins: anyio-4.13.0, hypothesis-6.155.3, asyncio-0.23.6
+asyncio: mode=Mode.STRICT
+collecting ... collecting 71 items
+collected 78 items
+
+tests/test_audit_fixes.py::TestStudentPortalFixes::test_task1_and_task2_all_7th_sem_subjects_visible PASSED                                       [  1%]
+tests/test_audit_fixes.py::TestStudentPortalFixes::test_task1_percentage_calculation_bounded_and_rounded PASSED                                   [  2%]
+tests/test_audit_fixes.py::TestStudentPortalFixes::test_task1_student_authorization_strict_own_data PASSED                                        [  3%]
+tests/test_audit_fixes.py::TestStudentPortalFixes::test_task1_subject_drilldown_marks_and_source_badges PASSED                                    [  5%]
+tests/test_audit_fixes.py::TestStudentPortalFixes::test_task1_zero_sessions_handles_gracefully PASSED                                             [  6%]
+tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_future_date_rejected PASSED                                                    [  7%]
+tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_manual_attendance_creates_audit_log PASSED                                     [  8%]
+tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_marks_mandatory_reason PASSED                                                  [ 10%]
+tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_marks_out_of_range PASSED                                                      [ 11%]
+tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_student_cannot_edit_marks PASSED                                               [ 12%]
+tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_teacher_subject_scope_enforcement PASSED                                       [ 14%]
+tests/test_audit_fixes.py::TestAttendancePctOverflowFix::test_attendance_pct_never_exceeds_100 PASSED                                             [ 15%]
+tests/test_features_1_and_2.py::TestRoleScopedNotifications::test_admin_broadcast_visible_to_all PASSED                                           [ 16%]
+tests/test_features_1_and_2.py::TestRoleScopedNotifications::test_read_tracking_and_unread_count PASSED                                           [ 17%]
+tests/test_features_1_and_2.py::TestRoleScopedNotifications::test_student_cannot_send_notification PASSED                                         [ 19%]
+tests/test_features_1_and_2.py::TestRoleScopedNotifications::test_teacher_subject_notification_visibility PASSED                                  [ 20%]
+tests/test_features_1_and_2.py::TestRoleScopedNotifications::test_teacher_unassigned_subject_rejected PASSED                                      [ 21%]
+tests/test_features_1_and_2.py::TestRoleScopedNotifications::test_xss_sanitization PASSED                                                         [ 23%]
+tests/test_features_1_and_2.py::TestCIEPolicyEngine::test_cie2_needed_to_avoid_cie3 PASSED                                                        [ 24%]
+tests/test_features_1_and_2.py::TestCIEPolicyEngine::test_cie_policy_absent_never_zero PASSED                                                     [ 25%]
+tests/test_features_1_and_2.py::TestCIEPolicyEngine::test_cie_policy_average_below_20 PASSED                                                      [ 26%]
+tests/test_features_1_and_2.py::TestCIEPolicyEngine::test_cie_policy_best_two_when_cie3_taken PASSED                                              [ 28%]
+tests/test_features_1_and_2.py::TestCIEPolicyEngine::test_cie_policy_both_above_20 PASSED                                                         [ 29%]
+tests/test_features_1_and_2.py::TestRoleDeprecation::test_admin_cannot_create_deprecated_roles PASSED                                             [ 30%]
+tests/test_features_1_and_2.py::TestRoleDeprecation::test_login_rejects_deprecated_roles PASSED                                                   [ 32%]
+tests/test_features_1_and_2.py::TestCoachService::test_coach_chat_deterministic_fallback PASSED                                                   [ 33%]
+tests/test_features_1_and_2.py::TestCoachService::test_coach_history_persistence_and_clear PASSED                                                 [ 34%]
+tests/test_features_1_and_2.py::TestCoachService::test_coach_summary_tip PASSED                                                                   [ 35%]
+vista/backend/tests/test_attendance.py::test_attendance_log PASSED                                                                                [ 37%]
+vista/backend/tests/test_attendance.py::test_attendance_stats PASSED                                                                              [ 38%]
+vista/backend/tests/test_attendance.py::test_attendance_mark_invalid_image PASSED                                                                 [ 39%]
+vista/backend/tests/test_attendance.py::test_attendance_override_not_found PASSED                                                                 [ 41%]
+vista/backend/tests/test_attendance.py::test_attendance_override_invalid_status PASSED                                                            [ 42%]
+vista/backend/tests/test_auth.py::test_login_success PASSED                                                                                       [ 43%]
+vista/backend/tests/test_auth.py::test_login_wrong_password PASSED                                                                                [ 44%]
+vista/backend/tests/test_auth.py::test_login_nonexistent_user PASSED                                                                              [ 46%]
+vista/backend/tests/test_auth.py::test_protected_route_no_token PASSED                                                                            [ 47%]
+vista/backend/tests/test_auth.py::test_protected_route_invalid_token PASSED                                                                       [ 48%]
+vista/backend/tests/test_auth.py::test_logout PASSED                                                                                              [ 50%]
+vista/backend/tests/test_auth.py::test_get_me PASSED                                                                                              [ 51%]
+vista/backend/tests/test_dashboard.py::test_admin_dashboard PASSED                                                                                [ 52%]
+vista/backend/tests/test_dashboard.py::test_admin_dashboard_teacher_forbidden PASSED                                                              [ 53%]
+vista/backend/tests/test_dashboard.py::test_teacher_dashboard PASSED                                                                              [ 55%]
+vista/backend/tests/test_dashboard.py::test_health_check PASSED                                                                                   [ 56%]
+vista/backend/tests/test_enroll.py::test_backend_launch_exposes_vision_package PASSED                                                             [ 57%]
+vista/backend/tests/test_enroll.py::test_enroll_rejects_unsupported_format PASSED                                                                 [ 58%]
+vista/backend/tests/test_enroll.py::test_enroll_returns_no_face_error PASSED                                                                      [ 60%]
+vista/backend/tests/test_export.py::test_export_csv PASSED                                                                                        [ 61%]
+vista/backend/tests/test_export.py::test_export_pdf PASSED                                                                                        [ 62%]
+vista/backend/tests/test_export.py::test_export_invalid_date_range PASSED                                                                         [ 64%]
+vista/backend/tests/test_personal_model_attendance.py::test_mark_attendance_accepts_personal_model_result PASSED                                  [ 65%]
+vista/backend/tests/test_personal_model_attendance.py::test_mark_batch_accepts_personal_model_results PASSED                                      [ 66%]
+vista/backend/tests/test_risk.py::test_list_risk_flags PASSED                                                                                     [ 67%]
+vista/backend/tests/test_risk.py::test_list_risk_filter_by_level PASSED                                                                           [ 69%]
+vista/backend/tests/test_risk.py::test_get_student_risk PASSED                                                                                    [ 70%]
+vista/backend/tests/test_risk.py::test_get_risk_student_not_found PASSED                                                                          [ 71%]
+vista/backend/tests/test_risk.py::test_recompute_risk PASSED                                                                                      [ 73%]
+vista/backend/tests/test_risk.py::test_recompute_risk_teacher_forbidden PASSED                                                                    [ 74%]
+vista/backend/tests/test_risk.py::test_recompute_all PASSED                                                                                       [ 75%]
+vista/backend/tests/test_risk.py::test_explain_risk PASSED                                                                                        [ 76%]
+vista/backend/tests/test_students.py::test_list_students PASSED                                                                                   [ 78%]
+vista/backend/tests/test_students.py::test_list_students_pagination PASSED                                                                        [ 79%]
+vista/backend/tests/test_students.py::test_get_student_exists PASSED                                                                              [ 80%]
+vista/backend/tests/test_students.py::test_get_student_not_found PASSED                                                                           [ 82%]
+vista/vision/test_recognize.py::test_imports PASSED                                                                                               [ 83%]
+vista/vision/test_recognize.py::test_cosine_similarity PASSED                                                                                     [ 84%]
+vista/vision/test_recognize.py::test_matcher PASSED                                                                                               [ 85%]
+vista/vision/test_recognize.py::test_embeddings PASSED                                                                                            [ 87%]
+vista/vision/test_recognize.py::test_db_gallery_match_preferred PASSED                                                                            [ 88%]
+vista/vision/test_recognize.py::test_liveness PASSED                                                                                              [ 89%]
+vista/vision/test_recognize.py::test_model_loading PASSED                                                                                         [ 91%]
+vista/ml/test_risk_engine.py::test_healthy_low PASSED                                                                                             [ 92%]
+vista/ml/test_risk_engine.py::test_borderline_medium PASSED                                                                                       [ 93%]
+vista/ml/test_risk_engine.py::test_at_risk_high PASSED                                                                                            [ 94%]
+vista/ml/test_risk_engine.py::test_override_consecutive_absences PASSED                                                                           [ 96%]
+vista/ml/test_risk_engine.py::test_missing_score_data_low_confidence PASSED                                                                       [ 97%]
+vista/ml/test_risk_engine.py::test_zero_sessions_raises PASSED                                                                                    [ 98%]
+vista/ml/test_risk_engine.py::test_improving_student PASSED                                                                                       [100%]
+
+================================================================= warnings summary =================================================================
+C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\starlette\formparsers.py:12
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\starlette\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+vista\backend\app\main.py:98
+  D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\vista\backend\app\main.py:98: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+    @app.on_event("startup")
+C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py:4495
+C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py:4495
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py:4495: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+    return self.router.on_event(event_type)
+vista\backend\app\main.py:123
+  D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\vista\backend\app\main.py:123: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+    @app.on_event("shutdown")
+vista/vision/test_recognize.py::test_imports
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_imports returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+vista/vision/test_recognize.py::test_cosine_similarity
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_cosine_similarity returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+vista/vision/test_recognize.py::test_matcher
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_matcher returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+vista/vision/test_recognize.py::test_embeddings
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_embeddings returned np.True_, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+vista/vision/test_recognize.py::test_db_gallery_match_preferred
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_db_gallery_match_preferred returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+vista/vision/test_recognize.py::test_liveness
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_liveness returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+vista/vision/test_recognize.py::test_model_loading
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_model_loading returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================================================== 78 passed, 12 warnings in 32.40s ===========================================================
+
+==========================================================================
+SUMMARY
+==========================================================================
+FINAL_TESTS_COLLECTED: 78
+FINAL_TESTS_PASSED:    78
+FINAL_TESTS_FAILED:    0
+
+No failing tests. All suites are GREEN.
+
+Test files included:
+  - tests/test_audit_fixes.py          (12 tests)
+  - tests/test_features_1_and_2.py     (16 tests)
+  - vista/backend/tests/test_attendance.py         (5 tests)
+  - vista/backend/tests/test_auth.py               (7 tests)
+  - vista/backend/tests/test_dashboard.py          (4 tests)
+  - vista/backend/tests/test_enroll.py             (3 tests)
+  - vista/backend/tests/test_export.py             (3 tests)
+  - vista/backend/tests/test_personal_model_attendance.py (2 tests)
+  - vista/backend/tests/test_risk.py               (8 tests)
+  - vista/backend/tests/test_students.py           (4 tests)
+  - vista/vision/test_recognize.py                 (7 tests)
+  - vista/ml/test_risk_engine.py                   (7 tests)
+
+Warnings (non-fatal):
+  - PendingDeprecationWarning: python_multipart import style (starlette)
+  - DeprecationWarning: on_event is deprecated; use lifespan handlers (FastAPI, 3 occurrences)
+  - PytestReturnNotNoneWarning: 7 tests in vista/vision/test_recognize.py use `return` instead of `assert`
+    (these pass today but will be errors in a future pytest version)
