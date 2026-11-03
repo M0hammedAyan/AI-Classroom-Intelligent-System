@@ -364,7 +364,15 @@ def chat_with_coach(
         else:
             provider_used = "openrouter"
             model_used = model_name
-            coach_reply = _call_openrouter(clean_msg, facts, api_key, model_name, base_url)
+            try:
+                coach_reply = _call_openrouter(clean_msg, facts, api_key, model_name, base_url)
+            except Exception as exc:
+                # Defensive fallback: any error escaping the LLM call (e.g. a
+                # serialization failure while building the prompt context) must
+                # fall back to the deterministic engine instead of surfacing
+                # as a broken coach response.
+                logger.warning(f"OpenRouter LLM call raised an unexpected error; falling back to deterministic engine: {exc}")
+                coach_reply = None
     elif use_ollama:
         ollama_model = os.environ.get("OLLAMA_MODEL", "").strip()
         ollama_base = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
@@ -375,7 +383,14 @@ def chat_with_coach(
         else:
             provider_used = "ollama"
             model_used = ollama_model
-            coach_reply = _call_ollama(clean_msg, facts, ollama_model, ollama_base)
+            try:
+                coach_reply = _call_ollama(clean_msg, facts, ollama_model, ollama_base)
+            except Exception as exc:
+                # Defensive fallback: any error escaping the LLM call must fall
+                # back to the deterministic engine instead of surfacing as a
+                # broken coach response.
+                logger.warning(f"Ollama LLM call raised an unexpected error; falling back to deterministic engine: {exc}")
+                coach_reply = None
 
     if not coach_reply:
         coach_reply = generate_rule_based_reply(clean_msg, facts)

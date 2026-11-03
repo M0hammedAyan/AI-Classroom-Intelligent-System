@@ -8,7 +8,23 @@ Hash: 01d28dfbdb8197543e691ed402c5d561b78002ac
 - [ ] Task 2: Fix failing tests
 - [ ] Task 3: Fix attendance % overflow
 - [ ] Task 4: Deactivate legacy subjects
-- [ ] Task 5: Offline coach fallback
+- [x] Task 5: Offline coach fallback
+
+## Task 5: Coach Fallback
+coach can 500: NO
+Evidence: coach_service.py:370-389 — both OpenRouter and Ollama callers (_call_openrouter, _call_ollama)
+  already swallow all exceptions internally and return None. The route handler
+  wraps chat_with_coach in try/except → HTTP 400 (not 500) on any exception that
+  does escape.
+Fix applied: YES — added outer try/except around _call_openrouter and _call_ollama calls
+  inside chat_with_coach so that any exception escaping the callers (e.g. a
+  json.dumps serialization failure while building the prompt context) logs a warning
+  and sets coach_reply = None, triggering the existing deterministic fallback
+  (`if not coach_reply: coach_reply = generate_rule_based_reply(...)`) instead of
+  propagating to the route handler as an error.
+  The deterministic engine and all existing fallback logic are preserved unchanged.
+  Verified: 36 backend tests pass + 28 top-level tests (including coach tests) pass.
+
 - [ ] Task 6: Repo hygiene
 - [ ] Task 7: Final test run
 - [ ] Task 8: Save progress
