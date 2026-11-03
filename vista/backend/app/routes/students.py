@@ -248,7 +248,7 @@ def _student_dict(s: Student, db: Session | None = None) -> dict:
     percentages = [row.score / row.max_score * 100 for row in scores if row.max_score and row.score is not None]
     risk = db.query(RiskFlag).filter(RiskFlag.student_id == s.student_id).order_by(RiskFlag.calculated_at.desc()).first()
     result.update({
-        "attendance_pct": round(present / len(session_dates) * 100, 1) if session_dates else 0,
+        "attendance_pct": min(100.0, round(present / len(session_dates) * 100, 1)) if session_dates else 0,
         "average_score": round(sum(percentages) / len(percentages), 1) if percentages else None,
         "risk_level": risk.risk_level if risk else None,
         "risk_confidence": risk.confidence if risk else None,

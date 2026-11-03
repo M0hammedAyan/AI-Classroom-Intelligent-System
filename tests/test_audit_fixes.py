@@ -36,6 +36,7 @@ from app.routes.student_portal import (
 )
 from app.routes.attendance import create_manual_attendance, ManualAttendanceRequest
 from app.routes.lms import add_score, get_student_marks
+from app.routes.students import list_students
 from fastapi import HTTPException
 
 
@@ -229,6 +230,30 @@ class TestManualValidationAndRBAC(unittest.TestCase):
         ).first()
         self.assertIsNotNone(row)
         self.assertEqual(row.source, "manual")
+
+
+class TestAttendancePctOverflowFix(unittest.TestCase):
+    """Task 3: attendance_pct in the students list must never exceed 100 (overflow fix)."""
+
+    def setUp(self):
+        self.db = SessionLocal()
+        self.admin_user = self.db.query(User).filter(User.role == "admin").first()
+        self.assertIsNotNone(self.admin_user, "An admin user must exist in DB")
+
+    def tearDown(self):
+        self.db.close()
+
+    def test_attendance_pct_never_exceeds_100(self):
+        """Fetch all students (admin scope) and assert every attendance_pct <= 100.0."""
+        res = list_students(page=1, page_size=100, db=self.db, current_user=self.admin_user)
+        students = res["students"]
+        self.assertGreater(len(students), 0, "Seeded DB should contain students")
+        for s in students:
+            self.assertIsNotNone(s["attendance_pct"], f"{s['student_id']} returned None attendance_pct")
+            self.assertLessEqual(
+                s["attendance_pct"], 100.0,
+                f"{s['student_id']} ({s['name']}) attendance_pct={s['attendance_pct']} exceeds 100",
+            )
 
 
 if __name__ == "__main__":
