@@ -36,7 +36,7 @@ The core software specifications with exact version constraints verified from `v
 | **Backend API** | FastAPI | `>=0.111.0` | Asynchronous REST API routing, Pydantic validation, dependency injection |
 | **ASGI Server** | Uvicorn | `>=0.29.0` | High-throughput asynchronous web server worker |
 | **Process Manager** | Gunicorn | `>=23.0.0` | Production WSGI/ASGI master process supervisor |
-| **Database ORM** | SQLAlchemy | `>=2.0.0` | 24-table declarative mapping and connection pooling |
+| **Database ORM** | SQLAlchemy | `>=2.0.0` | 27-table declarative mapping and connection pooling |
 | **PostgreSQL Driver**| Psycopg2-binary | `>=2.9.9` | C-optimized PostgreSQL database adapter |
 | **Authentication** | PyJWT | `>=2.8.0` | Cryptographic HS256 JSON Web Token generation and validation |
 | **Cryptography** | Bcrypt | `>=4.1.0` | Adaptive salt generation and one-way password hashing |

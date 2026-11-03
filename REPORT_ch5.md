@@ -59,12 +59,12 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 | `student_portal.py`| `/api/v1/student` | 10 | Student personal attendance percentage, timetable, marks, and study materials |
 | `students.py` | `/api/v1/students` | 3 | Student directory, individual profile lookup, biographic CRUD |
 | `main.py` (System) | `/`, `/health`, `/ws` | 4 | System health checks, Prometheus metrics, WebSocket dashboard broadcast |
-| **Total** | | **114** | Complete production enterprise REST & WebSocket API |
+| **Total** | | **120** | Complete production enterprise REST & WebSocket API |
 
 ### 5.2.3 Relational Database Schema (`vista/backend/app/models/`)
-The database architecture comprises 24 tables declared across 8 model modules in `vista/backend/app/models/`. Table 5.2 lists all tables, foreign key constraints, and operational purposes.
+The database architecture comprises 27 tables declared across 8 model modules in `vista/backend/app/models/`. Table 5.2 lists all tables, foreign key constraints, and operational purposes.
 
-**Table 5.2: Database Relational Schema Specification (24 Tables)**
+**Table 5.2: Database Relational Schema Specification (27 Tables)**
 
 | Module | Table Name | Primary Key | Foreign Keys & Relationships | Operational Purpose |
 |---|---|---|---|---|
@@ -172,4 +172,4 @@ The platform is containerized using Docker Compose and configured for on-premise
 ---
 
 ## 5.5 Summary
-The implementation successfully establishes a robust, decoupled, and highly performant architecture. By uniting InsightFace SCRFD and ArcFace with a secondary PyTorch ResNet-50 classifier, the vision subsystem achieves resilient face localization and identification. The backend implements 114 endpoints and 24 relational tables, enforcing 3-role RBAC security (Admin, Teacher, Student) and scheduled midnight risk computations. Finally, the longitudinal risk engine couples XGBoost classification with SHAP XAI attributions, delivering full operational transparency to academic stakeholders.
+The implementation successfully establishes a robust, decoupled, and highly performant architecture. By uniting InsightFace SCRFD and ArcFace with a secondary PyTorch ResNet-50 classifier, the vision subsystem achieves resilient face localization and identification. The backend implements 120 endpoints and 27 relational tables, enforcing 3-role RBAC security (Admin, Teacher, Student) and scheduled midnight risk computations. Finally, the longitudinal risk engine couples XGBoost classification with SHAP XAI attributions, delivering full operational transparency to academic stakeholders.

@@ -11,7 +11,7 @@ This chapter details the comprehensive testing methodology executed across VISTA
 The testing protocol for VISTA was formulated under three overarching objectives:
 
 1. **Algorithmic Determinism and Contract Compliance:** Ensure that core algorithmic modules—specifically the face recognition matching logic and the multi-tier risk classification engine—produce mathematically deterministic and specification-compliant outputs under canonical conditions.
-2. **Interface and Authentication Integrity:** Verify that the FastAPI backend strictly enforces JSON Web Token (JWT) signature validity, role-based authorization hierarchies, database relational constraints, and audit log persistence across all 114 endpoints.
+2. **Interface and Authentication Integrity:** Verify that the FastAPI backend strictly enforces JSON Web Token (JWT) signature validity, role-based authorization hierarchies, database relational constraints, and audit log persistence across all 120 registered routes.
 3. **Graceful Degradation Under Edge Conditions:** Confirm that malformed image payloads, unseen faces, zero-attendance records, and unpopulated academic grades are intercepted gracefully without unhandled runtime exceptions or database corruption.
 
 To achieve these objectives, a multi-tiered testing strategy was adopted:
@@ -108,7 +108,7 @@ The VISTA backend implements **3 active user roles** (`admin`, `teacher`, `stude
 Testing verified that:
 1. **Unauthorized Access Rejection:** Any request omitting the `Authorization: Bearer <token>` header is rejected immediately with HTTP `401 Unauthorized`.
 2. **Privilege Escalation Prevention:** Requests possessing a valid JWT for role `student` attempting to invoke administrative endpoints (e.g., `POST /api/v1/admin/users` or `POST /api/v1/enroll/student`) are rejected with HTTP `403 Forbidden`.
-3. **Departmental Scoping:** A Head of Department (`hop`) is restricted from querying attendance aggregates or academic records belonging to departments outside their administrative domain.
+3. **Scope Enforcement:** Admin users are restricted to institutional-scope operations; teachers are restricted to their assigned classes; students can only access their own records.
 
 ### 6.3.2 Transactional Atomicity and Database Integrity
 

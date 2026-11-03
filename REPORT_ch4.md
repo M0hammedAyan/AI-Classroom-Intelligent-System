@@ -7,15 +7,12 @@ The VISTA system is architected as a modular, four-tier on-premise enterprise pl
 graph TD
     subgraph Presentation_Tier ["Tier 1: Presentation Layer (React 18 + Vite + Tailwind v4)"]
         UI1["Admin Command Center"]
-        UI2["Head of School (HOS) Portal"]
-        UI3["Head of Program (HOP) Portal"]
-        UI4["Faculty Teacher / Admin Watchlist"]
-        UI5["Teacher Attendance Console"]
-        UI6["Student Self-Service Portal"]
+        UI2["Teacher Attendance Console"]
+        UI3["Student Self-Service Portal"]
     end
 
     subgraph Application_Tier ["Tier 2: Application Layer (FastAPI Asynchronous Gateway)"]
-        Gateway["REST API Router (114 Endpoints across 14 Modules)"]
+        Gateway["REST API Router (120 Routes across 14 Modules)"]
         AuthService["Auth & RBAC Service (JWT HS256 + Bcrypt)"]
         WSManager["WebSocket Connection Manager (/ws/dashboard)"]
         SchedulerService["Task Scheduler (APScheduler Midnight Cron)"]
@@ -40,7 +37,7 @@ graph TD
     end
 
     subgraph Data_Tier ["Tier 4: Data Layer (PostgreSQL / SQLite + Redis)"]
-        DB[(Relational DB: 24 Tables)]
+        DB[(Relational DB: 27 Tables)]
         Cache[(Redis Cache & Token Blocklist)]
     end
 
@@ -60,10 +57,10 @@ graph TD
 **Fig 4.1: High-Level Four-Tier System Architecture of VISTA**
 
 ### Architectural Tier Descriptions:
-1. **Presentation Layer (Tier 1):** Built using React 18, Vite, and Tailwind CSS v4, this tier provides dedicated, role-scoped user workspaces for all six institutional roles. Components connect to the backend exclusively via an Axios REST client (`src/api/client.js`) and persistent WebSocket streams for live dashboard KPI telemetry.
-2. **Application Layer (Tier 2):** Implemented in FastAPI, this tier serves 114 endpoints. It enforces JSON Web Token (JWT) cryptographic authentication with role-based access decorators (`permissions.py`), supervises audit logging, exposes Prometheus telemetry, and executes automated midnight batch risk assessments via APScheduler.
+1. **Presentation Layer (Tier 1):** Built using React 18, Vite, and Tailwind CSS v4, this tier provides dedicated, role-scoped user workspaces for the three active institutional roles (Admin, Teacher, Student). Components connect to the backend exclusively via an Axios REST client (`src/api/client.js`) and persistent WebSocket streams for live dashboard KPI telemetry.
+2. **Application Layer (Tier 2):** Implemented in FastAPI, this tier serves 120 registered routes. It enforces JSON Web Token (JWT) cryptographic authentication with role-based access decorators (`permissions.py`), supervises audit logging, exposes Prometheus telemetry, and executes automated midnight batch risk assessments via APScheduler.
 3. **Intelligence Layer (Tier 3):** Encapsulates the computer vision and machine learning engines. The vision pipeline coordinates SCRFD detection, heuristic liveness, ArcFace feature extraction, and ResNet-50 classifier fallback. The risk prediction pipeline computes 8 engineered behavioral features and feeds XGBoost decision trees paired with SHAP explainability.
-4. **Data Layer (Tier 4):** Anchored by a 24-table relational database schema managed via SQLAlchemy 2.0 ORM (PostgreSQL in production, SQLite in development) alongside an in-memory Redis instance for token blocklisting and session caching.
+4. **Data Layer (Tier 4):** Anchored by a 27-table relational database schema managed via SQLAlchemy 2.0 ORM (PostgreSQL in production, SQLite in development) alongside an in-memory Redis instance for token blocklisting and session caching.
 
 ---
 
@@ -103,9 +100,6 @@ Figure 4.2 models the interactions between the institutional actors and core fun
 graph LR
     subgraph Actors
         A((Admin))
-        HOS((Head of School))
-        HOP((Head of Program))
-        M((Teacher / Admin))
         T((Teacher))
         S((Student))
     end
@@ -125,22 +119,9 @@ graph LR
     A --> UC1
     A --> UC4
     A --> UC5
+    A --> UC6
     A --> UC7
     A --> UC9
-
-    HOS --> UC1
-    HOS --> UC5
-    HOS --> UC7
-
-    HOP --> UC1
-    HOP --> UC4
-    HOP --> UC5
-    HOP --> UC7
-
-    M --> UC1
-    M --> UC5
-    M --> UC6
-    M --> UC7
 
     T --> UC1
     T --> UC2
@@ -178,16 +159,13 @@ Figure 4.3 depicts the top-level context diagram representing external entity in
 
 ```mermaid
 graph TD
-    Teacher[Teacher] -->|1. Classroom Photo & Marks| VISTA[VISTA System Boundary]
-    Admin[Administrator] -->|2. Org Structure & User Credentials| VISTA
-    Teacher / Admin[Faculty Teacher / Admin] -->|3. Counseling Log & Interventions| VISTA
-    Student[Student] -->|4. Profile Queries & LMS Access| VISTA
+    Teacher[Teacher] -->|1. Classroom Photo, Attendance & Marks| VISTA[VISTA System Boundary]
+    Admin[Administrator] -->|2. Org Structure, Curriculum & User Credentials| VISTA
+    Student[Student] -->|3. Read-Only Attendance & Marks Queries| VISTA
 
-    VISTA -->|5. Verified Attendance & Session Stats| Teacher
-    VISTA -->|6. Audit Trails & System KPI Reports| Admin
-    VISTA -->|7. At-Risk Watchlists & SHAP Diagnoses| Teacher / Admin
-    VISTA -->|8. Attendance Heatmaps & Timetables| Student
-    VISTA -->|9. Automated Absence Alerts (Queued)| ParentAlerts[(Parent Alerts Queue)]
+    VISTA -->|4. Verified Attendance, Recognition & Session Stats| Teacher
+    VISTA -->|5. Audit Trails, Roster & System KPI Reports| Admin
+    VISTA -->|6. Attendance Overview, Subject Progress & CIE Results| Student
 ```
 **Fig 4.3: Data Flow Diagram (Level 0 — Context Diagram)**
 
@@ -217,8 +195,8 @@ graph TD
     P4 -->|Store Risk Scores & Drivers| D4[(D4: Risk Flags & Interventions)]
     P4 -->|Queue Critical Absence Notice| D5[(D5: Parent Alerts)]
 
-    Teacher / Admin([Teacher / Admin / HOP]) -->|Query Watchlist| P4
-    Teacher / Admin -->|Log Intervention Action| D4
+    Admin([Admin]) -->|Query Watchlist| P4
+    Admin -->|Log Intervention Action| D4
 
     User -->|Request CSV / PDF| P5
     P5 -->|Read Records| D2

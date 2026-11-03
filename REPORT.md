@@ -63,7 +63,7 @@ We express our profound gratitude to our institution and management for providin
 
 We convey our heartfelt gratitude to our Head of the Department, **Department of Artificial Intelligence & Machine Learning**, for continuous support and valuable advice throughout the tenure of the course.
 
-We express our sincere and heartfelt thanks to our guide, **Dr. Ajayprakash B V**, Assistant Professor, Department of Artificial Intelligence & Machine Learning, for invaluable guidance, constructive suggestions, and keen interest shown throughout the course of this work.
+We express our sincere and heartfelt thanks to our guide, **Dr. Ajayprakash B V**, Associate Professor, Department of Artificial Intelligence & Machine Learning, for invaluable guidance, constructive suggestions, and keen interest shown throughout the course of this work.
 
 Finally, we express our gratitude to our family members and friends who helped us directly or indirectly in completing this project successfully.
 
@@ -81,7 +81,7 @@ Finally, we express our gratitude to our family members and friends who helped u
 
 Manual attendance marking in higher educational institutions consumes approximately 10 to 15 minutes per lecture session and remains vulnerable to proxy attendance, physical record tampering, and human administrative errors. Concurrently, academic institutions lack proactive mechanisms to identify academically vulnerable students until after end-semester examinations conclude, by which time remediation is impossible. This project presents **VISTA (Vision-based Intelligent Student Tracking & Academics)**, an end-to-end, on-premise intelligent classroom management system integrating deep facial recognition attendance marking with early academic risk prediction and explainable artificial intelligence (XAI).
 
-The biometric vision subsystem employs a multi-stage architecture consisting of the Sample and Computation Redistribution for Efficient Face Detection (SCRFD) model for robust face localization, an ArcFace ResNet-50 backbone for extracting 512-dimensional angular margin facial embeddings, a cosine distance gallery matcher, and a secondary ResNet-50 personal classification fallback trained on local institutional datasets. Anti-spoofing is enforced using multi-metric texture and geometry heuristics. For academic monitoring, the platform computes 8 longitudinal temporal features and 3 critical override flags, feeding an XGBoost decision tree classifier paired with SHAP (SHapley Additive exPlanations) to transparently identify feature drivers pushing students toward low, medium, or high risk. The backend is implemented in FastAPI providing 114 RESTful endpoints, 24 relational database tables, role-based access control across 3 institutional roles (Admin, Teacher, and Student), automated midnight risk recalculation via APScheduler, and real-time dashboard updates via WebSockets.
+The biometric vision subsystem employs a multi-stage architecture consisting of the Sample and Computation Redistribution for Efficient Face Detection (SCRFD) model for robust face localization, an ArcFace ResNet-50 backbone for extracting 512-dimensional angular margin facial embeddings, a cosine distance gallery matcher, and a secondary ResNet-50 personal classification fallback trained on local institutional datasets. Anti-spoofing is enforced using multi-metric texture and geometry heuristics. For academic monitoring, the platform computes 8 longitudinal temporal features and 3 critical override flags, feeding an XGBoost decision tree classifier paired with SHAP (SHapley Additive exPlanations) to transparently identify feature drivers pushing students toward low, medium, or high risk. The backend is implemented in FastAPI providing 120 RESTful endpoints, 27 relational database tables, role-based access control across 3 institutional roles (Admin, Teacher, and Student), automated midnight risk recalculation via APScheduler, and real-time dashboard updates via WebSockets.
 
 Empirical evaluation on a 20-student cohort across 20,130 processed face samples achieves a **90.10% test accuracy** (Split B) on the ResNet-50 classifier and an optimal ArcFace F1-score of **0.9246** at a cosine similarity threshold of 0.30, with a controlled pilot accuracy of **100%** on 14 images of 2 enrolled students. Latency profiling demonstrates full-frame face detection at **71.23 ms** and single-vector matching at **0.318 ms**, processing a full classroom of 60 students in **0.683 seconds** on standard x86 consumer CPUs without GPU requirements. The entire system operates strictly on-premise, preserving data sovereignty and providing higher education institutions with a scalable, privacy-preserving automated intelligence solution.
 
@@ -162,7 +162,7 @@ Empirical evaluation on a 20-student cohort across 20,130 processed face samples
 - **Table 4.1:** Actor Roles and Scope of Operations
 - **Table 4.2:** Use Case Specifications for Primary Operational Workflows
 - **Table 5.1:** Implemented Backend API Route Modules and Endpoint Breakdown
-- **Table 5.2:** Database Relational Schema Specification (24 Tables)
+- **Table 5.2:** Database Relational Schema Specification (27 Tables)
 - **Table 5.3:** Deployment and Infrastructure Specifications
 - **Table 6.1:** Vision Module Integration Test Cases and Execution Results
 - **Table 6.2:** Machine Learning Risk Engine Unit Test Cases and Execution Results
@@ -203,7 +203,7 @@ The primary objectives of this project are:
 3. **Heuristic Anti-Spoofing and Liveness Verification:** To implement non-intrusive, real-time heuristic anti-spoofing mechanisms utilizing facial detection confidence, bounding box geometry, and Laplacian texture variance to filter out fraudulent 2D paper photograph presentations.
 4. **Predictive Longitudinal Risk Assessment:** To construct a feature engineering pipeline calculating 8 temporal behavioral metrics and 3 critical override conditions from historical attendance, assessment marks, and assignment completion trajectories.
 5. **Explainable AI (XAI) Attribution:** To integrate XGBoost classification with SHAP (SHapley Additive exPlanations) TreeExplainer, generating human-readable, transparent risk factor explanations and prescriptive recommendations for academic counselors.
-6. **Robust Enterprise Architecture and Scoped Portals:** To implement an asynchronous, production-ready backend in FastAPI delivering 114 endpoints, 24 relational database tables, automated midnight task scheduling via APScheduler, WebSocket live data push, and 6 role-based user portals (Admin, Head of School, Head of Program, Mentor, Teacher, and Student).
+6. **Robust Enterprise Architecture and Scoped Portals:** To implement an asynchronous, production-ready backend in FastAPI delivering 120 endpoints, 27 relational database tables, automated midnight task scheduling via APScheduler, WebSocket live data push, and 3 active role-based user portals (Admin, Teacher, and Student); legacy roles HOS, HOP, and Mentor are deprecated and rejected at login.
 7. **Complete On-Premise Data Sovereignty:** To ensure all biometric feature vectors and student records are processed and stored strictly on local institution hardware, eliminating recurring subscription costs and cloud security exposures.
 
 ---
@@ -318,7 +318,7 @@ The core software specifications with exact version constraints verified from `v
 | **Backend API** | FastAPI | `>=0.111.0` | Asynchronous REST API routing, Pydantic validation, dependency injection |
 | **ASGI Server** | Uvicorn | `>=0.29.0` | High-throughput asynchronous web server worker |
 | **Process Manager** | Gunicorn | `>=23.0.0` | Production WSGI/ASGI master process supervisor |
-| **Database ORM** | SQLAlchemy | `>=2.0.0` | 24-table declarative mapping and connection pooling |
+| **Database ORM** | SQLAlchemy | `>=2.0.0` | 27-table declarative mapping and connection pooling |
 | **PostgreSQL Driver**| Psycopg2-binary | `>=2.9.9` | C-optimized PostgreSQL database adapter |
 | **Authentication** | PyJWT | `>=2.8.0` | Cryptographic HS256 JSON Web Token generation and validation |
 | **Cryptography** | Bcrypt | `>=4.1.0` | Adaptive salt generation and one-way password hashing |
@@ -355,15 +355,12 @@ The VISTA system is architected as a modular, four-tier on-premise enterprise pl
 graph TD
     subgraph Presentation_Tier ["Tier 1: Presentation Layer (React 18 + Vite + Tailwind v4)"]
         UI1["Admin Command Center"]
-        UI2["Head of School (HOS) Portal"]
-        UI3["Head of Program (HOP) Portal"]
-        UI4["Faculty Mentor Watchlist"]
-        UI5["Teacher Attendance Console"]
-        UI6["Student Self-Service Portal"]
+        UI2["Teacher Attendance Console"]
+        UI3["Student Self-Service Portal"]
     end
 
     subgraph Application_Tier ["Tier 2: Application Layer (FastAPI Asynchronous Gateway)"]
-        Gateway["REST API Router (114 Endpoints across 14 Modules)"]
+        Gateway["REST API Router (120 Routes across 14 Modules)"]
         AuthService["Auth & RBAC Service (JWT HS256 + Bcrypt)"]
         WSManager["WebSocket Connection Manager (/ws/dashboard)"]
         SchedulerService["Task Scheduler (APScheduler Midnight Cron)"]
@@ -388,7 +385,7 @@ graph TD
     end
 
     subgraph Data_Tier ["Tier 4: Data Layer (PostgreSQL / SQLite + Redis)"]
-        DB[(Relational DB: 24 Tables)]
+        DB[(Relational DB: 27 Tables)]
         Cache[(Redis Cache & Token Blocklist)]
     end
 
@@ -408,10 +405,10 @@ graph TD
 **Fig 4.1: High-Level Four-Tier System Architecture of VISTA**
 
 ### Architectural Tier Descriptions:
-1. **Presentation Layer (Tier 1):** Built using React 18, Vite, and Tailwind CSS v4, this tier provides dedicated, role-scoped user workspaces for all six institutional roles. Components connect to the backend exclusively via an Axios REST client (`src/api/client.js`) and persistent WebSocket streams for live dashboard KPI telemetry.
-2. **Application Layer (Tier 2):** Implemented in FastAPI, this tier serves 114 endpoints. It enforces JSON Web Token (JWT) cryptographic authentication with role-based access decorators (`permissions.py`), supervises audit logging, exposes Prometheus telemetry, and executes automated midnight batch risk assessments via APScheduler.
+1. **Presentation Layer (Tier 1):** Built using React 18, Vite, and Tailwind CSS v4, this tier provides dedicated, role-scoped user workspaces for the three active institutional roles (Admin, Teacher, Student). Components connect to the backend exclusively via an Axios REST client (`src/api/client.js`) and persistent WebSocket streams for live dashboard KPI telemetry.
+2. **Application Layer (Tier 2):** Implemented in FastAPI, this tier serves 120 registered routes. It enforces JSON Web Token (JWT) cryptographic authentication with role-based access decorators (`permissions.py`), supervises audit logging, exposes Prometheus telemetry, and executes automated midnight batch risk assessments via APScheduler.
 3. **Intelligence Layer (Tier 3):** Encapsulates the computer vision and machine learning engines. The vision pipeline coordinates SCRFD detection, heuristic liveness, ArcFace feature extraction, and ResNet-50 classifier fallback. The risk prediction pipeline computes 8 engineered behavioral features and feeds XGBoost decision trees paired with SHAP explainability.
-4. **Data Layer (Tier 4):** Anchored by a 24-table relational database schema managed via SQLAlchemy 2.0 ORM (PostgreSQL in production, SQLite in development) alongside an in-memory Redis instance for token blocklisting and session caching.
+4. **Data Layer (Tier 4):** Anchored by a 27-table relational database schema managed via SQLAlchemy 2.0 ORM (PostgreSQL in production, SQLite in development) alongside an in-memory Redis instance for token blocklisting and session caching.
 
 ---
 
@@ -425,11 +422,10 @@ The platform partitions operations across three human actors as defined in Table
 | Actor | Institutional Scope | Core Responsibilities |
 |---|---|---|
 | **Admin** | Institution-Wide | Provisions schools, departments, and users; reviews security audit logs; system configuration. |
-| **HOS** | School-Level | Monitors cross-departmental staff performance, aggregate enrollment, and faculty retention. |
-| **HOP** | Department-Level | Manages course catalogs, teacher-subject mappings, class timetables, and departmental at-risk watchlists. |
-| **Mentor** | Assigned Students | Tracks longitudinal risk flags, inspects SHAP diagnostic factors, and logs remedial counseling sessions. |
 | **Teacher** | Assigned Classes | Captures or uploads lecture photos for automated attendance, executes manual overrides, records marks. |
 | **Student** | Self-Service (Own Record) | Views verified personal attendance percentages, class timetable schedules, assessment grades, and study notes. |
+
+> **Note:** Roles HOS, HOP, and Mentor were planned in early design but are deprecated in the production system. Login attempts with these roles return HTTP 403 ROLE_DEPRECATED.
 
 ### 4.2.2 System Use Case Specifications
 Table 4.2 details the primary functional use cases supported by the platform.
@@ -443,7 +439,7 @@ Table 4.2 details the primary functional use cases supported by the platform.
 | **UC-03** | Manual Attendance Override | Teacher / Admin | Attendance session exists for specified date and classroom. | Attendance status updated; audit record logged with reason. |
 | **UC-04** | Enroll Student Face | Teacher / Admin | Minimum 3 unoccluded facial photographs uploaded. | Normalized 512-dim ArcFace prototype embedding persisted in DB. |
 | **UC-05** | View Academic Risk Watchlist| Admin| Daily risk recalculation executed or triggered on-demand. | At-risk student list displayed with severity levels and SHAP drivers. |
-| **UC-06** | Log Mentorship Intervention | Mentor | Student flagged in risk watchlist; counseling session conducted.| Intervention note, action item, and review date stored in DB. |
+| **UC-06** | Log Mentorship Intervention | Admin | Student flagged in risk watchlist; counseling session conducted.| Intervention note, action item, and review date stored in DB. |
 | **UC-07** | Export Attendance Report | Teacher / Admin| Attendance session records exist for specified date range. | Formatted CSV or ReportLab PDF report downloaded. |
 | **UC-08** | Access Student Self-Portal | Student | Student authenticated with active enrollment status. | Personal attendance stats, timetable, and study materials displayed. |
 
@@ -551,8 +547,8 @@ graph TD
     P4 -->|Store Risk Scores & Drivers| D4[(D4: Risk Flags & Interventions)]
     P4 -->|Queue Critical Absence Notice| D5[(D5: Parent Alerts)]
 
-    Mentor([Mentor / HOP]) -->|Query Watchlist| P4
-    Mentor -->|Log Intervention Action| D4
+    Admin([Admin]) -->|Query Watchlist| P4
+    Admin -->|Log Intervention Action| D4
 
     User -->|Request CSV / PDF| P5
     P5 -->|Read Records| D2
@@ -649,12 +645,12 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 | `student_portal.py`| `/api/v1/student` | 10 | Student personal attendance percentage, timetable, marks, and study materials |
 | `students.py` | `/api/v1/students` | 3 | Student directory, individual profile lookup, biographic CRUD |
 | `main.py` (System) | `/`, `/health`, `/ws` | 4 | System health checks, Prometheus metrics, WebSocket dashboard broadcast |
-| **Total** | | **114** | Complete production enterprise REST & WebSocket API |
+| **Total** | | **120** | Complete production enterprise REST & WebSocket API |
 
 ### 5.2.3 Relational Database Schema (`vista/backend/app/models/`)
-The database architecture comprises 24 tables declared across 8 model modules in `vista/backend/app/models/`. Table 5.2 lists all tables, foreign key constraints, and operational purposes.
+The database architecture comprises 27 tables declared across 8 model modules in `vista/backend/app/models/`. Table 5.2 lists all tables, foreign key constraints, and operational purposes.
 
-**Table 5.2: Database Relational Schema Specification (24 Tables)**
+**Table 5.2: Database Relational Schema Specification (27 Tables)**
 
 | Module | Table Name | Primary Key | Foreign Keys & Relationships | Operational Purpose |
 |---|---|---|---|---|
@@ -762,7 +758,7 @@ The platform is containerized using Docker Compose and configured for on-premise
 ---
 
 ## 5.5 Summary
-The implementation successfully establishes a robust, decoupled, and highly performant architecture. By uniting InsightFace SCRFD and ArcFace with a secondary PyTorch ResNet-50 classifier, the vision subsystem achieves resilient face localization and identification. The backend implements 114 endpoints and 24 relational tables, enforcing 6-role RBAC security and scheduled midnight risk computations. Finally, the longitudinal risk engine couples XGBoost classification with SHAP XAI attributions, delivering full operational transparency to academic stakeholders.
+The implementation successfully establishes a robust, decoupled, and highly performant architecture. By uniting InsightFace SCRFD and ArcFace with a secondary PyTorch ResNet-50 classifier, the vision subsystem achieves resilient face localization and identification. The backend implements 120 endpoints and 27 relational tables, enforcing 3-role RBAC security (Admin, Teacher, Student) and scheduled midnight risk computations. Finally, the longitudinal risk engine couples XGBoost classification with SHAP XAI attributions, delivering full operational transparency to academic stakeholders.
 # Chapter 6: System Testing
 
 Testing represents a foundational engineering discipline in the lifecycle of the VISTA platform. Because VISTA integrates biometric computer vision, statistical machine learning, relational transaction processing, and role-based client-server communications, verification must validate algorithmic correctness, data consistency, security boundaries, and edge-case resilience.
@@ -776,7 +772,7 @@ This chapter details the comprehensive testing methodology executed across VISTA
 The testing protocol for VISTA was formulated under three overarching objectives:
 
 1. **Algorithmic Determinism and Contract Compliance:** Ensure that core algorithmic modules—specifically the face recognition matching logic and the multi-tier risk classification engine—produce mathematically deterministic and specification-compliant outputs under canonical conditions.
-2. **Interface and Authentication Integrity:** Verify that the FastAPI backend strictly enforces JSON Web Token (JWT) signature validity, role-based authorization hierarchies, database relational constraints, and audit log persistence across all 114 endpoints.
+2. **Interface and Authentication Integrity:** Verify that the FastAPI backend strictly enforces JSON Web Token (JWT) signature validity, role-based authorization hierarchies, database relational constraints, and audit log persistence across all 120 registered routes.
 3. **Graceful Degradation Under Edge Conditions:** Confirm that malformed image payloads, unseen faces, zero-attendance records, and unpopulated academic grades are intercepted gracefully without unhandled runtime exceptions or database corruption.
 
 To achieve these objectives, a multi-tiered testing strategy was adopted:
@@ -868,12 +864,12 @@ Integration testing verifies that interconnected modules function harmoniously u
 
 ### 6.3.1 Role-Based Access Control (RBAC) Verification
 
-The VISTA backend implements 6 distinct user roles (`admin`, `teacher`, `student`). Each endpoint is decorated with dependency-injected permission checks (`require_role` in `vista/backend/app/permissions.py`).
+The VISTA backend implements 3 active user roles (`admin`, `teacher`, `student`); legacy roles `hos`, `hop`, and `mentor` are deprecated and rejected at login with HTTP 403. Each endpoint is decorated with dependency-injected permission checks (`require_role` in `vista/backend/app/permissions.py`).
 
 Testing verified that:
 1. **Unauthorized Access Rejection:** Any request omitting the `Authorization: Bearer <token>` header is rejected immediately with HTTP `401 Unauthorized`.
 2. **Privilege Escalation Prevention:** Requests possessing a valid JWT for role `student` attempting to invoke administrative endpoints (e.g., `POST /api/v1/admin/users` or `POST /api/v1/enroll/student`) are rejected with HTTP `403 Forbidden`.
-3. **Departmental Scoping:** A Head of Department (`hop`) is restricted from querying attendance aggregates or academic records belonging to departments outside their administrative domain.
+3. **Scope Enforcement:** Admin users are restricted to institutional-scope operations; teachers are restricted to their assigned classes; students can only access their own records.
 
 ### 6.3.2 Transactional Atomicity and Database Integrity
 
@@ -945,6 +941,8 @@ All empirical evaluations were conducted in a strictly controlled local developm
 ## 7.2 Output Analysis and Pipeline Visualizations
 
 ### 7.2.1 Biometric Recognition Pipeline Execution
+
+> **⚠️ Note on Dashboard Data:** Attendance records and marks visible in the dashboard are seeded synthetic demo data generated by `seed_demo_data()` in `db.py`. They are not real student records. Recognition accuracy figures are derived from the real-world pilot dataset described in Section 7.1.
 
 The facial attendance workflow accepts high-resolution group photographs captured in classroom settings, isolates faces, projects each face into normalized embedding space, and matches candidates against the enrolled gallery.
 
@@ -1252,7 +1250,7 @@ The design, implementation, and empirical evaluation of VISTA substantiate the v
 1. **Integrated Academic Intelligence:** Unlike isolated biometric attendance trackers or siloed analytics dashboards, VISTA demonstrates that unifying computer vision with predictive tabular analytics creates a synergistic academic ecosystem. Biometric attendance feeds directly into feature engineering pipelines, enabling real-time detection of student disengagement.
 2. **Empirical Biometric Rigor:** Extensive threshold sweeps across 20 enrolled classes (107 test samples) established an optimal F1-score of **0.9246** at cosine similarity threshold $\tau = 0.30$. The production default threshold of $\tau = 0.55$ achieves a precision of **91.30%** and suppresses false acceptances to **7.48%**, protecting institutional integrity.
 3. **High-Throughput Edge Feasibility:** Latency profiling confirms that SCRFD-10G detection ($71.23\text{ ms}$), ArcFace R50 embedding extraction ($28.40\text{ ms}$), and vectorized matching can process a 60-student group photograph in **0.683 seconds** on commodity multi-core CPU hardware without requiring dedicated GPU infrastructure.
-4. **Architectural Completeness:** The platform delivers an end-to-end operational software product comprising 114 FastAPI route endpoints, 24 relational SQLAlchemy database tables, 6 distinct role-based access control tiers, dynamic audit logging, and responsive web portals for administrators, department heads, mentors, teachers, and students.
+4. **Architectural Completeness:** The platform delivers an end-to-end operational software product comprising 120 FastAPI registered routes, 27 relational SQLAlchemy database tables, 3 active role-based access control tiers (Admin, Teacher, Student), dynamic audit logging, and responsive web portals for administrators, teachers, and students.
 5. **Ethical and Regulatory Compliance:** VISTA embeds privacy-by-design principles, including biometric template isolation, one-way cryptographic hashing, automated consent tracking, and complete separation between raw media streams and persistent database records.
 
 ---
