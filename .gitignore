@@ -77,6 +77,10 @@ test_folders/
 
 terminal.txt
 db_backup/
+docs_backup_final/
+baseline_test_run.txt
+test_baseline.txt
+PART_A_PROGRESS.md
 
 # ── Generated graph reports ──
 graphify-out/

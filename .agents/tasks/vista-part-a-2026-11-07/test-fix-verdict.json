@@ -1,0 +1,8 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    "_run_demo_seed student filter mismatch: Student.class_ == '4th Year AIML' never matches the seeded value 'AIML-4A', and classroom_id == 'class-aiml-4a' never matches 'CSE-3A'. Bulk attendance and CIE scores for 1DA24AI403 are not seeded. Current tests pass only because _ensure_real_face_session inserts the single face record required by test_task1_subject_drilldown_marks_and_source_badges, but any future test asserting more than one attendance record or a non-None cie1/cie2 will fail. Fix: add Student.class_ == 'AIML-4A' to the filter in _run_demo_seed.",
+    "Double-fixture DB drop risk: tests/conftest.py (seed_test_db_for_root_tests) and vista/backend/tests/conftest.py (setup_db) both call Base.metadata.drop_all on the same sqlite:///./test_vista.db file. Running both directories in one pytest invocation will cause the second fixture to destroy the first's setup. Currently latent because the plan runs them separately, but will surface if CI runs the full suite as one command. Fix: coordinate the two fixtures or gate the drop on whether tables already exist."
+  ],
+  "reviewDoc": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\.agents\\tasks\\vista-part-a-2026-11-07\\test-fix-review.md"
+}
