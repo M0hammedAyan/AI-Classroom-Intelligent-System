@@ -175,7 +175,7 @@ AI-Classroom-Intelligent-System/
         └── test_recognize.py          # 7 automated integration tests
 ```
 
-### 2. FastAPI Endpoints Inventory (Total Count: 114)
+### 2. FastAPI Endpoints Inventory (Total Count: 120 registered routes)
 Verified in `vista/backend/app/main.py:40-54` and `vista/backend/app/routes/*.py`.
 
 | Module | Route Prefix | Endpoint Count | Key Operational Methods & Capabilities |
@@ -195,9 +195,9 @@ Verified in `vista/backend/app/main.py:40-54` and `vista/backend/app/routes/*.py
 | `student_portal`| `/api/v1/student` | 10 | Student personal attendance history, marks, timetable, assignments |
 | `students` | `/api/v1/students` | 3 | Student roster listing, student profile detail, basic registration |
 | **System** | `/`, `/health`, `/metrics*`, `/ws` | 4 | System health check, Prometheus raw/json metrics, WebSocket dashboard push |
-| **Total** | | **114** | Complete production enterprise API |
+| **Total** | | **120** | Complete production enterprise API |
 
-### 3. Database Schema (24 Tables across 8 SQLAlchemy Modules)
+### 3. Database Schema (27 Tables across 8 SQLAlchemy Modules)
 Verified in `vista/backend/app/models/*.py`.
 
 1. `schools` (`organization.py`): Top-level institutions / faculties.
@@ -224,6 +224,9 @@ Verified in `vista/backend/app/models/*.py`.
 22. `audit_logs` (`audit.py`): Security audit trail with IP address and action timestamps.
 23. `assignments` (`student.py` / LMS): Coursework and homework assignments.
 24. `assignment_submissions` (`student.py` / LMS): Student file submission records and grades.
+25. `chat_messages` (coach module): AI Study Coach conversation history. Added in extended schema update; confirmed in `sqlite_master` query.
+26. `notification_reads` (`notification.py`): Per-user notification read status. Added in extended schema update; confirmed in `sqlite_master` query.
+27. `notifications_legacy` (`notification.py`): Legacy notification archive. Added in extended schema update; confirmed in `sqlite_master` query.
 
 ---
 
@@ -263,7 +266,7 @@ Verified in `vista/backend/app/models/*.py`.
 - **Directory:** `dataset/`
 - **Total Registered Identities:** 20 student directories (`1DA22AI402` through `1DA24AI404`).
 - **Total Original Raw Images:** **711 images** (average of 35.5 images per student; minimum: 27, maximum: 41).
-- **Capture Conditions:** Real mobile phone camera captures under typical fluorescent and daylight illumination at DSATM classrooms, varying between frontal, $\pm 30^\circ$ yaw, smiling, neutral, and slight downward gaze.
+- **Capture Conditions:** Real mobile phone camera captures under typical fluorescent and daylight illumination at [PLACEHOLDER: Institution Name] classrooms, varying between frontal, $\pm 30^\circ$ yaw, smiling, neutral, and slight downward gaze.
 
 ### 2. Processed Offline Dataset (`facial_pipeline_results.npz`)
 - **File:** `data/processed/facial_pipeline_results.npz` (1,150.40 MB).
@@ -424,8 +427,8 @@ Source: `evaluation/results/risk_model_evaluation.json` and `vista/ml/train.py`.
 | **Rule Risk Engine** | ✅ Implemented & Working | `vista/ml/risk_engine.py` | 8 features + 3 override flags |
 | **XGBoost Inference** | ✅ Implemented & Working | `vista/ml/train.py`, `model.pkl` | Trained on synthetic data |
 | **SHAP Explainability** | ✅ Implemented & Working | `vista/ml/explainer.py` | TreeExplainer per-feature attribution |
-| **FastAPI REST API** | ✅ Implemented & Working | `vista/backend/app/main.py` | 114 endpoints across 14 modules |
-| **Relational Database** | ✅ Implemented & Working | `vista/backend/app/models/*.py` | 24 tables across 8 modules |
+| **FastAPI REST API** | ✅ Implemented & Working | `vista/backend/app/main.py` | 120 registered routes across 14 modules |
+| **Relational Database** | ✅ Implemented & Working | `vista/backend/app/models/*.py` | 27 tables across 8 modules |
 | **RBAC Authorization** | ✅ Implemented & Working | `vista/backend/app/permissions.py`| 3 roles enforced (Admin, Teacher, Student) |
 | **WebSocket Broadcast** | ✅ Implemented & Working | `vista/backend/app/websocket.py` | `/ws/dashboard` live updates |
 | **Scheduler Automation** | ✅ Implemented & Working | `vista/backend/app/scheduler.py` | APScheduler midnight daily job |
@@ -464,7 +467,7 @@ Source: `evaluation/results/risk_model_evaluation.json` and `vista/ml/train.py`.
 
 ## K. Real-World Applications
 
-- **Engineering and Degree Colleges (VTU / DSATM):** Automated roll call compliance, NAAC criteria documentation, and mandatory 75% attendance threshold monitoring.
+- **Engineering and Degree Colleges (VTU / [PLACEHOLDER: Institution Name]):** Automated roll call compliance, NAAC criteria documentation, and mandatory 75% attendance threshold monitoring.
 - **High School & K-12 Institutions:** Automated parent communication upon truancy or absence streaks.
 - **Corporate Training Academies & Testing Centers:** Automated identity verification and credentialed attendance logs.
 
@@ -476,7 +479,7 @@ Source: `evaluation/results/risk_model_evaluation.json` and `vista/ml/train.py`.
    - *Status:* Database queue `parent_alerts` is operational, but third-party dispatch credentials (Twilio / SendGrid) are not present.
    - *Action Needed:* Confirm whether SMS/email credentials should be provided or if the system remains in-app queue only.
 2. **Research Paper Publication Venue:**
-   - *Status:* Paper draft in `vista/docs/IEEE_PAPER.md` cites DSATM affiliation and mentions target IEEE/Springer conferences.
+   - *Status:* Paper draft in `vista/docs/IEEE_PAPER.md` cites [PLACEHOLDER: Institution Name] affiliation and mentions target IEEE/Springer conferences.
    - *Action Needed:* Confirm target conference name and submission deadline.
 3. **MiniFASNet Model Weights:**
    - *Status:* Heuristic liveness is active; deep learning anti-spoofing is deferred.
@@ -484,3 +487,9 @@ Source: `evaluation/results/risk_model_evaluation.json` and `vista/ml/train.py`.
 4. **Real Institutional Exam Records:**
    - *Status:* XGBoost currently evaluated on synthetic data.
    - *Action Needed:* Provide historical anonymized semester exam sheets to validate real-world prediction accuracy.
+
+---
+
+## M. Known Bugs
+
+- Bug: att_pct can exceed 100% — denominator uses session_dates but numerator counts student-specific records (see FINAL_AUDIT.md Bug #1).

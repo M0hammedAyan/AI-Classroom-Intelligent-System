@@ -1,8 +1,8 @@
 # VISTA — AI Classroom Intelligent System
 
-AI-powered academic monitoring: face recognition attendance + ML risk prediction + 6-role dashboard.
+AI-powered academic monitoring: face recognition attendance + ML risk prediction + 3-role dashboard.
 
-**Status:** Pilot-ready | **Features:** 50+ | **Endpoints:** 114 (110 route + 4 core) | **Tables:** 24
+**Status:** Pilot-ready | **Features:** 50+ | **Endpoints:** 120 registered routes | **Tables:** 27
 
 ---
 
@@ -21,8 +21,8 @@ Start the services with module execution so the commands always use the
 selected environment:
 
 ```powershell
-cd vista\backend
-..\..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8002 --reload
+cd vista
+..\..\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8002 --reload
 ```
 
 In another terminal:
@@ -37,9 +37,9 @@ npm run dev
 
 ```bash
 # Backend
-cd vista/backend
-..\..\.venv\Scripts\python.exe -m pip install -r requirements.txt
-..\..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8002 --reload
+cd vista
+..\..\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+..\..\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8002 --reload
 
 # Frontend
 cd vista/frontend
@@ -56,7 +56,7 @@ Login: `admin@vista.local` / `admin123`
 |--------|----------|
 | **Vision** | Identify students from classroom photos (InsightFace ArcFace / ResNet-50 classifier: 100% on 14-image 2-student pilot test set; 90.10% test accuracy on 20-class .npz split B) |
 | **ML** | Predict dropout risk from attendance + scores (Rule-based engine + XGBoost F1=0.957 on synthetic validation data, SHAP) |
-| **Platform** | 6-role dashboard for Admin, Teacher, and Student |
+| **Platform** | 3-role dashboard (Admin, Teacher, Student); legacy HOS/HOP/Mentor roles deprecated |
 | **Alerts** | In-app notifications for admins & teachers; parent alert queuing in database (external SMS/email gateway planned) |
 
 ---
@@ -93,13 +93,12 @@ Login: `admin@vista.local` / `admin123`
 
 ## Roles
 
+> **Active roles (3):** Admin, Teacher, Student. Legacy roles HOS, HOP, and Mentor are deprecated and are rejected at login with HTTP 403 ROLE_DEPRECATED.
+
 | Role | Access |
 |------|--------|
-| Admin | Everything — full system control |
-| HOS | School-wide — create depts, users, subjects |
-| HOP | Department — create users, manage subjects, view dept students |
+| Admin | Everything — full system control, org tree, biometric enrollment |
 | Teacher | Own classes — mark attendance, enter marks, assignments |
-| Mentor | Assigned students — watchlist, interventions, risk tracking |
 | Student | Own data — attendance, scores, risk, materials, timetable |
 
 ---

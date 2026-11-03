@@ -1,3 +1,5 @@
+<!-- Last audit: 3 Nov 2026. See FINAL_AUDIT.md for full findings. -->
+
 # VISTA Major Project: Action Checklist & Submission Guide (`TODO_FOR_ME.md`)
 
 This document serves as your completed checklist and action guide for the academic submission dossier of **VISTA (Vision-based Intelligent Student Tracking & Academics / AI Classroom Intelligent System)**. All automated technical audits, empirical benchmarks, full-stack implementations, and report chapters have been synchronized and verified against the repository codebase.
