@@ -11,7 +11,7 @@ def test_mark_attendance_accepts_personal_model_result(client, admin_headers, mo
     monkeypatch.setattr(
         attendance,
         "_call_vision",
-        lambda _path: {
+        lambda _path, skip_liveness=False: {
             "student_id": "1DA22AI402",
             "confidence": 0.91,
             "liveness_passed": True,
@@ -42,7 +42,7 @@ def test_mark_batch_accepts_personal_model_results(client, admin_headers, monkey
     monkeypatch.setattr(
         attendance,
         "_call_vision_all",
-        lambda _path: [
+        lambda _path, skip_liveness=False: [
             {
                 "student_id": "1DA22AI402",
                 "confidence": 0.88,

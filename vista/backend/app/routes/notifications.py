@@ -359,3 +359,20 @@ def delete_notification(
     db.delete(notif)
     db.commit()
     return {"status": "deleted", "notification_id": notification_id}
+
+
+def notify_high_risk(db: Session, student_id: str, student_name: str, risk_level: str, reasons: list) -> None:
+    """Internal helper: create an in-app high-risk alert notification for admin/staff."""
+    if risk_level != "high":
+        return
+    notif = Notification(
+        id=str(uuid.uuid4()),
+        sender_id="system",
+        sender_role="admin",
+        title=f"High Risk Alert: {student_name}",
+        body=f"Student {student_name} ({student_id}) flagged HIGH risk. Reasons: {', '.join(str(r) for r in reasons[:3])}",
+        audience_type="all",
+        priority="important",
+        created_at=datetime.now(timezone.utc).isoformat(),
+    )
+    db.add(notif)
