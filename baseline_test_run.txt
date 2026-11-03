@@ -1,0 +1,96 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-8.2.2, pluggy-1.6.0
+rootdir: D:\CipherTECH\Projects\AI-Classroom-Intelligent-System
+plugins: anyio-4.13.0, hypothesis-6.155.3, asyncio-0.23.6
+asyncio: mode=Mode.STRICT
+collected 77 items
+
+tests\test_audit_fixes.py F.FF.FFFF.F                                    [ 14%]
+tests\test_features_1_and_2.py ...F............                          [ 35%]
+vista\backend\tests\test_attendance.py .....                             [ 41%]
+vista\backend\tests\test_auth.py .......                                 [ 50%]
+vista\backend\tests\test_dashboard.py ....                               [ 55%]
+vista\backend\tests\test_enroll.py ...                                   [ 59%]
+vista\backend\tests\test_export.py ...                                   [ 63%]
+vista\backend\tests\test_personal_model_attendance.py FF                 [ 66%]
+vista\backend\tests\test_risk.py ....F...                                [ 76%]
+vista\backend\tests\test_students.py ....                                [ 81%]
+vista\vision\test_recognize.py .......                                   [ 90%]
+vista\ml\test_risk_engine.py .......                                     [100%]
+
+============================== warnings summary ===============================
+C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\starlette\formparsers.py:12
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\starlette\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+vista\backend\app\main.py:98
+  D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\vista\backend\app\main.py:98: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py:4495
+C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py:4495
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py:4495: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+vista\backend\app\main.py:123
+  D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\vista\backend\app\main.py:123: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+
+vista/vision/test_recognize.py::test_imports
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_imports returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+vista/vision/test_recognize.py::test_cosine_similarity
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_cosine_similarity returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+vista/vision/test_recognize.py::test_matcher
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_matcher returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+vista/vision/test_recognize.py::test_embeddings
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_embeddings returned np.True_, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+vista/vision/test_recognize.py::test_db_gallery_match_preferred
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_db_gallery_match_preferred returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+vista/vision/test_recognize.py::test_liveness
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_liveness returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+vista/vision/test_recognize.py::test_model_loading
+  C:\Users\moham\AppData\Roaming\Python\Python311\site-packages\_pytest\python.py:166: PytestReturnNotNoneWarning: Expected None, but vista/vision/test_recognize.py::test_model_loading returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_audit_fixes.py::TestStudentPortalFixes::test_task1_and_task2_all_7th_sem_subjects_visible
+FAILED tests/test_audit_fixes.py::TestStudentPortalFixes::test_task1_student_authorization_strict_own_data
+FAILED tests/test_audit_fixes.py::TestStudentPortalFixes::test_task1_subject_drilldown_marks_and_source_badges
+FAILED tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_future_date_rejected
+FAILED tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_manual_attendance_creates_audit_log
+FAILED tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_marks_mandatory_reason
+FAILED tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_marks_out_of_range
+FAILED tests/test_audit_fixes.py::TestManualValidationAndRBAC::test_task5_teacher_subject_scope_enforcement
+FAILED tests/test_features_1_and_2.py::TestRoleScopedNotifications::test_teacher_subject_notification_visibility
+FAILED vista/backend/tests/test_personal_model_attendance.py::test_mark_attendance_accepts_personal_model_result
+FAILED vista/backend/tests/test_personal_model_attendance.py::test_mark_batch_accepts_personal_model_results
+FAILED vista/backend/tests/test_risk.py::test_recompute_risk - assert 500 == 200
+================= 12 failed, 65 passed, 12 warnings in 56.65s =================
