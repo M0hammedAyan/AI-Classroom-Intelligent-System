@@ -34,7 +34,7 @@ All backend calls go through `src/api/client.js` with Axios, using the `http://l
 Check `docs/API_CONTRACT.md` and `md-docs/API_SPEC.md` for full endpoint details.
 
 ## Hard Rules
-- Maintain consistency with the 114 endpoints and 6 roles implemented in backend.
+- Maintain consistency with the 122 routes (114 API endpoints) and 3 active roles implemented in backend.
 - Use Tailwind CSS v4 design tokens and responsive classes. Dark/light mode toggle supported.
 
 ## File/Naming Conventions

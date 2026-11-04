@@ -38,7 +38,7 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 - **`app/permissions.py`:** Implements role-based access control (RBAC). Defines `get_current_user` to decode and validate JWT bearer tokens, and provides parameterized dependencies `require_role([...])` scoping endpoints to permitted roles (`admin`, `teacher`, `student`).
 - **`app/scheduler.py`:** Uses APScheduler's `BackgroundScheduler` to register an automated cron job executing daily at midnight (`00:00:00`). The job iterates through all active students, computes longitudinal risk indicators, updates `risk_flags`, and queues parent absence notices in `parent_alerts`.
 - **`app/websocket.py`:** Implements `ConnectionManager` to maintain active client WebSocket connections at `/ws/dashboard`. It broadcasts JSON event payloads whenever attendance is marked or risk scores change.
-- **`app/routes/`:** Encompasses 14 distinct route modules exposing 110 endpoints, detailed in Table 5.1.
+- **`app/routes/`:** Encompasses 14 distinct route modules exposing 114 API endpoints (122 registered routes in total including core system and OpenAPI handlers), detailed in Table 5.1.
 
 **Table 5.1: Implemented Backend API Route Modules and Endpoint Breakdown**
 
@@ -47,19 +47,20 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 | `auth.py` | `/api/v1/auth` | 7 | User authentication, token issuance, logout blocklisting, password resets |
 | `academics.py` | `/api/v1/academics` | 23 | Classrooms, departments, sections, subjects, timetables, and teacher allocations |
 | `admin.py` | `/api/v1/admin` | 29 | Enterprise user provisioning, organization hierarchy tree, audit trail inspection |
-| `attendance.py` | `/api/v1/attendance` | 8 | Image-based attendance marking, manual roll calls, session logs, teacher overrides |
+| `attendance.py` | `/api/v1/attendance` | 9 | Image-based attendance marking, manual roll calls, session logs, teacher overrides |
 | `dashboards.py` | `/api/v1/dashboards` | 7 | Scoped KPI analytics aggregated for Admin, Teacher, and Student |
 | `enroll.py` | `/api/v1/enroll` | 2 | Single and batch facial image feature extraction and database enrollment |
 | `export.py` | `/api/v1/export` | 1 | Streaming CSV export of attendance and academic performance records |
-| `lms.py` | `/api/v1/lms` | 4 | Course assignments, student file submissions, syllabus progress tracking |
+| `lms.py` | `/api/v1/lms` | 5 | Course assignments, student file submissions, syllabus progress tracking |
 | ~~`mentor.py`~~ | ~~`/api/v1/mentor`~~ | *Deprecated* | Assigned student directories, high-risk watchlists, remedial intervention logs |
-| `notifications.py`| `/api/v1/notifications`| 4 | In-app alerts, campus-wide announcements, unread status tracking |
+| `notifications.py`| `/api/v1/notifications`| 6 | In-app alerts, campus-wide announcements, unread status tracking |
 | `reports.py` | `/api/v1/reports` | 1 | Programmatic PDF generation of student academic transcripts via ReportLab |
 | `risk.py` | `/api/v1/risk` | 5 | Roster risk flags, on-demand student recalculation, SHAP factor breakdown queries |
-| `student_portal.py`| `/api/v1/student` | 10 | Student personal attendance percentage, timetable, marks, and study materials |
-| `students.py` | `/api/v1/students` | 3 | Student directory, individual profile lookup, biographic CRUD |
+| `student_portal.py`| `/api/v1/student` | 11 | Student personal attendance percentage, timetable, marks, and study materials |
+| `coach.py` | `/api/v1/coach` | 4 | AI Study Coach chat, query synthesis, contextual history, deterministic fallback |
+| `students.py` | `/api/v1/students` | 4 | Student directory, individual profile lookup, biographic CRUD |
 | `main.py` (System) | `/`, `/health`, `/ws` | 4 | System health checks, Prometheus metrics, WebSocket dashboard broadcast |
-| **Total** | | **120** | Complete production enterprise REST & WebSocket API |
+| **Total** | | **122** | Complete production enterprise REST & WebSocket API (114 API endpoints + 4 system + 4 docs/openapi) |
 
 ### 5.2.3 Relational Database Schema (`vista/backend/app/models/`)
 The database architecture comprises 27 tables declared across 8 model modules in `vista/backend/app/models/`. Table 5.2 lists all tables, foreign key constraints, and operational purposes.

@@ -2,8 +2,8 @@
 **Generated:** Phase 1 Research Audit  
 **Repository root:** `d:\CipherTECH\Projects\AI-Classroom-Intelligent-System`  
 **Project full name:** VISTA — Vision-based Intelligent Student Tracking & Academics  
-**Institution:** Dr. Ambedkar Institute of Technology, Bengaluru (DSATM)  
-**Team:** Mohammed Ayan (1DA24AI403), Saheel Pradhan (1DA23AI042), Aryan Raj Singh (1DA23AI009), Sujala Agrahari (1DA23AI050), Shrujan P (1DA22AI044)
+**Institution:** Dr. Ambedkar Institute of Technology, Bengaluru  
+**Team:** Mohammed Ayan (1DA24AI403), Saheel Pradhan (1DA23AI042), Aryan Raj Singh (1DA23AI009), Sujal Agrahari (1DA23AI050)
 
 ---
 

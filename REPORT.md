@@ -18,7 +18,7 @@
 
 ### Under the Guidance of:
 **Dr. Ajayprakash B V**  
-Associate Professor & Head of Programme (HOP), Department of Artificial Intelligence & Machine Learning  
+Project Guide [CONFIRM designation and spelling], Department of Artificial Intelligence & Machine Learning  
 
 ---
 
@@ -26,7 +26,8 @@ Associate Professor & Head of Programme (HOP), Department of Artificial Intellig
 **DR. AMBEDKAR INSTITUTE OF TECHNOLOGY, BENGALURU**  
 *(An Autonomous Institution Affiliated to Visvesvaraya Technological University, Belagavi)*  
 Bengaluru – 560056, Karnataka, India  
-**Academic Year: 2026–2027**
+**Course: Major Project Phase-II (22AIP706) [CONFIRM]**  
+**Academic Year: 2026–27 [CONFIRM]**
 
 ---
 
@@ -39,10 +40,17 @@ Certified that the project work entitled **"VISTA: AI-Based Classroom Attendance
 <br><br>
 
 ----------------------------------- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -----------------------------------  
-**Dr. Ajayprakash B V** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Dr. Ajayprakash B V**  
-Project Guide &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Head of Programme (HOP)  
-Project Guide &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dept. of AI & ML  
-Dept. of AI & ML  
+**Dr. Ajayprakash B V** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Dr. Bharath V S**  
+Project Guide [CONFIRM designation & spelling] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Head of Programme (HOP), AI & ML  
+Dept. of AI & ML &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [CONFIRM spelling & designation]  
+
+<br><br>
+
+----------------------------------- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -----------------------------------  
+**Dr. Ajayprakash B V** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Dr. Mahalinga V Mandi**  
+Head of School (HOS) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Principal  
+School of Computer Science & Engineering &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dr. AIT, Bengaluru  
+[CONFIRM designation]  
 
 <br><br>
 **External Examiners:**
@@ -63,7 +71,7 @@ We express our profound gratitude to our institution and management for providin
 
 We convey our heartfelt gratitude to our Head of the Department, **Department of Artificial Intelligence & Machine Learning**, for continuous support and valuable advice throughout the tenure of the course.
 
-We express our sincere and heartfelt thanks to our guide, **Dr. Ajayprakash B V**, Associate Professor, Department of Artificial Intelligence & Machine Learning, for invaluable guidance, constructive suggestions, and keen interest shown throughout the course of this work.
+We express our sincere and heartfelt thanks to our guide and Head of School (HOS), **Dr. Ajayprakash B V**, School of Computer Science & Engineering, and Head of Programme (HOP), **Dr. Bharath V S**, Department of Artificial Intelligence & Machine Learning, for invaluable guidance, constructive suggestions, and keen interest shown throughout the course of this work.
 
 Finally, we express our gratitude to our family members and friends who helped us directly or indirectly in completing this project successfully.
 
@@ -203,7 +211,7 @@ The primary objectives of this project are:
 3. **Heuristic Anti-Spoofing and Liveness Verification:** To implement non-intrusive, real-time heuristic anti-spoofing mechanisms utilizing facial detection confidence, bounding box geometry, and Laplacian texture variance to filter out fraudulent 2D paper photograph presentations.
 4. **Predictive Longitudinal Risk Assessment:** To construct a feature engineering pipeline calculating 8 temporal behavioral metrics and 3 critical override conditions from historical attendance, assessment marks, and assignment completion trajectories.
 5. **Explainable AI (XAI) Attribution:** To integrate XGBoost classification with SHAP (SHapley Additive exPlanations) TreeExplainer, generating human-readable, transparent risk factor explanations and prescriptive recommendations for academic counselors.
-6. **Robust Enterprise Architecture and Scoped Portals:** To implement an asynchronous, production-ready backend in FastAPI delivering 120 endpoints, 27 relational database tables, automated midnight task scheduling via APScheduler, WebSocket live data push, and 3 active role-based user portals (Admin, Teacher, and Student); legacy roles HOS, HOP, and Mentor are deprecated and rejected at login.
+6. **Robust Enterprise Architecture and Scoped Portals:** To implement an asynchronous, production-ready backend in FastAPI delivering 122 registered routes (114 API endpoints across 14 modules), 27 relational database tables, automated midnight task scheduling via APScheduler, WebSocket live data push, and 3 active role-based user portals (Admin, Teacher, and Student); legacy roles HOS, HOP, and Mentor are deprecated and rejected at login.
 7. **Complete On-Premise Data Sovereignty:** To ensure all biometric feature vectors and student records are processed and stored strictly on local institution hardware, eliminating recurring subscription costs and cloud security exposures.
 
 ---
@@ -360,7 +368,7 @@ graph TD
     end
 
     subgraph Application_Tier ["Tier 2: Application Layer (FastAPI Asynchronous Gateway)"]
-        Gateway["REST API Router (120 Routes across 14 Modules)"]
+        Gateway["REST API Router (122 Registered Routes / 114 API Endpoints across 14 Modules)"]
         AuthService["Auth & RBAC Service (JWT HS256 + Bcrypt)"]
         WSManager["WebSocket Connection Manager (/ws/dashboard)"]
         SchedulerService["Task Scheduler (APScheduler Midnight Cron)"]
@@ -406,7 +414,7 @@ graph TD
 
 ### Architectural Tier Descriptions:
 1. **Presentation Layer (Tier 1):** Built using React 18, Vite, and Tailwind CSS v4, this tier provides dedicated, role-scoped user workspaces for the three active institutional roles (Admin, Teacher, Student). Components connect to the backend exclusively via an Axios REST client (`src/api/client.js`) and persistent WebSocket streams for live dashboard KPI telemetry.
-2. **Application Layer (Tier 2):** Implemented in FastAPI, this tier serves 120 registered routes. It enforces JSON Web Token (JWT) cryptographic authentication with role-based access decorators (`permissions.py`), supervises audit logging, exposes Prometheus telemetry, and executes automated midnight batch risk assessments via APScheduler.
+2. **Application Layer (Tier 2):** Implemented in FastAPI, this tier serves 122 registered routes (114 API endpoints across 14 modules). It enforces JSON Web Token (JWT) cryptographic authentication with role-based access decorators (`permissions.py`), supervises audit logging, exposes Prometheus telemetry, and executes automated midnight batch risk assessments via APScheduler.
 3. **Intelligence Layer (Tier 3):** Encapsulates the computer vision and machine learning engines. The vision pipeline coordinates SCRFD detection, heuristic liveness, ArcFace feature extraction, and ResNet-50 classifier fallback. The risk prediction pipeline computes 8 engineered behavioral features and feeds XGBoost decision trees paired with SHAP explainability.
 4. **Data Layer (Tier 4):** Anchored by a 27-table relational database schema managed via SQLAlchemy 2.0 ORM (PostgreSQL in production, SQLite in development) alongside an in-memory Redis instance for token blocklisting and session caching.
 
@@ -624,7 +632,7 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 - **`app/permissions.py`:** Implements role-based access control (RBAC). Defines `get_current_user` to decode and validate JWT bearer tokens, and provides parameterized dependencies `require_role([...])` scoping endpoints to permitted roles (`admin`, `teacher`, `student`).
 - **`app/scheduler.py`:** Uses APScheduler's `BackgroundScheduler` to register an automated cron job executing daily at midnight (`00:00:00`). The job iterates through all active students, computes longitudinal risk indicators, updates `risk_flags`, and queues parent absence notices in `parent_alerts`.
 - **`app/websocket.py`:** Implements `ConnectionManager` to maintain active client WebSocket connections at `/ws/dashboard`. It broadcasts JSON event payloads whenever attendance is marked or risk scores change.
-- **`app/routes/`:** Encompasses 14 distinct route modules exposing 110 endpoints, detailed in Table 5.1.
+- **`app/routes/`:** Encompasses 14 distinct route modules exposing 114 API endpoints (122 registered routes in total including core system and OpenAPI handlers), detailed in Table 5.1.
 
 **Table 5.1: Implemented Backend API Route Modules and Endpoint Breakdown**
 
@@ -633,19 +641,20 @@ The backend is built with FastAPI and Uvicorn, listening on port **8002** under 
 | `auth.py` | `/api/v1/auth` | 7 | User authentication, token issuance, logout blocklisting, password resets |
 | `academics.py` | `/api/v1/academics` | 23 | Classrooms, departments, sections, subjects, timetables, and teacher allocations |
 | `admin.py` | `/api/v1/admin` | 29 | Enterprise user provisioning, organization hierarchy tree, audit trail inspection |
-| `attendance.py` | `/api/v1/attendance` | 8 | Image-based attendance marking, manual roll calls, session logs, teacher overrides |
+| `attendance.py` | `/api/v1/attendance` | 9 | Image-based attendance marking, manual roll calls, session logs, teacher overrides |
 | `dashboards.py` | `/api/v1/dashboards` | 7 | Scoped KPI analytics aggregated for Admin, Teacher, and Student |
 | `enroll.py` | `/api/v1/enroll` | 2 | Single and batch facial image feature extraction and database enrollment |
 | `export.py` | `/api/v1/export` | 1 | Streaming CSV export of attendance and academic performance records |
-| `lms.py` | `/api/v1/lms` | 4 | Course assignments, student file submissions, syllabus progress tracking |
+| `lms.py` | `/api/v1/lms` | 5 | Course assignments, student file submissions, syllabus progress tracking |
 | ~~`mentor.py`~~ | ~~`/api/v1/mentor`~~ | *Deprecated* | Assigned student directories, high-risk watchlists, remedial intervention logs |
-| `notifications.py`| `/api/v1/notifications`| 4 | In-app alerts, campus-wide announcements, unread status tracking |
+| `notifications.py`| `/api/v1/notifications`| 6 | In-app alerts, campus-wide announcements, unread status tracking |
 | `reports.py` | `/api/v1/reports` | 1 | Programmatic PDF generation of student academic transcripts via ReportLab |
 | `risk.py` | `/api/v1/risk` | 5 | Roster risk flags, on-demand student recalculation, SHAP factor breakdown queries |
-| `student_portal.py`| `/api/v1/student` | 10 | Student personal attendance percentage, timetable, marks, and study materials |
-| `students.py` | `/api/v1/students` | 3 | Student directory, individual profile lookup, biographic CRUD |
+| `student_portal.py`| `/api/v1/student` | 11 | Student personal attendance percentage, timetable, marks, and study materials |
+| `coach.py` | `/api/v1/coach` | 4 | AI Study Coach chat, query synthesis, contextual history, deterministic fallback |
+| `students.py` | `/api/v1/students` | 4 | Student directory, individual profile lookup, biographic CRUD |
 | `main.py` (System) | `/`, `/health`, `/ws` | 4 | System health checks, Prometheus metrics, WebSocket dashboard broadcast |
-| **Total** | | **120** | Complete production enterprise REST & WebSocket API |
+| **Total** | | **122** | Complete production enterprise REST & WebSocket API (114 API endpoints + 4 system + 4 docs/openapi) |
 
 ### 5.2.3 Relational Database Schema (`vista/backend/app/models/`)
 The database architecture comprises 27 tables declared across 8 model modules in `vista/backend/app/models/`. Table 5.2 lists all tables, foreign key constraints, and operational purposes.
@@ -972,7 +981,7 @@ As shown in Figure 7.2, the vision pipeline achieved **100% detection and recogn
 1. **SAHEEL PRADHAN:** Present · $96\%$ confidence
 2. **SHREYAS K T:** Present · $71\%$ confidence
 3. **MOHAMMED AYYAN:** Present · $76\%$ confidence
-4. **SUJALA AGRAHARI:** Present · $75\%$ confidence
+4. **SUJAL AGRAHARI:** Present · $75\%$ confidence
 5. **VIGNESH V:** Present · $58\%$ confidence
 6. **MC CHETHAN PATIL:** Present · $73\%$ confidence
 7. **MALLIKARJUNA C:** Present · $70\%$ confidence
@@ -1000,7 +1009,7 @@ flowchart TD
         V5["Recent Attendance SHAP: -0.0857"]
     end
 
-    subgraph Output["Synthesized Mentor Dashboard Output"]
+    subgraph Output["Synthesized Academic Advisor & Teacher Dashboard Output"]
         O1["Predicted Class: HIGH RISK (Confidence: 98.77%)"]
         O2["Attribution 1: 'Overall attendance at 52% — below recommended level'"]
         O3["Attribution 2: 'Average marks at 45% — below passing threshold'"]
@@ -1011,7 +1020,7 @@ flowchart TD
     Explainer --> Output
 ```
 
-The sample execution recorded in `evaluation/results/risk_model_evaluation.json` demonstrates that `overall_attendance` contributes the dominant positive push ($+2.986$) toward the `HIGH` risk classification, followed by `avg_score` ($+0.671$) and `failed_subjects` ($+0.173$). The mentor receives human-interpretable plain language explanations rather than opaque numerical coefficients.
+The sample execution recorded in `evaluation/results/risk_model_evaluation.json` demonstrates that `overall_attendance` contributes the dominant positive push ($+2.986$) toward the `HIGH` risk classification, followed by `avg_score` ($+0.671$) and `failed_subjects` ($+0.173$). The academic advisor/teacher receives human-interpretable plain language explanations rather than opaque numerical coefficients.
 
 ---
 

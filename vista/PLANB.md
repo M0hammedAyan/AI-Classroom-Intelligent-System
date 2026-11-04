@@ -35,7 +35,7 @@
 |---|---|---|---|---|
 | 2.1 | Draft pilot proposal (1-page) for college management | Mohammed | ⬜ | PDF proposal |
 | 2.2 | Meet HOP (Ajayprakash) — explain system, propose pilot | Mohammed | ⬜ | Verbal approval |
-| 2.3 | Meet HOS (Gowrishankar) — get written permission | Mohammed | ⬜ | Signed MOU/letter |
+| 2.3 | Get written permission from HOP — secure institutional approval | Mohammed | ⬜ | Signed MOU/letter |
 | 2.4 | Identify target classroom (AIML 4th year, 30 students) | Mohammed | ⬜ | Classroom confirmed |
 | 2.5 | Get student consent forms signed (face data collection) | All | ⬜ | 30 signed forms |
 

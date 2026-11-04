@@ -128,16 +128,16 @@
 | name | TEXT | NOT NULL |
 | email | TEXT | UNIQUE, NOT NULL |
 | password_hash | TEXT | NOT NULL (bcrypt) |
-| role | TEXT | NOT NULL: admin, hos, hop, mentor, teacher, student |
+| role | TEXT | NOT NULL: admin, teacher, student (legacy hos/hop/mentor deprecated) |
 | is_active | BOOLEAN | NOT NULL, DEFAULT true |
 | last_login_at | TEXT | nullable |
 | created_at | TEXT | NOT NULL |
 
 ---
 
-## 4. Full Production Schema (24 Tables across 8 Modules)
+## 4. Full Production Schema (27 Tables across 8 Modules)
 
-The complete backend database expands beyond the 6 pilot tables to 24 tables defined across 8 SQLAlchemy model files in `vista/backend/app/models/`:
+The complete backend database expands beyond the 6 pilot tables to 27 tables defined across 8 SQLAlchemy model files in `vista/backend/app/models/`:
 
 | Model File | Table Name | Key Purpose |
 |---|---|---|
@@ -148,7 +148,7 @@ The complete backend database expands beyond the 6 pilot tables to 24 tables def
 | `organization.py` | `subjects` | Courses / academic subjects |
 | `organization.py` | `teacher_subjects` | Mapping of teachers to taught subjects |
 | `organization.py` | `access_requests` | Role/class permission escalation workflows |
-| `user.py` | `users` | System user accounts and authentication credentials (6 roles) |
+| `user.py` | `users` | System user accounts and authentication credentials (3 active roles: admin, teacher, student) |
 | `student.py` | `students` | Student records, roll numbers, and embedded face vectors |
 | `student.py` | `semester_results` | Historical semester SGPA/CGPA and backlogs |
 | `student.py` | `study_materials` | Uploaded academic documents and syllabi |
@@ -165,6 +165,9 @@ The complete backend database expands beyond the 6 pilot tables to 24 tables def
 | `audit.py` | `audit_logs` | Security and access audit trail |
 | `student.py` / LMS | `assignments` | LMS coursework and homework assignments |
 | `student.py` / LMS | `assignment_submissions` | Student assignment file uploads and marks |
+| coach module | `chat_messages` | AI Study Coach conversation history |
+| `notification.py` | `notification_reads` | Per-user notification read status |
+| `notification.py` | `notifications_legacy` | Legacy notification archive |
 
 ---
 
@@ -183,8 +186,8 @@ The complete backend database expands beyond the 6 pilot tables to 24 tables def
 
 ## 6. Seed Data (Auto-generated on Startup)
 
-- Multi-tier institution structure (DSATM -> AIML Dept -> Sections)
-- Seed users for all 6 roles (admin, hos, hop, mentor, teacher, student)
+- Multi-tier institution structure (Dr. Ambedkar Institute of Technology, Bengaluru -> AIML Dept -> Sections)
+- Seed users for 3 active roles (admin, teacher, student)
 - Enrolled students with facial embeddings
 - Timetable slots across 6 working days
 - Multi-week attendance sessions with varied attendance patterns

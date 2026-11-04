@@ -18,7 +18,7 @@
 Mohammed Ayan¹, Saheel Pradhan¹, Sujal Agrahari¹, Aryan Raj Singh¹
 
 ¹ Department of Artificial Intelligence and Machine Learning,
-Dayananda Sagar Academy of Technology and Management, Bangalore, India
+Dr. Ambedkar Institute of Technology, Bengaluru, India
 
 ---
 
@@ -28,7 +28,7 @@ Manual attendance systems in Indian higher education institutions are time-consu
 
 This paper presents VISTA (Visual Intelligence System for Tracking and Analysis), a novel AI-powered academic intelligence platform that integrates automated face recognition-based attendance with explainable student risk prediction. The system employs ArcFace R50 for face embedding extraction with cosine similarity matching, achieving 100% recognition accuracy on a 14-sample test set with 0% false accept rate at a 0.55 similarity threshold. For academic risk prediction, a rule-based scoring engine augmented with XGBoost classification (macro F1 = 0.957) identifies students as LOW, MEDIUM, or HIGH risk based on eight engineered features derived from attendance and academic performance data.
 
-A key contribution is the integration of SHAP (SHapley Additive exPlanations) TreeExplainer to provide per-prediction explanations, generating human-readable reasons such as "Attendance at 48% — below recommended level" rather than opaque model outputs. The platform implements a hierarchical role-based access control system supporting five user roles (Admin, HOS, HOP, Mentor, Teacher) mapped to Indian collegiate administrative structures.
+A key contribution is the integration of SHAP (SHapley Additive exPlanations) TreeExplainer to provide per-prediction explanations, generating human-readable reasons such as "Attendance at 48% — below recommended level" rather than opaque model outputs. The platform implements a role-based access control system supporting 3 active user roles (Admin, Teacher, Student); legacy roles HOS, HOP, and Mentor are deprecated.
 
 Experimental evaluation on real student photographs demonstrates the system's viability for pilot deployment. The platform is designed for on-premise deployment with zero recurring costs, addressing affordability constraints in Indian higher education.
 
@@ -54,7 +54,7 @@ This paper makes the following contributions:
 
 2. **Explainable risk scoring** — SHAP-based per-prediction explanations that convert model outputs into actionable insights for non-technical educators.
 
-3. **Indian academic hierarchy support** — A role-based system (School → Department → Class) with six user roles (Admin, HOS, HOP, Mentor, Teacher, Student) matching Indian collegiate administrative structures.
+3. **Indian academic hierarchy support** — A role-based system (School → Department → Class) with 3 active user roles (Admin, Teacher, Student); legacy HOS/HOP/Mentor roles deprecated.
 
 4. **Zero-cost deployment model** — On-premise architecture requiring no cloud subscription or per-student licensing.
 
@@ -90,9 +90,9 @@ No existing system integrates: (1) automated face recognition attendance, (2) ML
 
 VISTA follows a four-layer architecture:
 - **Vision Layer:** SCRFD detection → ArcFace R50 embedding / personal classifier → cosine similarity matching → heuristic liveness check
-- **Application Layer:** FastAPI REST API (114 endpoints across 14 modules), JWT authentication, WebSocket real-time updates
+- **Application Layer:** FastAPI REST API (122 registered routes across 14 modules), JWT authentication, WebSocket real-time updates
 - **Intelligence Layer:** 8-feature engineering pipeline → rule-based scoring + XGBoost → SHAP explanations
-- **Presentation Layer:** React SPA with 6 role-specific dashboards
+- **Presentation Layer:** React SPA with 3 active role-specific dashboards (Admin, Teacher, Student)
 
 ### B. Data Flow
 
@@ -107,7 +107,7 @@ VISTA follows a four-layer architecture:
 
 ### C. Database Schema
 
-24 tables including: students, attendance, scores, risk_flags, schools, departments, class_sections, users (6 roles), mentor_assignments, teacher_subjects, interventions, audit_logs, timetable_slots, announcements, study_materials, assignments, assignment_submissions, semester_results, parent_contacts, parent_alerts, notifications, classrooms.
+27 tables including: students, attendance, scores, risk_flags, schools, departments, class_sections, users (3 active roles: admin, teacher, student), mentor_assignments, teacher_subjects, interventions, audit_logs, timetable_slots, announcements, study_materials, assignments, assignment_submissions, semester_results, parent_contacts, parent_alerts, notifications, classrooms, chat_messages, notification_reads, notifications_legacy.
 
 ---
 
@@ -209,10 +209,10 @@ Converted to human-readable reasons: features with |SHAP| > 0.01 and values belo
 
 | Metric | Value |
 |---|---|
-| API endpoints | 114 (110 route + 4 core) |
-| Automated tests | 45 (31 API + 7 ML + 7 vision) |
+| API endpoints | 122 registered routes |
+| Automated tests | 78 passed / 0 failed (78 total) |
 | Frontend pages | 15+ |
-| User roles | 6 (admin, HOS, HOP, mentor, teacher, student) |
+| User roles | 3 active (admin, teacher, student); legacy HOS/HOP/Mentor deprecated |
 | p50 response latency | <15ms (non-vision) |
 | Vision inference | ~800ms (CPU, no GPU) |
 
@@ -229,7 +229,7 @@ Converted to human-readable reasons: features with |SHAP| > 0.01 and values belo
 
 ### B. Future Work
 
-1. **Pilot deployment** at DSATM with 30 students for one semester.
+1. **Pilot deployment** at Dr. Ambedkar Institute of Technology, Bengaluru with 65 active students for one semester.
 2. **Real outcome validation** — train on actual pass/fail labels.
 3. **Video stream** — ByteTrack-based multi-frame tracking.
 4. **Temporal modeling** — LSTM on weekly feature sequences.

@@ -1,7 +1,7 @@
 # VISTA Database Schema
 
 **Owner:** Backend Team  
-**Status:** Initial Day 3 Baseline (6 tables) expanded to Full Production Schema (24 tables across 8 model files in `vista/backend/app/models/`).
+**Status:** Initial Day 3 Baseline (6 tables) expanded to Full Production Schema (27 tables across 8 model files in `vista/backend/app/models/`).
 
 **Engine:** PostgreSQL (production). SQLite default for local development via SQLAlchemy 2.0 ORM (`backend/app/db.py`).  
 **Passwords:** bcrypt, cost factor ≥ 12. Never store plaintext.  
@@ -10,12 +10,12 @@
 
 ---
 
-## Architecture Overview: 24 Tables Across 8 Model Modules
+## Architecture Overview: 27 Tables Across 8 Model Modules
 
 | Model Module | Source File | Tables Defined |
 |---|---|---|
 | **Organization** | `models/organization.py` | `schools`, `departments`, `class_sections`, `subjects`, `mentor_assignments`, `teacher_subjects`, `access_requests` (7 tables) |
-| **User** | `models/user.py` | `users` (1 table; 6 roles: admin, hos, hop, mentor, teacher, student) |
+| **User** | `models/user.py` | `users` (1 table; 3 active roles: admin, teacher, student; legacy HOS/HOP/Mentor deprecated) |
 | **Student** | `models/student.py` | `classrooms`, `students` (2 tables) |
 | **Attendance & Risk** | `models/attendance.py` | `attendance`, `scores`, `risk_flags` (3 tables) |
 | **Interventions** | `models/intervention.py` | `interventions` (1 table) |
@@ -172,7 +172,7 @@ Admin and teacher accounts. Not linked to `students`.
 | `name` | TEXT | NOT NULL | Display name |
 | `email` | TEXT | UNIQUE, NOT NULL | Login identifier |
 | `password_hash` | TEXT | NOT NULL | bcrypt hash, cost ≥ 12. Never store plaintext. |
-| `role` | TEXT | NOT NULL | `"admin"`, `"hos"`, `"hop"`, `"mentor"`, `"teacher"`, or `"student"` |
+| `role` | TEXT | NOT NULL | `"admin"`, `"teacher"`, or `"student"` (legacy `"hos"`, `"hop"`, `"mentor"` deprecated — rejected at login with 403 ROLE_DEPRECATED) |
 | `school_id` | UUID | FK → `schools.id`, nullable | Assigned school for HOS/staff |
 | `department_id` | UUID | FK → `departments.id`, nullable | Assigned department for HOP/staff |
 | `theme_preference` | TEXT | DEFAULT 'light' | User UI theme ('light' or 'dark') |
@@ -185,8 +185,8 @@ Admin and teacher accounts. Not linked to `students`.
 ## Production Scope Status
 
 ### Implemented in Current Codebase
-- 24 SQLAlchemy models across 8 modules
-- 6-role RBAC hierarchy (Admin, HOS, HOP, Mentor, Teacher, Student) with school/department scoping
+- 27 SQLAlchemy models across 8 modules
+- 3 active roles (Admin, Teacher, Student); legacy HOS/HOP/Mentor deprecated and rejected at login with 403 ROLE_DEPRECATED
 - LMS score import (CSV upload and Moodle REST API integration in `routes/lms.py`)
 - APScheduler periodic background jobs (`app/scheduler.py`)
 - Full academic features: timetable slots, announcements, study materials, assignments, submissions, semester results, and parent contacts/alerts

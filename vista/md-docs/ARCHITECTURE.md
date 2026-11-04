@@ -11,7 +11,7 @@
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    PRESENTATION LAYER                                 │
 │  React SPA (Vite + Tailwind v4) — Role-scoped portals:               │
-│  Admin, HOS, HOP, Mentor, Teacher, Student                          │
+│  Admin, Teacher, Student (legacy HOS/HOP/Mentor deprecated)         │
 │  Communicates via REST API + WebSocket (/ws/dashboard)               │
 └───────────────────────────────────┬─────────────────────────────────┘
                                     │ HTTP/JSON & WebSocket
@@ -20,8 +20,8 @@
 │                    APPLICATION LAYER (FastAPI)                      │
 │                                                                     │
 │  14 Route Modules: academics, admin, attendance, auth, dashboards,  │
-│  enroll, export, lms, mentor, notifications, reports, risk,         │
-│  student_portal, students (114 endpoints)                           │
+│  enroll, export, lms, mentor (deprecated), notifications, reports,  │
+│  student_portal, students (122 registered routes)                   │
 │  Background Services: scheduler.py (APScheduler), websocket.py,     │
 │  audit.py, monitoring.py (Prometheus), cache.py (Redis/memory)      │
 └─────────────────────────────────────┬───────────────────────────────┘
@@ -46,7 +46,7 @@
                     ┌────────────────────────────────────────────────────────┐
                     │                   DATA LAYER                           │
                     │  PostgreSQL (prod) / SQLite (dev)                      │
-                    │  24 Tables: access_requests, announcements,            │
+                    │  27 Tables: access_requests, announcements,            │
                     │  assignment_submissions, assignments, attendance,      │
                     │  audit_logs, class_sections, classrooms, departments,   │
                     │  interventions, mentor_assignments, notifications,     │
@@ -80,15 +80,15 @@
 |---|---|
 | `main.py` | FastAPI application factory, middleware, CORS, router mounts, Prometheus metrics |
 | `db.py` | SQLAlchemy database engine, session lifecycle, table initialization |
-| `permissions.py` | RBAC access decorators and dependencies for all 6 roles |
+| `permissions.py` | RBAC access decorators and dependencies for 3 active roles (admin, teacher, student) |
 | `scheduler.py` | APScheduler service for daily risk calculations and audit maintenance |
 | `tasks.py` | Asynchronous job queues for background tasks |
 | `websocket.py` | Connection manager and event broadcasting (`/ws/dashboard`) |
 | `audit.py` | Structured audit logging into `audit_logs` table |
 | `monitoring.py` | Prometheus metrics instrumentation and endpoint handlers |
 | `cache.py` | Redis client with in-memory fallback for query caching |
-| `routes/*.py` | 14 API route modules exposing 110 endpoints |
-| `models/*.py` | 8 SQLAlchemy model files defining the 24 relational tables |
+| `routes/*.py` | 14 API route modules exposing 122 registered routes |
+| `models/*.py` | 8 SQLAlchemy model files defining the 27 relational tables |
 
 ### 2.3 ML Module (`vista/ml/`)
 
@@ -109,7 +109,7 @@
 | File / Directory | Responsibility |
 |---|---|
 | `api/client.js` | Axios API client configured with auth headers and error handling |
-| `pages/` | Role-specific views for Admin, HOS, HOP, Mentor, Teacher, and Student |
+| `pages/` | Role-specific views for Admin, Teacher, and Student |
 | `components/` | Reusable UI components (KPI cards, charts, modals, layout) |
 | `App.jsx` | Client routing, role-based route protection, navigation shell |
 
@@ -147,7 +147,7 @@ def calculate_risk_from_metrics(metrics: StudentMetrics) -> dict:
 |---|---|
 | Authentication | JWT (HS256), 8-hour expiry default |
 | Password storage | bcrypt, cost factor ≥ 12 |
-| Authorization | Role-based (admin, hos, hop, mentor, teacher, student) via `require_role` / `permissions.py` |
+| Authorization | Role-based (admin, teacher, student) via `require_role` / `permissions.py`; legacy roles HOS/HOP/Mentor deprecated |
 | Token revocation | In-memory blocklist / Redis |
 | CORS | Configurable whitelist (`http://localhost:5173`, `http://localhost:3000`) |
 | Input validation | Pydantic v2 schemas across all routes |

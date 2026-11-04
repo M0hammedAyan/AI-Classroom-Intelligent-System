@@ -13,7 +13,7 @@
 - [x] Problem statement understood — manual attendance + no risk analytics
 - [x] Project goals documented — 8 measurable goals in PROJECT_PLAN.md
 - [x] Scope defined — in-scope vs out-of-scope clearly separated
-- [x] User roles identified — 6 roles (admin, hos, hop, mentor, teacher, student)
+- [x] User roles identified — 3 active roles (admin, teacher, student); legacy HOS/HOP/Mentor deprecated
 - [x] Functional requirements documented — 15 FRs with priority and status
 - [x] Non-functional requirements documented — 6 NFRs with targets
 - [x] Constraints documented — 6 hard constraints
@@ -40,7 +40,7 @@
 
 ### DATABASE DESIGN
 
-- [x] Entities identified — 24 tables across 8 model modules
+- [x] Entities identified — 27 tables across 8 model modules
 - [x] Relationships defined — ER diagram with FKs
 - [x] ER diagram completed — in DATABASE_DESIGN.md
 - [x] Schema completed — all columns, types, constraints documented
@@ -50,9 +50,9 @@
 ### BACKEND DESIGN
 
 - [x] API architecture completed — FastAPI + SQLAlchemy + JWT
-- [x] Endpoint list completed — 114 endpoints across 14 modules + system routes
+- [x] Endpoint list completed — 122 registered routes across 14 modules + system routes
 - [x] Authentication strategy completed — JWT HS256, 8hr expiry
-- [x] Authorization strategy completed — get_current_user + require_role for 6 roles
+- [x] Authorization strategy completed — get_current_user + require_role for 3 active roles
 - [x] Service structure defined — 14 route files + models + core background services
 - [x] Error handling strategy documented — standard envelope + error codes
 

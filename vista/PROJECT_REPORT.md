@@ -151,7 +151,7 @@ Institution
                                ▼
 ┌────────────────────────────────────────────────────────────────┐
 │                     BACKEND (FastAPI)                            │
-│  114 API Endpoints │ JWT Auth │ RBAC │ WebSocket │ Scheduler    │
+│  122 Routes (114 API) │ JWT Auth │ 3-Role RBAC │ WebSocket │
 └─────────┬──────────────────────────────────┬───────────────────┘
           │                                  │
           ▼                                  ▼
@@ -165,14 +165,14 @@ Institution
                                ▼
                     ┌──────────────────────┐
                     │   DATABASE            │
-                    │   24 Tables           │
+                    │   27 Tables           │
                     │   SQLite / PostgreSQL │
                     └──────────────────────┘
 ```
 
 ---
 
-## 6. API Summary (114 Endpoints)
+## 6. API Summary (122 Routes / 114 API Endpoints)
 
 | Category / Module | Endpoints | Purpose |
 |---|---|---|
@@ -182,7 +182,7 @@ Institution
 | Student Portal (`/api/v1/student-portal`) | 10 | Personal dashboard, attendance, scores, timetable, subjects, extracurriculars, profile |
 | Auth (`/api/v1/auth`) | 7 | Login, logout, get me, change password, profile update, theme update |
 | Dashboards (`/api/v1/dashboard`) | 7 | Admin, HOS, HOP, teacher dashboards + attendance/risk/subject charts |
-| Mentor (`/api/v1/mentor`) | 6 | Mentor dashboard, assigned students, watchlist, interventions CRUD |
+| ~~Mentor (`/api/v1/mentor`)~~ | *Deprecated* | Legacy mentor endpoints (deprecated in 3-role production runtime) |
 | Risk (`/api/v1`) | 5 | Get student risk, list risk, recompute, recompute-all, SHAP explain |
 | LMS (`/api/v1/lms`) | 4 | List scores, add score, CSV score import, Moodle API sync |
 | Notifications (`/api/v1/notifications`) | 4 | List notifications, unread count, mark read, mark all read |
@@ -194,11 +194,11 @@ Institution
 
 ---
 
-## 7. Database Schema (24 Tables)
+## 7. Database Schema (27 Tables)
 
 | Table | Purpose |
 |---|---|
-| users | All system users across 6 roles (admin, HOS, HOP, mentor, teacher, student) |
+| users | All system users across 3 active roles (admin, teacher, student; legacy roles deprecated) |
 | schools | Academic schools |
 | departments | Departments within schools |
 | class_sections | Class groups / sections |
@@ -301,12 +301,12 @@ npm run dev
 
 | Metric | Value |
 |---|---|
-| Total API endpoints | 114 (110 route + 4 core) |
+| Total API endpoints | 122 (114 API + 4 system + 4 docs) |
 | Database tables | 24 |
 | Frontend pages | 20+ |
 | ML features | 8 engineered features (5 in pipeline) |
 | Vision pipeline stages | 5 (detect → crop → match/classify → liveness → track) |
-| User roles | 6 (admin, HOS, HOP, mentor, teacher, student) |
+| User roles | 3 active roles (admin, teacher, student; HOS/HOP/mentor deprecated) |
 | Automated test cases | 14 (7 ML + 7 vision) |
 | Model performance | XGBoost macro F1 = 0.957 (synthetic validation); Face classifier test acc = 90.10% (split B NPZ) |
 | Lines of Python | ~6,000+ |

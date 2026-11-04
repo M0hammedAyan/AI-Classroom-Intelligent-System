@@ -50,10 +50,10 @@ VISTA solves this with AI."
 4. Click "My Subjects" — show all subjects with teacher names
 5. Toggle Dark Mode in Settings
 
-### 2:45-3:30 — Risk Detection (Switch to Mentor)
+### 2:45-3:30 — Risk Detection (Switch to Admin/Teacher)
 
-1. Login as `rajeshwari@vista.local` (Mentor)
-2. Show Mentor Dashboard — watchlist with HIGH risk students
+1. Login as `admin@vista.local` (Admin)
+2. Show Admin risk watchlist — students at HIGH risk
 3. Click on Sujal (HIGH risk) → opens Student Profile
 4. Show:
    - Risk level: HIGH
@@ -78,7 +78,7 @@ VISTA solves this with AI."
 - "100% on-premise — no cloud, no APIs, college data never leaves"
 - "One photo = entire class marked"
 - "Explainable AI — not just 'at risk' but WHY"
-- "Built for Indian college hierarchy — 6 roles, scoped access"
+- "Built for Indian college hierarchy — 3 active roles, scoped access"
 - "Zero cost — open source, runs on any laptop"
 
 ### 4:45-5:00 — Closing
@@ -86,7 +86,7 @@ VISTA solves this with AI."
 "VISTA is pilot-ready. We're looking to test with 30 real students for 8 weeks.
 The result: a validated system + published research paper."
 
-"Team: Mohammed Ayan, Saheel, Sujal, Aryan — AIML 4th Year, DSATM"
+"Team: Mohammed Ayan, Saheel, Sujal, Aryan — AIML 4th Year, Dr. Ambedkar Institute of Technology, Bengaluru"
 
 ---
 

@@ -195,8 +195,8 @@ M6 (Production Hardening & Pilot Deployment) 🔄
 ```
 1. ✅ Install dependencies (scikit-learn, xgboost, pandas) — DONE
 2. ✅ Implement ML module (features.py, risk_engine.py, train.py) — DONE
-3. ✅ Implement Backend routes (14 modules, 114 endpoints) — DONE
-4. ✅ Implement Frontend pages (6 role dashboards, Tailwind v4) — DONE
+3. ✅ Implement Backend routes (14 modules, 122 registered routes) — DONE
+4. ✅ Implement Frontend pages (3 active role dashboards, Tailwind v4) — DONE
 5. ✅ Install InsightFace + ONNX Runtime — DONE
 6. ✅ Implement detect.py (SCRFD) — DONE
 7. ✅ Implement embed.py (ArcFace R50) — DONE

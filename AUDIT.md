@@ -141,8 +141,8 @@ AI-Classroom-Intelligent-System/
     │   │   ├── monitoring.py          # Prometheus metrics exporter
     │   │   ├── audit.py               # Structured audit logging service
     │   │   ├── cache.py               # Redis client with in-memory fallback
-    │   │   ├── models/                # 8 SQLAlchemy model files (24 tables)
-    │   │   └── routes/                # 14 route modules (110 API endpoints)
+    │   │   ├── models/                # 8 SQLAlchemy model files (27 tables)
+    │   │   └── routes/                # 14 route modules (122 registered routes)
     │   └── tests/                     # Backend test suite
     ├── frontend/                      # React SPA (Vite + Tailwind v4)
     │   ├── src/
@@ -266,7 +266,7 @@ Verified in `vista/backend/app/models/*.py`.
 - **Directory:** `dataset/`
 - **Total Registered Identities:** 20 student directories (`1DA22AI402` through `1DA24AI404`).
 - **Total Original Raw Images:** **711 images** (average of 35.5 images per student; minimum: 27, maximum: 41).
-- **Capture Conditions:** Real mobile phone camera captures under typical fluorescent and daylight illumination at [PLACEHOLDER: Institution Name] classrooms, varying between frontal, $\pm 30^\circ$ yaw, smiling, neutral, and slight downward gaze.
+- **Capture Conditions:** Real mobile phone camera captures under typical fluorescent and daylight illumination at Dr. Ambedkar Institute of Technology, Bengaluru classrooms, varying between frontal, $\pm 30^\circ$ yaw, smiling, neutral, and slight downward gaze.
 
 ### 2. Processed Offline Dataset (`facial_pipeline_results.npz`)
 - **File:** `data/processed/facial_pipeline_results.npz` (1,150.40 MB).
@@ -331,7 +331,7 @@ Source: `training_results/results_npz_splitB.txt` (evaluated on 101 unaugmented 
     1. Saheel Pradhan (96% confidence)
     2. Shreyas K T (71% confidence)
     3. Mohammed Ayyan (76% confidence)
-    4. Sujala Agrahari (75% confidence)
+    4. Sujal Agrahari (75% confidence)
     5. Vignesh V (58% confidence)
     6. MC Chethan Patil (73% confidence)
     7. Mallikarjuna C (70% confidence)
@@ -467,7 +467,7 @@ Source: `evaluation/results/risk_model_evaluation.json` and `vista/ml/train.py`.
 
 ## K. Real-World Applications
 
-- **Engineering and Degree Colleges (VTU / [PLACEHOLDER: Institution Name]):** Automated roll call compliance, NAAC criteria documentation, and mandatory 75% attendance threshold monitoring.
+- **Engineering and Degree Colleges (VTU / Dr. Ambedkar Institute of Technology, Bengaluru):** Automated roll call compliance, NAAC criteria documentation, and mandatory 75% attendance threshold monitoring.
 - **High School & K-12 Institutions:** Automated parent communication upon truancy or absence streaks.
 - **Corporate Training Academies & Testing Centers:** Automated identity verification and credentialed attendance logs.
 
@@ -479,7 +479,7 @@ Source: `evaluation/results/risk_model_evaluation.json` and `vista/ml/train.py`.
    - *Status:* Database queue `parent_alerts` is operational, but third-party dispatch credentials (Twilio / SendGrid) are not present.
    - *Action Needed:* Confirm whether SMS/email credentials should be provided or if the system remains in-app queue only.
 2. **Research Paper Publication Venue:**
-   - *Status:* Paper draft in `vista/docs/IEEE_PAPER.md` cites [PLACEHOLDER: Institution Name] affiliation and mentions target IEEE/Springer conferences.
+   - *Status:* Paper draft in `vista/docs/IEEE_PAPER.md` cites Dr. Ambedkar Institute of Technology, Bengaluru affiliation and mentions target IEEE/Springer conferences.
    - *Action Needed:* Confirm target conference name and submission deadline.
 3. **MiniFASNet Model Weights:**
    - *Status:* Heuristic liveness is active; deep learning anti-spoofing is deferred.

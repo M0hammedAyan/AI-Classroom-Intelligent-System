@@ -1,8 +1,8 @@
-# VISTA Pilot Proposal — DSATM
+# VISTA Pilot Proposal — Dr. Ambedkar Institute of Technology, Bengaluru
 
 ## One-Page Summary
 
-**To:** Dr. Gowrishankar (HOS, School of CSE) / Prof. Ajayprakash (HOP, AIML)
+**To:** Dr. Ajayprakash B V [CONFIRM: designation] (HOP, AIML)
 **From:** Mohammed Ayan, Saheel Pradhan, Sujal Agrahari, Aryan Raj Singh (AIML 4th Year)
 **Date:** July 2026
 **Subject:** Permission for 8-week pilot of AI Attendance & Risk Prediction System
@@ -25,7 +25,7 @@ Permission to deploy VISTA — our AI-powered attendance and student risk predic
 
 | Item | Details |
 |------|---------|
-| Written permission | From HOS/HOP to conduct pilot |
+| Written permission | From HOP to conduct pilot |
 | Student consent | 30 consent forms (we prepare the template) |
 | One classroom | AIML 4A, any one period daily |
 | Teacher cooperation | Kushal sir (5 min/day for photo + verification) |
@@ -39,7 +39,7 @@ Permission to deploy VISTA — our AI-powered attendance and student risk predic
 | Software | Fully built, ready to deploy |
 | Training | 30-min session for teacher + mentor |
 | Reports | Weekly progress + final report |
-| Paper | IEEE/Springer paper with DSATM affiliation |
+| Paper | IEEE/Springer paper with Dr. Ambedkar Institute of Technology, Bengaluru affiliation |
 
 ### Benefits to College
 
@@ -47,7 +47,7 @@ Permission to deploy VISTA — our AI-powered attendance and student risk predic
 2. **Proxy prevention:** Face recognition cannot be faked
 3. **Early intervention:** Identify struggling students 4-6 weeks before exams
 4. **NAAC documentation:** Automated attendance + academic records
-5. **Research publication:** IEEE paper with DSATM institutional credit
+5. **Research publication:** IEEE paper with Dr. Ambedkar Institute of Technology, Bengaluru institutional credit
 
 ### Privacy & Data
 
@@ -75,4 +75,4 @@ Permission to deploy VISTA — our AI-powered attendance and student risk predic
 
 ### Contact
 
-Mohammed Ayan — mohammed.ayan@dsatm.edu — +91 XXXXXXXXXX
+Mohammed Ayan — mohammed.ayan@dr-ait.org — +91 XXXXXXXXXX

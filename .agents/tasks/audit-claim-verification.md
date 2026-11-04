@@ -38,7 +38,7 @@
 - `AUDIT.md` (Section 3, "Pilot Image & Live Group Verification Sets"): *"Initial Pilot Cohort: 14 images representing 2 students (Saheel and Sujal). Result: 100% correct match (14/14 faces matched to true student ID, zero false accepts, zero false rejects)."* with the explicit caveat *"This figure represents an initial feasibility check and must not be conflated with larger cohort benchmarks."*
 - `REPORT.md`, `NEEDS_YOUR_INPUT.md`, `vista/docs/PITCH_DECK.md` (the latter was flagged "UNQUALIFIED" by `DOCS_SYNC_REPORT.md` and qualified to "100% on 14 photos of 2 students; 90.10% on 20-class .npz split B").
 
-**The 14 samples:** Per `AUDIT.md`, they are 14 images of exactly 2 students — Saheel Pradhan (USN `1DA23AI042`) and Sujala Agrahari (USN `1DA23AI050`). This is a 2-class recognition problem with ~7 images per class.
+**The 14 samples:** Per `AUDIT.md`, they are 14 images of exactly 2 students — Saheel Pradhan (USN `1DA23AI042`) and Sujal Agrahari (USN `1DA23AI050`). This is a 2-class recognition problem with ~7 images per class.
 
 **Evaluation code:** None found. The `DOCS_SYNC_REPORT.md` cross-references `vista/vision/personal_classifier.py:27` and `train_splitB.py:120` as the code basis, but:
 - `train_splitB.py` is only 26 lines (a thin shim calling `train.py:main(splits=["B"])`) — there is no line 120; the reference is stale.

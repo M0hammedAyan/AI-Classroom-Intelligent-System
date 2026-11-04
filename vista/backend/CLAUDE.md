@@ -25,7 +25,7 @@ Key route modules in `app/routes/`:
 - `admin.py` (29 endpoints): User management, org tree, audit logs
 - `attendance.py` (8 endpoints): Photo attendance, manual mark, session logs
 - `auth.py` (7 endpoints): Login, logout, current user, tokens
-- `dashboards.py` (7 endpoints): Role-scoped analytics for 6 roles
+- `dashboards.py` (7 endpoints): Role-scoped analytics for 3 active roles (admin, teacher, student)
 - `enroll.py` (2 endpoints): Face registration (single & batch)
 - `export.py` (1 endpoint): CSV attendance reports
 - `lms.py` (4 endpoints): Course materials, assignments, submissions
@@ -43,7 +43,7 @@ Root & System endpoints:
 
 ## Structure
 - `app/routes/` — 14 route files
-- `app/models/` — 8 model files defining 24 tables (organization, user, student, attendance, timetable, notification, intervention, audit)
+- `app/models/` — 8 model files defining 27 tables (organization, user, student, attendance, timetable, notification, intervention, audit)
 - `app/db.py`, `app/main.py`
 - `app/scheduler.py` — APScheduler automated daily risk recalculation
 - `app/websocket.py` — WebSocket connection manager
@@ -52,8 +52,8 @@ Root & System endpoints:
 - `mock_server/` — mock server for testing
 
 ## Hard Rules
-- DB schema must match the 24 tables in `app/models/` and `docs/DB_SCHEMA.md`.
-- RBAC enforces 6 roles: `admin`, `hos`, `hop`, `mentor`, `teacher`, `student`.
+- DB schema must match the 27 tables in `app/models/` and `docs/DB_SCHEMA.md`.
+- RBAC enforces 3 active roles: `admin`, `teacher`, `student`. Legacy roles (`hos`, `hop`, `mentor`) are rejected with HTTP 403 `ROLE_DEPRECATED`.
 
 ## Explicitly Out of Scope Right Now
 - Message queue (RabbitMQ/SQS) for concurrent classroom load

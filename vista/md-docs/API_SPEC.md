@@ -19,7 +19,7 @@
 
 ## 2. Endpoint Summary
 
-The production backend implements **114 endpoints** in total (110 route endpoints across 14 modules + 4 root/monitoring/WebSocket endpoints):
+The production backend implements **122 registered routes** in total:
 
 | Module | Route Prefix | Endpoints | Key Capabilities |
 |---|---|---|---|
@@ -27,11 +27,11 @@ The production backend implements **114 endpoints** in total (110 route endpoint
 | `academics` | `/api/v1/academics` | 23 | Classes, subjects, timetables, curriculum management |
 | `admin` | `/api/v1/admin` | 29 | User CRUD, org hierarchy, audit logs, system config |
 | `attendance` | `/api/v1/attendance` | 8 | Face mark, manual mark, session logs, overrides, stats |
-| `dashboards` | `/api/v1/dashboards` | 7 | Scoped KPI analytics for Admin, HOS, HOP, Mentor, Teacher, Student |
+| `dashboards` | `/api/v1/dashboards` | 7 | Scoped KPI analytics for Admin, Teacher, Student |
 | `enroll` | `/api/v1/enroll` / `/students/{id}/enroll` | 2 | Single & batch facial embedding enrollment (SCRFD + ArcFace) |
 | `export` | `/api/v1/export` | 1 | Attendance & risk reporting export (CSV) |
 | `lms` | `/api/v1/lms` | 4 | Assignments, submissions, syllabus tracking |
-| `mentor` | `/api/v1/mentor` | 6 | Student watchlists, intervention logging, mentor notes |
+| ~~`mentor`~~ | ~~`/api/v1/mentor`~~ | *Deprecated* | Student watchlists, intervention logging, mentor notes |
 | `notifications` | `/api/v1/notifications` | 4 | In-app alerts, unread counts, mark-as-read |
 | `reports` | `/api/v1/reports` | 1 | Academic and attendance PDF/CSV reports |
 | `risk` | `/api/v1/risk` | 5 | Flag retrieval, recompute, student risk detail, SHAP explain |
@@ -59,7 +59,7 @@ The production backend implements **114 endpoints** in total (110 route endpoint
 ## 3. Authentication Strategy
 
 - JWT created on login with HS256 algorithm
-- Payload: `{sub: user_id, role: "admin"|"hos"|"hop"|"mentor"|"teacher"|"student", iat, exp}`
+- Payload: `{sub: user_id, role: "admin"|"teacher"|"student", iat, exp}`
 - Expiry: 8 hours default (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES`)
 - Revocation: Redis or in-memory blocklist
 - Secret: `VISTA_JWT_SECRET` / `JWT_SECRET_KEY` env var
@@ -70,7 +70,7 @@ The production backend implements **114 endpoints** in total (110 route endpoint
 
 Role-based access control (RBAC) enforced via FastAPI dependencies in `permissions.py`:
 - `get_current_user`: Validates token, loads user record
-- `require_role([...])`: Scopes routes to allowed roles: `admin`, `hos`, `hop`, `mentor`, `teacher`, `student`
+- `require_role([...])`: Scopes routes to allowed roles: `admin`, `teacher`, `student`
 - `require_admin`: Convenience guard for admin-only management routes
 
 ---

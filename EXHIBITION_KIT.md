@@ -18,10 +18,10 @@
 | **Presentation title** | VISTA: AI-Powered Classroom Intelligent System |
 | **Subtitle** | Automated Attendance, Academic Risk Prediction, and Personalised Study Coaching |
 | **Team** | Mohammed Ayan (1DA24AI403), Saheel Pradhan (1DA23AI042), Aryan Raj Singh (1DA23AI009), Sujala Agrahari (1DA23AI050), Shrujan P (1DA22AI044) |
-| **Institution** | Dayananda Sagar Academy of Technology and Management, Bengaluru |
+| **Institution** | Dr. Ambedkar Institute of Technology, Bengaluru |
 | **Department** | Department of Artificial Intelligence and Machine Learning |
-| **Guide** | [PLACEHOLDER — confirm guide name and designation: Associate Professor & Head of Programme] |
-| **Academic year** | [PLACEHOLDER — confirm: 2024–25 or 2025–26] |
+| **Guide** | Dr. Ajayprakash B V (Project Guide [CONFIRM designation & spelling]; HOS: Dr. Ajayprakash B V; HOP: Dr. Bharath V S) |
+| **Academic year** | 2026–27 [CONFIRM] (Course: Major Project Phase-II, 22AIP706 [CONFIRM]) |
 | **Exhibition date** | 7 November 2026 |
 
 **Content bullets:**
@@ -40,7 +40,7 @@
 - Proxy attendance is undetectable by paper-based systems
 - Attendance-linked eligibility (75% rule per VTU norms) is tracked in spreadsheets — error-prone and retrospective
 - No real-time early warning: students who are at risk learn about it at the end of semester
-- Scale at **Dayananda Sagar Academy of Technology and Management**: multiple divisions, 7 teachers, 70+ students per batch — manual tracking at this scale is unreliable
+- Scale at **Dr. Ambedkar Institute of Technology, Bengaluru**: multiple divisions, 7 teachers, 70+ students per batch — manual tracking at this scale is unreliable
 - RFID/biometric hardware alternatives cost ₹50,000–₹2,00,000 per lab; require physical installation; cannot identify multiple people simultaneously
 - Cloud face-recognition APIs (AWS Rekognition, Azure Face) send biometric data to third-party servers — a privacy risk under DPDP Act 2023
 
@@ -227,7 +227,7 @@
 **Content bullets:**
 - **Demo accounts (ready to use):**
   - Admin: `admin@vista.local` / `admin123`
-  - Teacher: `rajeshwari@vista.local` / `rajeshwari123`
+  - Teacher: `teacher@vista.local` / `teacher123` (or `rajeshwari@vista.local` / `rajeshwari123`)
   - Student: `1da24ai403@vista.local` / `student123` (Mohammed Ayan — 81.2% attendance, seeded scores)
 - **Demo flow (5 minutes):**
   1. Admin login → dashboard → student list
@@ -264,11 +264,11 @@
 - Saheel Pradhan — 1DA23AI042
 - Aryan Raj Singh — 1DA23AI009
 - Sujala Agrahari — 1DA23AI050
-- Shrujan P — 1DA22AI044
+- Sujala Agrahari — 1DA23AI050
 
-**Guide:** [PLACEHOLDER — Associate Professor & Head of Programme, Dept. of AI & ML]
+**Guide:** Dr. Ajayprakash B V [CONFIRM designation & spelling] | **HOP:** Dr. Bharath V S [CONFIRM] | **HOS:** Dr. Ajayprakash B V [CONFIRM]
 
-**Institution:** Dayananda Sagar Academy of Technology and Management, Bengaluru
+**Institution:** Dr. Ambedkar Institute of Technology, Bengaluru
 **Department:** Department of Artificial Intelligence and Machine Learning | Academic Year: [PLACEHOLDER]
 
 ---

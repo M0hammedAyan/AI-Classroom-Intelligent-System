@@ -2,7 +2,7 @@
 
 ## VISTA AI Classroom Intelligent System — Pilot Study
 
-**Institution:** Dayananda Sagar Academy of Technology & Management (DSATM), Bangalore
+**Institution:** Dr. Ambedkar Institute of Technology, Bengaluru
 **Department:** Artificial Intelligence & Machine Learning
 **Researchers:** Mohammed Ayan, Saheel Pradhan, Sujal Agrahari, Aryan Raj Singh
 **Faculty Advisor:** [Guide Name]
@@ -65,10 +65,10 @@ Student ID: _________________________
 ### Researcher Contact
 
 For questions or withdrawal requests:
-- Mohammed Ayan — mohammed.ayan@dsatm.edu
+- Mohammed Ayan — mohammed.ayan@dr-ait.org
 - Faculty Advisor — [email]
 
 ### Institutional Ethics
 
 This study has been reviewed by [Department/Faculty Committee Name] and approved
-for conduct within DSATM campus under standard academic research guidelines.
+for conduct within Dr. Ambedkar Institute of Technology, Bengaluru campus under standard academic research guidelines.

@@ -1,7 +1,7 @@
 # VISTA: An Integrated On-Premise Vision and Explainable Risk-Scoring Platform for Classroom Academics
 
 **Authors:**  
-Mohammed Ayan$^1$, Saheel Pradhan$^1$, Aryan Raj Singh$^1$, Sujala Agrahari$^1$, and Ajayprakash B. V.$^2$  
+Mohammed Ayan$^1$, Saheel Pradhan$^1$, Aryan Raj Singh$^1$, Sujal Agrahari$^1$, and Ajayprakash B. V.$^2$  
 $^1$*Department of Artificial Intelligence and Machine Learning, Dr. Ambedkar Institute of Technology, Bengaluru, India*  
 *Email:* `{1da24ai403, 1da23ai042, 1da23ai009, 1da23ai050}@dr-ait.org*  
 $^2$*Associate Professor and Head of Programme, Department of Artificial Intelligence and Machine Learning, Dr. Ambedkar Institute of Technology, Bengaluru, India*  

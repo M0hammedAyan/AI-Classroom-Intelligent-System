@@ -49,7 +49,7 @@ via face recognition AND identifies at-risk students with explainable prediction
 - Multi-face tracking via greedy IoU association (`tracker.py`)
 - Attendance recording with confidence scores and manual teacher override
 - Rule-based risk scoring + XGBoost inference + SHAP TreeExplainer (`explainer.py`)
-- React dashboard supporting 6 roles (Admin, HOS, HOP, Mentor, Teacher, Student) with dark/light mode
+- React dashboard supporting 3 active roles (Admin, Teacher, Student) with dark/light mode; legacy HOS/HOP/Mentor deprecated
 - CSV and PDF export for attendance and academic performance reports
 - Real-time updates via WebSocket (`/ws/dashboard`)
 - Automated daily risk evaluation via APScheduler (`scheduler.py`)
@@ -91,8 +91,8 @@ via face recognition AND identifies at-risk students with explainable prediction
 | FR-09 | Compute risk from attendance + scores | P0 | ✅ Implemented (`risk_engine.py`) |
 | FR-10 | Explainable reasons + SHAP recommendations | P0 | ✅ Implemented (`explainer.py`, `risk_engine.py`) |
 | FR-11 | Admin & scheduled daily risk recompute | P1 | ✅ Implemented (`risk.py`, `scheduler.py`) |
-| FR-12 | Role-gated JWT authentication (6 roles) | P0 | ✅ Implemented (`auth.py`, `permissions.py`) |
-| FR-13 | Role-scoped Dashboards (6 portals) | P0 | ✅ Implemented (`dashboards.py`, frontend) |
+| FR-12 | Role-gated JWT authentication (3 active roles) | P0 | ✅ Implemented (`auth.py`, `permissions.py`) |
+| FR-13 | Role-scoped Dashboards (3 active portals) | P0 | ✅ Implemented (`dashboards.py`, frontend) |
 | FR-14 | CSV / PDF export of attendance & reports | P1 | ✅ Implemented (`export.py`, `reports.py`) |
 | FR-15 | Student face enrollment (single & batch) | P0 | ✅ Implemented (`enroll.py`) |
 

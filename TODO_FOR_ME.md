@@ -17,7 +17,7 @@ This document serves as your completed checklist and action guide for the academ
 1. **Mohammed Ayan** — `1DA24AI403`
 2. **Saheel Pradhan** — `1DA23AI042`
 3. **Aryan Raj Singh** — `1DA23AI009`
-4. **Sujala Agrahari** — `1DA23AI050`
+4. **Sujal Agrahari** — `1DA23AI050`
 
 ### Project Guidance:
 - **Project Guide & Head of Programme (HOP):** **Dr. Ajayprakash B V**, Associate Professor & Head of Programme, Department of Artificial Intelligence & Machine Learning
@@ -31,7 +31,7 @@ All production interface views have been captured from the running deployment, s
 - [x] **Figure 7.2: Teacher Facial Attendance Live Verification View**
   - **File:** `docs/screenshots/fig_7_2_teacher_attendance.png`
   - **Route:** `http://localhost:5173/` (Teacher Portal · Deep Learning `22AIU701`, 4th Year AIML)
-  - **Output:** 7 students detected and marked present simultaneously (Saheel Pradhan 96%, Mohammed Ayyan 76%, Sujala Agrahari 75%, MC Chethan Patil 73%, Shreyas K T 71%, Mallikarjuna C 70%, Vignesh V 58%).
+  - **Output:** 7 students detected and marked present simultaneously (Saheel Pradhan 96%, Mohammed Ayyan 76%, Sujal Agrahari 75%, MC Chethan Patil 73%, Shreyas K T 71%, Mallikarjuna C 70%, Vignesh V 58%).
 
 - [x] **Figure 7.3: Student Self-Service Portal Dashboard**
   - **File:** `docs/screenshots/fig_7_3_student_dashboard.png`

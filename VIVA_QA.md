@@ -41,7 +41,7 @@
 ---
 
 **Q5: What is the scale of the current deployment?**
-**Short answer:** The current pilot covers 70 enrolled students, 7 teachers, and 11 active subjects in Semester 7 AIML at DRAIT. The face recognition pipeline was evaluated on 20 unique student classes across 202 test crops. The system stores 27 database tables and exposes 121 API endpoints.
+**Short answer:** The current pilot covers 70 students (65 active in 4th Year AIML, 5 inactive demo), 7 teachers, 40 students with enrolled facial embeddings, and exactly 5 active Semester 7 subjects (Deep Learning 22AIU701, Generative AI 22AIU702, Data Engineering and Analytics 22AIT703, Data Security and Privacy 22AIT704C, Major Project Phase-II 22AIP706; 6 legacy subjects deactivated). The system stores 27 database tables and exposes 122 registered routes (114 API endpoints across 14 modules).
 **Evidence:** `FINAL_AUDIT.md §1.9` (DB counts); `cascade_ablation.json` (`"num_classes": 20`); `vista/backend/vista_dev.db` (71 students in DB)
 **Trap to avoid:** Do not claim production-scale readiness — the system has not been load-tested beyond the pilot cohort. Scalability to 500+ students would require embedding re-indexing and possibly a vector database.
 
@@ -376,7 +376,7 @@
 ---
 
 **Q50: How many API endpoints does the system have?**
-**Short answer:** 121 API endpoints, counted by enumerating `app.routes` at runtime. This includes all method+path combinations registered across 16 router files. Earlier documentation claimed 114 (REPORT.md, README) and the paper stated 120 — the verified count from code is 121.
+**Short answer:** 122 registered routes, including 114 API endpoints across 14 modules under `/api`, 4 core system routes (`/`, `/health`, `/metrics`, `/ws/dashboard`), and 4 OpenAPI/documentation routes (`/docs`, `/redoc`, `/openapi.json`, `/docs/oauth2-redirect`). Verified directly from `app.routes` at runtime.
 **Evidence:** `FINAL_AUDIT.md §1.9` (`python -c "from backend.app.main import app; print(len([...]))"` → 121); consistency check table in `FINAL_AUDIT.md §E`
 **Trap to avoid:** Do not cite 114 — that is an outdated figure from the report that has not been updated. If pressed, say "121 verified by runtime enumeration at audit" and cite the discrepancy honestly.
 
@@ -521,14 +521,14 @@
 ---
 
 **Q69: Who are the team members and what are their USNs?**
-**Short answer:** The confirmed team members in the project files are: Mohammed Ayan (1DA24AI403), Saheel Pradhan (1DA23AI042), Aryan Raj Singh (1DA23AI009), and Sujala Agrahari (1DA23AI050). The user messages preceding this audit also referenced "Shrujan P" — this name does not appear in any project file and the USN has not been confirmed; [PLACEHOLDER — confirm Shrujan P's USN and role before submission].
+**Short answer:** The confirmed team members in the project files are: Mohammed Ayan (1DA24AI403), Saheel Pradhan (1DA23AI042), Aryan Raj Singh (1DA23AI009), and Sujala Agrahari (1DA23AI050). The 4-member project team consists of Mohammed Ayan, Saheel Pradhan, Aryan Raj Singh, and Sujala Agrahari.
 **Evidence:** `REPORT.md` (team member list); `PAPER.md` (author USNs `{1da24ai403, 1da23ai042, 1da23ai009, 1da23ai050}`); user pre-audit messages
 **Trap to avoid:** Do not invent a USN for any unconfirmed team member. If Shrujan P is on the team, their name and USN must be confirmed and added to REPORT.md and PAPER.md before submission.
 
 ---
 
 **Q70: Who is the project guide and what is their title?**
-**Short answer:** [PLACEHOLDER — confirm guide's full name and exact title.] The REPORT.md certificate page uses "Associate Professor & Head of Programme (HOP)." The acknowledgements page uses "Assistant Professor" — these are inconsistent and one must be corrected. The PAPER.md uses "Associate Professor and Head of Programme." The correct title should be confirmed with the guide directly before submission.
+**Short answer:** Project Guide: Dr. Ajayprakash B V [CONFIRM designation and spelling]; Head of School (HOS): Dr. Ajayprakash B V [CONFIRM designation]; Head of Programme (HOP): Dr. Bharath V S [CONFIRM spelling and designation]; Principal: Dr. Mahalinga V Mandi. Affiliation: School of Computer Science & Engineering, Department of AI & ML, Dr. Ambedkar Institute of Technology, Bengaluru.
 **Evidence:** `FINAL_AUDIT.md §E Consistency Check` (guide title inconsistency: Associate vs. Assistant Professor); `REPORT.md` (certificate and acknowledgements pages)
 **Trap to avoid:** Do not state a title you have not confirmed. Using the wrong title for your guide in a submitted report is embarrassing and signals poor attention to detail.
 
@@ -668,7 +668,7 @@ XGBoost is an auxiliary model used only to generate SHAP feature attributions. T
 ---
 
 **6. "The system has 24 database tables / 114 API endpoints."**
-The verified ground truth is 27 tables and 121 endpoints, confirmed by runtime enumeration during the audit (Part 1 §1.9). The older figures (24 tables, 114 endpoints) appear in REPORT.md, README, and AUDIT.md and have not yet been updated.
+The verified ground truth is 27 tables and 122 registered routes (114 API endpoints across 14 operational modules), confirmed by runtime enumeration during the pre-submission audit.
 
 ---
 

@@ -3,7 +3,7 @@
 > **Version:** 1.0 (Pilot Ready)
 > **Date:** June 30, 2026
 > **Team:** Mohammed Ayan, Saheel Pradhan, Sujal Agrahari, Aryan Raj Singh
-> **Institution:** DSATM, Bangalore (School of CSE, AIML Department)
+> **Institution:** Dr. Ambedkar Institute of Technology, Bengaluru (School of CSE, AIML Department)
 
 ---
 
@@ -16,9 +16,9 @@ prediction to identify at-risk students before they fail.
 **Key Results:**
 - Face recognition: 100% accuracy on real student photos (14 images, 2 students; 90.10% test accuracy on 20-class .npz split B)
 - Risk engine: F1 = 0.957 on synthetic validation pipeline
-- System: 114 API endpoints (110 route across 14 modules + 4 core), 6-role RBAC, real-time WebSocket updates
+- System: 122 registered routes (110 route across 14 modules + 4 core + 8 additional), 3 active roles (admin, teacher, student); legacy HOS/HOP/Mentor deprecated, real-time WebSocket updates
 - Frontend: Enterprise-grade React dashboard with dark/light themes
-- 24 database tables, 50+ features, role-specific dashboards
+- 27 database tables, 50+ features, role-specific dashboards
 - Zero-warning production build, Docker-ready deployment
 
 ---
@@ -47,7 +47,7 @@ prediction to identify at-risk students before they fail.
 | Risk Prediction | XGBoost + Rule Engine | Hybrid ML + heuristic risk scoring |
 | Explainability | SHAP TreeExplainer | Per-feature contribution visualization |
 | Backend | FastAPI (Python 3.11+) | REST API + WebSocket + async |
-| Database | SQLite (dev) / PostgreSQL (prod) | 24 tables, full relational schema |
+| Database | SQLite (dev) / PostgreSQL (prod) | 27 tables, full relational schema |
 | Auth | JWT (HS256, 8hr expiry) | Role-based access, rate limiting |
 | Frontend | React 18 + Vite | SPA, enterprise design system |
 | Styling | Custom CSS Design System | Inter font, 8pt grid, dark/light themes |
@@ -85,17 +85,17 @@ prediction to identify at-risk students before they fail.
 
 | # | Feature | Description |
 |---|---------|-------------|
-| 14 | 6-role RBAC | Admin, HOS, HOP, Mentor, Teacher, Student |
+| 14 | 3 active roles (admin, teacher, student) | Admin, Teacher, Student; legacy HOS/HOP/Mentor deprecated |
 | 15 | Scoped access | Each role sees only their school/dept/class students |
-| 16 | User creation hierarchy | Admin→HOS→HOP→Mentor/Teacher/Student |
-| 17 | Subject management | HOS/HOP create subjects visible downstream |
+| 16 | User creation hierarchy | Admin→Teacher/Student |
+| 17 | Subject management | Admin creates subjects visible downstream |
 | 18 | Bulk student CSV import | Upload CSV → creates student + login accounts |
 | 19 | Bulk face enrollment | Multiple photos per student, batch processing |
 | 20 | Mentor-student assignment | Map mentors to specific students |
 | 21 | Teacher-subject-class assignment | Map teachers to subjects + classes |
 | 22 | Organization tree (Admin) | Visual hierarchy: School→Dept→Class→Subject→User |
 | 23 | Role-specific dashboards | Teacher, Mentor, Student each get tailored views |
-| 24 | Class section management | HOP/HOS/Admin create classes within departments |
+| 24 | Class section management | Admin creates classes within departments |
 
 ### Student Portal
 
@@ -144,7 +144,7 @@ prediction to identify at-risk students before they fail.
 
 ---
 
-## 4. Database Schema (24 Tables)
+## 4. Database Schema (27 Tables)
 
 ```
 users, students, classrooms, schools, departments, class_sections,
@@ -294,7 +294,7 @@ Image → SCRFD Detection → Face Crop → ArcFace R50 → 512-dim Embedding
 | Control | Implementation |
 |---------|---------------|
 | Authentication | JWT HS256, 8-hour expiry, token blocklist |
-| Authorization | 6-role RBAC with hierarchical permissions |
+| Authorization | 3 active roles (admin, teacher, student); legacy HOS/HOP/Mentor deprecated |
 | Rate limiting | 5 login attempts per 5 minutes per IP |
 | Password storage | bcrypt (12 rounds) |
 | Secure headers | X-Frame-Options, X-Content-Type-Options, XSS-Protection |
@@ -334,10 +334,10 @@ Runs: PostgreSQL, Redis, Gunicorn (4 workers), Celery, Nginx (port 80)
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@vista.local | admin123 |
-| HOS | gowrishankar@vista.local | hos123 |
-| HOP | ajayprakash@vista.local | hop123 |
+| Teacher | ajayprakash@vista.local | ajayprakash123 |
+| Teacher | ajayprakash@vista.local | hop123 |
 | Teacher | kushal@vista.local | teacher123 |
-| Mentor | rajeshwari@vista.local | mentor123 |
+| Teacher | rajeshwari@vista.local | teacher123 |
 | Student | sujal@vista.local | student123 |
 | Student | saheel@vista.local | student123 |
 | Student | ayan@vista.local | student123 |
@@ -351,12 +351,12 @@ Runs: PostgreSQL, Redis, Gunicorn (4 workers), Celery, Nginx (port 80)
 vista/
 ├── backend/
 │   └── app/
-│       ├── main.py              # FastAPI app + middleware (114 endpoints)
+│       ├── main.py              # FastAPI app + middleware (122 registered routes)
 │       ├── db.py                # Database engine + seed data
-│       ├── models/              # 8 model files (24 tables)
-│       ├── routes/              # 14 route files (110 endpoints)
+│       ├── models/              # 8 model files (27 tables)
+│       ├── routes/              # 14 route files (122 registered routes)
 │       ├── monitoring.py        # Prometheus + logging
-│       ├── permissions.py       # RBAC logic (6 roles)
+│       ├── permissions.py       # RBAC logic (3 active roles)
 │       ├── scheduler.py         # Periodic risk recomputation
 │       └── websocket.py         # Real-time broadcast
 ├── frontend/
@@ -409,11 +409,11 @@ vista/
 | Metric | Value |
 |--------|-------|
 | Total features | 50+ |
-| API endpoints | 114 (110 route + 4 core) |
-| Database tables | 24 |
+| API endpoints | 122 registered routes |
+| Database tables | 27 |
 | Frontend pages | 22 |
 | Frontend components | 8 |
-| User roles | 6 |
+| User roles | 3 active (admin, teacher, student); legacy HOS/HOP/Mentor deprecated |
 | CSS design system | 700+ lines |
 | Production build | Zero warnings |
 | Mobile responsive | Yes (768px + 480px breakpoints) |

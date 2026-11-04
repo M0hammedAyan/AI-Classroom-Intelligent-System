@@ -1,7 +1,7 @@
 # VISTA Research Paper: Action Checklist, Reviewer Q&A & Proposed Experiments (`PAPER_TODO.md`)
 
 This document serves as the research completion guide, submission audit checklist, and viva defense companion for the IEEE conference paper:
-**"VISTA: An Integrated On-Premise Vision and Explainable Risk-Scoring Platform for Classroom Academics"** (Authors: Mohammed Ayan, Saheel Pradhan, Aryan Raj Singh, Sujala Agrahari, and Dr. Ajayprakash B V).
+**"VISTA: An Integrated On-Premise Vision and Explainable Risk-Scoring Platform for Classroom Academics"** (Authors: Mohammed Ayan, Saheel Pradhan, Aryan Raj Singh, Sujal Agrahari, and Dr. Ajayprakash B V).
 
 ---
 

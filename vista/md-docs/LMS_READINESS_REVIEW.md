@@ -17,14 +17,14 @@
 - [x] Each role has unique layout, sidebar, and content
 
 ### RBAC Architecture
-- [x] 6 roles defined with hierarchy (admin, hos, hop, mentor, teacher, student)
-- [x] Permission matrix complete (24 actions × 6 roles)
+- [x] 3 active roles defined (admin, teacher, student); legacy HOS/HOP/Mentor deprecated
+- [x] Permission matrix complete for 3 active roles
 - [x] Scope rules defined (institution/school/dept/assigned/class/self)
 - [x] User creation rules defined (who creates whom)
 - [x] Approval workflow designed
 
 ### Database Schema
-- [x] 24 tables implemented across 8 model modules in `vista/backend/app/models/`
+- [x] 27 tables implemented across 8 model modules in `vista/backend/app/models/`
 - [x] Core tables (users, schools, departments, classrooms, class_sections, subjects, students)
 - [x] Relationship tables (mentor_assignments, teacher_subjects, parent_contacts)
 - [x] Academic tables (attendance, scores, assignments, assignment_submissions, timetable_slots, study_materials, semester_results)

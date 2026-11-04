@@ -113,7 +113,7 @@ Frontend runs at `http://localhost:5173` (or next available port).
 vista/
 ├── backend/app/          # FastAPI application
 │   ├── routes/           # 14 route modules (auth, students, attendance, risk, export, enroll, lms, admin, mentor, dashboards, student_portal, notifications, reports, academics)
-│   ├── models/           # 8 SQLAlchemy ORM model files (24 tables)
+│   ├── models/           # 8 SQLAlchemy ORM model files (27 tables)
 │   ├── db.py             # Database engine + seed data
 │   ├── websocket.py      # Real-time WebSocket manager
 │   ├── scheduler.py      # APScheduler cron jobs

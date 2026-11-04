@@ -62,7 +62,7 @@ As shown in Figure 7.2, the vision pipeline achieved **100% detection and recogn
 1. **SAHEEL PRADHAN:** Present · $96\%$ confidence
 2. **SHREYAS K T:** Present · $71\%$ confidence
 3. **MOHAMMED AYYAN:** Present · $76\%$ confidence
-4. **SUJALA AGRAHARI:** Present · $75\%$ confidence
+4. **SUJAL AGRAHARI:** Present · $75\%$ confidence
 5. **VIGNESH V:** Present · $58\%$ confidence
 6. **MC CHETHAN PATIL:** Present · $73\%$ confidence
 7. **MALLIKARJUNA C:** Present · $70\%$ confidence
@@ -90,7 +90,7 @@ flowchart TD
         V5["Recent Attendance SHAP: -0.0857"]
     end
 
-    subgraph Output["Synthesized Mentor Dashboard Output"]
+    subgraph Output["Synthesized Academic Advisor & Teacher Dashboard Output"]
         O1["Predicted Class: HIGH RISK (Confidence: 98.77%)"]
         O2["Attribution 1: 'Overall attendance at 52% — below recommended level'"]
         O3["Attribution 2: 'Average marks at 45% — below passing threshold'"]
@@ -101,7 +101,7 @@ flowchart TD
     Explainer --> Output
 ```
 
-The sample execution recorded in `evaluation/results/risk_model_evaluation.json` demonstrates that `overall_attendance` contributes the dominant positive push ($+2.986$) toward the `HIGH` risk classification, followed by `avg_score` ($+0.671$) and `failed_subjects` ($+0.173$). The mentor receives human-interpretable plain language explanations rather than opaque numerical coefficients.
+The sample execution recorded in `evaluation/results/risk_model_evaluation.json` demonstrates that `overall_attendance` contributes the dominant positive push ($+2.986$) toward the `HIGH` risk classification, followed by `avg_score` ($+0.671$) and `failed_subjects` ($+0.173$). The academic advisor/teacher receives human-interpretable plain language explanations rather than opaque numerical coefficients.
 
 ---
 
@@ -262,7 +262,7 @@ The complete VISTA operational system integrates three dedicated user workspaces
 Figure 7.2 illustrates the live teacher attendance workspace during an active lecture session for **Deep Learning (22AIU701)** in **4th Year AIML**.
 
 ![Figure 7.2: Teacher Facial Attendance Live Verification View](docs/screenshots/fig_7_2_teacher_attendance.png)
-*Fig 7.2: Live Teacher Facial Attendance capture interface displaying simultaneous multi-face detection and confirmation of 7 present students (Saheel Pradhan 96%, Mohammed Ayyan 76%, Sujala Agrahari 75%, MC Chethan Patil 73%, Shreyas K T 71%, Mallikarjuna C 70%, Vignesh V 58%).*
+*Fig 7.2: Live Teacher Facial Attendance capture interface displaying simultaneous multi-face detection and confirmation of 7 present students (Saheel Pradhan 96%, Mohammed Ayyan 76%, Sujal Agrahari 75%, MC Chethan Patil 73%, Shreyas K T 71%, Mallikarjuna C 70%, Vignesh V 58%).*
 
 ---
 

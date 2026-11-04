@@ -12,7 +12,7 @@ graph TD
     end
 
     subgraph Application_Tier ["Tier 2: Application Layer (FastAPI Asynchronous Gateway)"]
-        Gateway["REST API Router (120 Routes across 14 Modules)"]
+        Gateway["REST API Router (122 Registered Routes / 114 API Endpoints across 14 Modules)"]
         AuthService["Auth & RBAC Service (JWT HS256 + Bcrypt)"]
         WSManager["WebSocket Connection Manager (/ws/dashboard)"]
         SchedulerService["Task Scheduler (APScheduler Midnight Cron)"]
@@ -58,7 +58,7 @@ graph TD
 
 ### Architectural Tier Descriptions:
 1. **Presentation Layer (Tier 1):** Built using React 18, Vite, and Tailwind CSS v4, this tier provides dedicated, role-scoped user workspaces for the three active institutional roles (Admin, Teacher, Student). Components connect to the backend exclusively via an Axios REST client (`src/api/client.js`) and persistent WebSocket streams for live dashboard KPI telemetry.
-2. **Application Layer (Tier 2):** Implemented in FastAPI, this tier serves 120 registered routes. It enforces JSON Web Token (JWT) cryptographic authentication with role-based access decorators (`permissions.py`), supervises audit logging, exposes Prometheus telemetry, and executes automated midnight batch risk assessments via APScheduler.
+2. **Application Layer (Tier 2):** Implemented in FastAPI, this tier serves 122 registered routes (114 API endpoints across 14 modules). It enforces JSON Web Token (JWT) cryptographic authentication with role-based access decorators (`permissions.py`), supervises audit logging, exposes Prometheus telemetry, and executes automated midnight batch risk assessments via APScheduler.
 3. **Intelligence Layer (Tier 3):** Encapsulates the computer vision and machine learning engines. The vision pipeline coordinates SCRFD detection, heuristic liveness, ArcFace feature extraction, and ResNet-50 classifier fallback. The risk prediction pipeline computes 8 engineered behavioral features and feeds XGBoost decision trees paired with SHAP explainability.
 4. **Data Layer (Tier 4):** Anchored by a 27-table relational database schema managed via SQLAlchemy 2.0 ORM (PostgreSQL in production, SQLite in development) alongside an in-memory Redis instance for token blocklisting and session caching.
 
@@ -90,7 +90,7 @@ Table 4.2 details the primary functional use cases supported by the platform.
 | **UC-04** | Enroll Student Face | Teacher / Admin | Minimum 3 unoccluded facial photographs uploaded. | Normalized 512-dim ArcFace prototype embedding persisted in DB. |
 | **UC-05** | View Academic Risk Watchlist| Admin| Daily risk recalculation executed or triggered on-demand. | At-risk student list displayed with severity levels and SHAP drivers. |
 | **UC-06** | Log Teacher / Adminship Intervention | Teacher / Admin | Student flagged in risk watchlist; counseling session conducted.| Intervention note, action item, and review date stored in DB. |
-| **UC-07** | Export Attendance Report | Teacher / Teacher / Admin / HOP| Attendance session records exist for specified date range. | Formatted CSV or ReportLab PDF report downloaded. |
+| **UC-07** | Export Attendance Report | Teacher / Admin | Attendance session records exist for specified date range. | Formatted CSV or ReportLab PDF report downloaded. |
 | **UC-08** | Access Student Self-Portal | Student | Student authenticated with active enrollment status. | Personal attendance stats, timetable, and study materials displayed. |
 
 ### 4.2.3 Use Case Diagram

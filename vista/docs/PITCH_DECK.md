@@ -1,6 +1,6 @@
 # VISTA — Pitch Deck (10 Slides)
 
-> For presenting to college management (HOP/HOS/Principal)
+> For presenting to college management (Guide/Principal)
 
 ---
 
@@ -11,7 +11,7 @@
 *Automated attendance + Early risk detection = Better student outcomes*
 
 Team: Mohammed Ayan, Saheel Pradhan, Sujal Agrahari, Aryan Raj Singh
-DSATM | School of CSE | AIML Department
+Dr. Ambedkar Institute of Technology, Bengaluru | School of CSE | AIML Department
 
 ---
 
@@ -35,7 +35,7 @@ DSATM | School of CSE | AIML Department
 1. **Camera sees who's in class** — one photo marks entire class (face recognition)
 2. **AI tracks patterns** — attendance drops, score declines, consecutive absences
 3. **System warns mentors** — before it's too late
-4. **Everyone sees their data** — Student, Teacher, Mentor, HOP, HOS
+4. **Everyone sees their data** — Student, Teacher, Admin
 
 *No external APIs. No cloud. Everything runs on a college server.*
 
@@ -64,7 +64,7 @@ DSATM | School of CSE | AIML Department
 | Face Recognition | ArcFace R50 — 512-dim embeddings + ResNet-50 personal classifier fallback |
 | Risk Prediction | XGBoost ML + Rule Engine (8 features + override flags) |
 | Explainability | SHAP + Rule engine breakdown — shows WHY a student is at risk |
-| Backend | FastAPI + PostgreSQL (114 API endpoints) |
+| Backend | FastAPI + PostgreSQL (122 registered routes) |
 | Frontend | React + Tailwind CSS (responsive, dark/light mode) |
 | Deployment | Docker — runs on any Linux server |
 
@@ -80,7 +80,7 @@ DSATM | School of CSE | AIML Department
 - Early warning system before students fail (not after)
 - Parent alerts queued when attendance drops below 75%
 - NAAC-ready attendance + academic reports
-- One dashboard for HOS/HOP to see entire school/department
+- One dashboard for Admin to see entire department
 
 **What it costs:** A laptop + USB camera per classroom. No recurring fees.
 
@@ -138,6 +138,6 @@ DSATM | School of CSE | AIML Department
 1. Get student consent forms signed
 2. Enroll 30 students
 3. Start pilot
-4. Publish paper with DSATM as institutional affiliation
+4. **Publish paper with Dr. Ambedkar Institute of Technology, Bengaluru as institutional affiliation**
 
-**Contact:** mohammed.ayan@dsatm.edu / +91 XXXXXXXXXX
+**Contact:** mohammed.ayan@dr-ait.org / +91 XXXXXXXXXX
