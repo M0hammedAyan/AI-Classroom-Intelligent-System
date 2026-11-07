@@ -254,6 +254,42 @@ class TestAttendancePctOverflowFix(unittest.TestCase):
                 s["attendance_pct"], 100.0,
                 f"{s['student_id']} ({s['name']}) attendance_pct={s['attendance_pct']} exceeds 100",
             )
+            self.assertGreaterEqual(
+                s["attendance_pct"], 0.0,
+                f"{s['student_id']} ({s['name']}) attendance_pct={s['attendance_pct']} below 0",
+            )
+
+    def test_academic_record_attendance_pct_bounds(self):
+        """Fetch academic-record for all active students and assert attendance_pct is strictly 0..100."""
+        from app.routes.students import academic_record
+        from app.models.student import Student
+
+        active_students = self.db.query(Student).filter(Student.is_active == True).all()
+        self.assertGreater(len(active_students), 0)
+        for s in active_students:
+            record = academic_record(s.student_id, db=self.db, current_user=self.admin_user)
+            pct = record["student"]["attendance_pct"]
+            self.assertIsNotNone(pct)
+            self.assertGreaterEqual(pct, 0.0, f"{s.student_id} attendance_pct < 0: {pct}")
+            self.assertLessEqual(pct, 100.0, f"{s.student_id} attendance_pct > 100: {pct}")
+            self.assertGreaterEqual(
+                s["attendance_pct"], 0.0,
+                f"{s['student_id']} ({s['name']}) attendance_pct={s['attendance_pct']} below 0",
+            )
+
+    def test_academic_record_attendance_pct_bounds(self):
+        """Fetch academic-record for all active students and assert attendance_pct is strictly 0..100."""
+        from app.routes.students import academic_record
+        from app.models.student import Student
+
+        active_students = self.db.query(Student).filter(Student.is_active == True).all()
+        self.assertGreater(len(active_students), 0)
+        for s in active_students:
+            record = academic_record(s.student_id, db=self.db, current_user=self.admin_user)
+            pct = record["student"]["attendance_pct"]
+            self.assertIsNotNone(pct)
+            self.assertGreaterEqual(pct, 0.0, f"{s.student_id} attendance_pct < 0: {pct}")
+            self.assertLessEqual(pct, 100.0, f"{s.student_id} attendance_pct > 100: {pct}")
 
 
 if __name__ == "__main__":

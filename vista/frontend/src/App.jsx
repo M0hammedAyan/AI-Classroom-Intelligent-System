@@ -143,7 +143,7 @@ function Login({ onLogin }) {
     <section className="login-panel"><div className="brand-mark">V</div><p className="eyebrow">VISTA / ATTENDANCE</p>
       <h1>Attendance,<br /><em>without the guesswork.</em></h1>
       <p className="login-copy">Recognise the room in seconds, then keep the teacher in control when AI needs a human correction.</p>
-      <div className="login-points"><span>● Live camera capture</span><span>● Upload fallback</span><span>● Manual overrides</span></div>
+      <div className="login-points"><span>ΓùÅ Live camera capture</span><span>ΓùÅ Upload fallback</span><span>ΓùÅ Manual overrides</span></div>
     </section>
     <form className="login-card" onSubmit={submit}><p className="eyebrow">Teacher workspace</p><h2>Sign in to continue</h2>
       <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required /></label>
@@ -270,8 +270,8 @@ function NotificationCenter({ user, onOpenCompose }) {
                 <div className="notif-body">{item.body}</div>
                 <div className="notif-meta">
                   <span>
-                    By {item.sender_role} · {new Date(item.created_at).toLocaleDateString()}
-                    {item.subject_id && ` · ${item.subject_id}`}
+                    By {item.sender_role}  ·  {new Date(item.created_at).toLocaleDateString()}
+                    {item.subject_id && `  ·  ${item.subject_id}`}
                   </span>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {!item.is_read && (
@@ -420,14 +420,14 @@ function CoachTipCard({ onOpenCoach }) {
   return (
     <div className="coach-tip-card">
       <div className="coach-tip-content">
-        <span className="coach-tip-icon">🤖</span>
+        <span className="coach-tip-icon">≡ƒñû</span>
         <div className="coach-tip-text">
           <strong>AI Study Coach Tip</strong>
           <p>{tip}</p>
         </div>
       </div>
       <button type="button" className="primary" style={{ whiteSpace: 'nowrap', fontSize: 12, padding: '8px 14px' }} onClick={onOpenCoach}>
-        Ask Coach →
+        Ask Coach ΓåÆ
       </button>
     </div>
   );
@@ -509,7 +509,7 @@ function CoachChatDrawer({ isOpen, onClose }) {
     <div className="coach-drawer">
       <div className="coach-header">
         <div>
-          <h3>🤖 AI Study Coach</h3>
+          <h3>≡ƒñû AI Study Coach</h3>
           <small>Grounded in your official records</small>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -587,7 +587,7 @@ function StudentSubjectModal({ subjectId, onClose }) {
           <div>
             <p className="eyebrow">Subject Detail / Read-Only</p>
             <h2>{detail ? detail.subject.name : 'Loading subject...'}</h2>
-            {detail && <p>{detail.subject.code} · {detail.subject.credits} Credits · Faculty: {detail.subject.faculty}</p>}
+            {detail && <p>{detail.subject.code}  ·  {detail.subject.credits} Credits  ·  Faculty: {detail.subject.faculty}</p>}
           </div>
           <button type="button" className="ghost" onClick={onClose}>Close</button>
         </div>
@@ -600,21 +600,21 @@ function StudentSubjectModal({ subjectId, onClose }) {
             <div className="marks-summary-box" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
               <div>
                 <span>CIE 1 (Max 25)</span>
-                <strong>{detail.marks.cie1 !== null ? `${detail.marks.cie1} / 25` : '—'}</strong>
+                <strong>{detail.marks.cie1 !== null ? `${detail.marks.cie1} / 25` : '-'}</strong>
                 <span className={`badge ${detail.marks.cie1_status === 'absent' ? 'cie-absent' : 'cie-scored'}`}>
                   {detail.marks.cie1_status === 'absent' ? 'Absent' : detail.marks.cie1 !== null ? 'Scored' : 'Pending'}
                 </span>
               </div>
               <div>
                 <span>CIE 2 (Max 25)</span>
-                <strong>{detail.marks.cie2 !== null ? `${detail.marks.cie2} / 25` : '—'}</strong>
+                <strong>{detail.marks.cie2 !== null ? `${detail.marks.cie2} / 25` : '-'}</strong>
                 <span className={`badge ${detail.marks.cie2_status === 'absent' ? 'cie-absent' : 'cie-scored'}`}>
                   {detail.marks.cie2_status === 'absent' ? 'Absent' : detail.marks.cie2 !== null ? 'Scored' : 'Pending'}
                 </span>
               </div>
               <div>
                 <span>CIE 3 (Re-attempt)</span>
-                <strong>{detail.marks.cie3 !== null ? `${detail.marks.cie3} / 25` : '—'}</strong>
+                <strong>{detail.marks.cie3 !== null ? `${detail.marks.cie3} / 25` : '-'}</strong>
                 <span className={`badge ${
                   detail.marks.cie3_status === 'scored' ? 'cie-scored' :
                   detail.marks.cie3_status === 'absent' ? 'cie-absent' :
@@ -628,7 +628,7 @@ function StudentSubjectModal({ subjectId, onClose }) {
               <div>
                 <span>Final CIE</span>
                 <strong className={detail.marks.final_cie_50 !== null && detail.marks.final_cie_50 >= 40 ? 'green' : ''}>
-                  {detail.marks.final_cie_25 !== null ? `${detail.marks.final_cie_25}/25` : '—'}
+                  {detail.marks.final_cie_25 !== null ? `${detail.marks.final_cie_25}/25` : '-'}
                 </strong>
                 <small style={{ display: 'block', fontSize: 11, color: '#6d827e' }}>
                   {detail.marks.final_cie_50 !== null ? `(${detail.marks.final_cie_50} / 50)` : ''}
@@ -638,7 +638,7 @@ function StudentSubjectModal({ subjectId, onClose }) {
 
             {detail.marks.cie3_reason && (
               <p className="notice" style={{ fontSize: 12, margin: '8px 0 16px', padding: '8px 12px' }}>
-                💡 {detail.marks.cie3_reason}
+                ≡ƒÆí {detail.marks.cie3_reason}
               </p>
             )}
 
@@ -738,7 +738,7 @@ function StudentWorkspace({ auth, onLogout }) {
           </div>
           <div>
             <span>Average marks</span>
-            <strong>{dashboard?.avg_score ?? '—'}%</strong>
+            <strong>{dashboard?.avg_score ?? '-'}%</strong>
             <small>across CIE assessments</small>
           </div>
           <div>
@@ -767,10 +767,10 @@ function StudentWorkspace({ auth, onLogout }) {
                 >
                   <span>
                     {item.subject_name}
-                    <small>{item.subject_code} · Click to view →</small>
+                    <small>{item.subject_code}  ·  Click to view ΓåÆ</small>
                   </span>
                   <b>
-                    {item.attendance_pct !== null ? `${item.attendance_pct}%` : 'No sessions'} · {item.sessions_attended}/{item.total_sessions}
+                    {item.attendance_pct !== null ? `${item.attendance_pct}%` : 'No sessions'}  ·  {item.sessions_attended}/{item.total_sessions}
                   </b>
                 </div>
               ))}
@@ -820,7 +820,7 @@ function StudentWorkspace({ auth, onLogout }) {
           onClick={() => setShowCoach(true)}
           title="Open AI Study Coach"
         >
-          💬 AI Study Coach
+          ≡ƒÆ¼ AI Study Coach
         </button>
 
         <CoachChatDrawer isOpen={showCoach} onClose={() => setShowCoach(false)} />
@@ -1043,7 +1043,7 @@ function ManualEntryModal({ isOpen, onClose, userRole, assignedSubjects, allStud
             {assignedSubjects.map((s) => {
               const code = s.code || s.subject_code || s[1];
               const name = s.name || s.subject_name || s[0];
-              return <option key={code} value={code}>{name} · {code}</option>;
+              return <option key={code} value={code}>{name}  ·  {code}</option>;
             })}
           </select>
         </label>
@@ -1168,7 +1168,7 @@ function ManualEntryModal({ isOpen, onClose, userRole, assignedSubjects, allStud
                   studentHistory.marks.map((m, i) => (
                     <div className="history-row" key={`${m.date}-${i}`}>
                       <span>
-                        {m.assessment_type || 'CIE'} · {m.date}
+                        {m.assessment_type || 'CIE'}  ·  {m.date}
                         <span className={`badge ${m.source || 'seed'}`}>{m.source || 'seed'}</span>
                       </span>
                       <b>{m.score} / {m.max_score}</b>
@@ -1238,7 +1238,7 @@ function StudentDetail({ studentId, onBack, auth }) {
         <div>
           <p className="eyebrow">{record.scope} / academic record</p>
           <h1>{record.student.name}</h1>
-          <p>{record.student.student_id} · {record.student.class || '4th Year AIML'}</p>
+          <p>{record.student.student_id}  ·  {record.student.class || '4th Year AIML'}</p>
         </div>
         {auth.role !== 'student' && <button className="primary" onClick={() => setShowMarks(true)}>Add marks</button>}
       </div>
@@ -1251,7 +1251,7 @@ function StudentDetail({ studentId, onBack, auth }) {
         </div>
         <div>
           <span>Average marks</span>
-          <strong>{record.student.average_score ?? '—'}%</strong>
+          <strong>{record.student.average_score ?? '-'}%</strong>
           <small>{record.marks.length} assessments</small>
         </div>
         <div>
@@ -1276,14 +1276,14 @@ function StudentDetail({ studentId, onBack, auth }) {
             ))}
           </div>
           <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>
-            {faceImages.has_embedding ? `✅ Face embedding active (enrolled ${faceImages.enrolled_at ? faceImages.enrolled_at.slice(0, 10) : 'previously'})` : '⚠️ No face embedding — not enrolled for face recognition.'}
+            {faceImages.has_embedding ? `Γ£à Face embedding active (enrolled ${faceImages.enrolled_at ? faceImages.enrolled_at.slice(0, 10) : 'previously'})` : 'ΓÜá∩╕Å No face embedding - not enrolled for face recognition.'}
           </p>
         </section>
       )}
       {faceImages && faceImages.total === 0 && (
         <section className="card" style={{ marginBottom: '1rem' }}>
           <div className="card-title"><div><p className="eyebrow">Face enrollment</p><h2>No enrollment photos</h2></div></div>
-          <p style={{ opacity: 0.6 }}>No face images found on disk for {studentId}. Upload enrollment photos via the Admin → Students → Enrol face button.</p>
+          <p style={{ opacity: 0.6 }}>No face images found on disk for {studentId}. Upload enrollment photos via the Admin ΓåÆ Students ΓåÆ Enrol face button.</p>
         </section>
       )}
       <section className="detail-grid">
@@ -1303,7 +1303,7 @@ function StudentDetail({ studentId, onBack, auth }) {
                 <span>
                   {item.date}
                   <span className={`badge ${item.source || 'seed'}`}>{item.source || 'seed'}</span>
-                  <small>{item.subject_name}{item.is_manual_override ? ' · manual override' : ''}</small>
+                  <small>{item.subject_name}{item.is_manual_override ? '  ·  manual override' : ''}</small>
                 </span>
                 <b className={`status ${item.status}`}>{item.status}</b>
               </div>
@@ -1319,9 +1319,9 @@ function StudentDetail({ studentId, onBack, auth }) {
                 <span>
                   {item.subject}
                   <span className={`badge ${item.source || 'seed'}`}>{item.source || 'seed'}</span>
-                  <small>{item.date} · {item.assessment_type || 'CIE'}</small>
+                  <small>{item.date}  ·  {item.assessment_type || 'CIE'}</small>
                 </span>
-                <b>{item.score}/{item.max_score} · {item.percentage}%</b>
+                <b>{item.score}/{item.max_score}  ·  {item.percentage}%</b>
               </div>
             ))}
           </div>
@@ -1337,7 +1337,7 @@ function StudentDetail({ studentId, onBack, auth }) {
             <label>Subject
               <select required value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })}>
                 <option value="">Select subject</option>
-                {record.subjects.map((s) => <option key={s.id} value={s.code}>{s.name} · {s.code}</option>)}
+                {record.subjects.map((s) => <option key={s.id} value={s.code}>{s.name}  ·  {s.code}</option>)}
               </select>
             </label>
             <label>Assessment
@@ -1564,7 +1564,7 @@ function AdminWorkspace({ auth, onLogout }) {
                   <label>Assign teacher
                     <select value={editor.teacherId} onChange={(e) => setEditor({ ...editor, teacherId: e.target.value })}>
                       <option value="">Select a teacher</option>
-                      {users.filter((u) => u.role === 'teacher').map((u) => <option key={u.id} value={u.id}>{u.name} · {u.email}</option>)}
+                      {users.filter((u) => u.role === 'teacher').map((u) => <option key={u.id} value={u.id}>{u.name}  ·  {u.email}</option>)}
                     </select>
                   </label>
                 </>
@@ -1794,6 +1794,14 @@ function AttendanceWorkspace({ auth, onLogout }) {
     }
   }, [assignments, subject]);
 
+  useEffect(() => {
+    if (classroom && date) {
+      getAttendanceLog(classroom, date)
+        .then((log) => setRecords(log.records || []))
+        .catch(() => {});
+    }
+  }, [classroom, date]);
+
   const present = records.filter((record) => record.status === 'present').length;
   const total = students.length || records.length;
   const absent = Math.max(total - present, 0);
@@ -1862,8 +1870,29 @@ function AttendanceWorkspace({ auth, onLogout }) {
       });
       const result = await markAttendanceBatch(encoded, classroom, date, subject);
       const log = await getAttendanceLog(classroom, date);
-      setRecords(log.records || result.results || []);
+      const logRecords = log.records || [];
       const results = result.results || [];
+      const updatedRecords = [...logRecords];
+      for (const r of results) {
+        if (r.student_id && r.status === 'present') {
+          const existingIdx = updatedRecords.findIndex((rec) => rec.student_id === r.student_id);
+          const newRec = {
+            student_id: r.student_id,
+            student_name: r.student_name,
+            status: 'present',
+            confidence: r.confidence,
+            attendance_id: r.attendance_id,
+            source: 'face',
+            is_manual_override: false,
+          };
+          if (existingIdx >= 0) {
+            updatedRecords[existingIdx] = { ...updatedRecords[existingIdx], ...newRec };
+          } else {
+            updatedRecords.push(newRec);
+          }
+        }
+      }
+      setRecords(updatedRecords);
       setDetectionResults(results);
       const markedNames = results.filter((item) => item.status === 'present' && item.student_name).map((item) => item.student_name);
       const unknownCount = results.filter((item) => item.status === 'unrecognized').length;
@@ -1929,7 +1958,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
 
         <div className="content-grid">
           <section className="card capture-card">
-            <div className="card-title"><div><p className="eyebrow">01 / Capture</p><h2>Class image</h2></div><span className="live-dot">● Ready</span></div>
+            <div className="card-title"><div><p className="eyebrow">01 / Capture</p><h2>Class image</h2></div><span className="live-dot">ΓùÅ Ready</span></div>
             <div className={`camera-frame ${preview ? 'has-preview' : ''}`}>
               {preview ? (
                 <img src={preview} alt="Class capture preview" />
@@ -1937,9 +1966,9 @@ function AttendanceWorkspace({ auth, onLogout }) {
                 <>
                   <video ref={videoRef} className="camera-video" muted playsInline />
                   <div className={`camera-empty ${cameraOn ? 'camera-empty-hidden' : ''}`}>
-                    <span className="camera-icon">◎</span>
+                    <span className="camera-icon">●</span>
                     <b>Use the live camera or upload a photo</b>
-                    <small>JPEG or PNG · max 5 MB</small>
+                    <small>JPEG or PNG  ·  max 5 MB</small>
                   </div>
                 </>
               )}
@@ -1949,7 +1978,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
               <label className="secondary file-button">Upload image<input type="file" accept="image/jpeg,image/png" onChange={(e) => setImageFile(e.target.files[0])} /></label>
             </div>
             {cameraOn && <button className="text-button" onClick={() => { streamRef.current?.getTracks().forEach((track) => track.stop()); setCameraOn(false); }}>Close camera</button>}
-            <button className="primary wide" onClick={submitImage} disabled={busy}>{busy ? 'Detecting faces…' : 'Detect and mark attendance'}</button>
+            <button className="primary wide" onClick={submitImage} disabled={busy}>{busy ? 'Detecting faces...' : 'Detect and mark attendance'}</button>
             {notice && <p className="notice">{notice}</p>}
             {detectionResults.length > 0 && (
               <div className="detection-results">
@@ -1959,8 +1988,8 @@ function AttendanceWorkspace({ auth, onLogout }) {
                     <span>{item.student_name || 'Unknown face'}</span>
                     <small>
                       {item.student_name
-                        ? `${item.status} · ${Math.round((item.confidence || 0) * 100)}% confidence`
-                        : `Not enrolled · ${Math.round((item.confidence || 0) * 100)}% similarity`}
+                        ? `${item.status}  ·  ${Math.round((item.confidence || 0) * 100)}% confidence`
+                        : `Not enrolled  ·  ${Math.round((item.confidence || 0) * 100)}% similarity`}
                     </small>
                   </div>
                 ))}
@@ -1974,7 +2003,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
               <select value={classroom} onChange={(e) => setClassroom(e.target.value)}>
                 {(assignments.length ? assignments : [{ class_code: 'class-aiml-4a', class_section: '4th Year AIML', subject_code: SUBJECTS[0][1], subject_name: SUBJECTS[0][0], student_count: students.length }]).map((item) => (
                   <option key={`${item.class_code}-${item.subject_code}`} value={item.class_code}>
-                    {item.class_section} · {item.student_count ?? students.length} students
+                    {item.class_section}  ·  {item.student_count ?? students.length} students
                   </option>
                 ))}
               </select>
@@ -1983,7 +2012,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
               <select value={subject} onChange={(e) => setSubject(e.target.value)}>
                 {(assignments.length ? assignments : SUBJECTS.map(([name, code, teacher]) => ({ subject_name: name, subject_code: code, class_code: classroom }))).map((item) => (
                   <option key={item.subject_code} value={item.subject_code}>
-                    {item.subject_name} · {item.subject_code}
+                    {item.subject_name}  ·  {item.subject_code}
                   </option>
                 ))}
               </select>
@@ -1993,7 +2022,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
               <p className="eyebrow">Your assigned classes</p>
               {(assignments.length ? assignments : SUBJECTS.map(([name, code, teacher]) => ({ subject_name: name, subject_code: code, class_section: '4th Year AIML', class_code: classroom, teacher }))).map((item) => (
                 <div className="subject-row" key={`${item.class_code}-${item.subject_code}`}>
-                  <span>{item.subject_name}<small>{item.subject_code} · {item.class_section}</small></span>
+                  <span>{item.subject_name}<small>{item.subject_code}  ·  {item.class_section}</small></span>
                   <b>{item.student_count ?? students.length} students</b>
                 </div>
               ))}
@@ -2034,7 +2063,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
                   <tr key={record.student_id}>
                     <td><b>{record.student_name}</b></td>
                     <td className="mono">{record.student_id}</td>
-                    <td>{record.confidence ? `${Math.round(record.confidence * 100)}%` : '—'}</td>
+                    <td>{record.confidence ? `${Math.round(record.confidence * 100)}%` : '-'}</td>
                     <td>
                       <span className={`badge ${record.source || (record.is_manual_override ? 'manual' : 'face')}`}>
                         {record.source || (record.is_manual_override ? 'manual' : 'face')}
@@ -2043,7 +2072,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
                     <td><span className={`status ${record.status}`}>{record.status === 'present' ? 'Present' : 'Absent'}</span></td>
                     <td>
                       <button className="edit-button" onClick={() => toggle(record)}>
-                        {record.status === 'present' ? 'Mark absent' : 'Mark present'} {record.is_manual_override && '· edited'}
+                        {record.status === 'present' ? 'Mark absent' : 'Mark present'} {record.is_manual_override && ' edited'}
                       </button>
                     </td>
                   </tr>

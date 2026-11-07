@@ -201,7 +201,7 @@ def academic_record(
         "subject": row.subject,
         "score": row.score,
         "max_score": row.max_score,
-        "percentage": round(row.score / row.max_score * 100, 1) if row.max_score else 0,
+        "percentage": round(row.score / row.max_score * 100, 1) if (row.max_score and row.score is not None) else 0,
         "date": row.date,
     } for row in score_rows]
 
@@ -242,13 +242,13 @@ def _student_dict(s: Student, db: Session | None = None) -> dict:
         return result
 
     attendance = db.query(Attendance).filter(Attendance.student_id == s.student_id).all()
-    session_dates = {row[0] for row in db.query(Attendance.session_date).filter(Attendance.classroom_id == s.classroom_id).distinct().all()}
+    total_sessions = len(attendance)
     present = sum(1 for row in attendance if row.status == "present")
     scores = db.query(Score).filter(Score.student_id == s.student_id).all()
     percentages = [row.score / row.max_score * 100 for row in scores if row.max_score and row.score is not None]
     risk = db.query(RiskFlag).filter(RiskFlag.student_id == s.student_id).order_by(RiskFlag.calculated_at.desc()).first()
     result.update({
-        "attendance_pct": min(100.0, round(present / len(session_dates) * 100, 1)) if session_dates else 0,
+        "attendance_pct": min(100.0, max(0.0, round(present / total_sessions * 100, 1))) if total_sessions > 0 else 0.0,
         "average_score": round(sum(percentages) / len(percentages), 1) if percentages else None,
         "risk_level": risk.risk_level if risk else None,
         "risk_confidence": risk.confidence if risk else None,

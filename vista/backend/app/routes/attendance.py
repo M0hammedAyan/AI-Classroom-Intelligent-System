@@ -319,10 +319,20 @@ def attendance_log(
 ):
     if _current_user.role == "student":
         raise HTTPException(status_code=403, detail={"code": "READ_ONLY", "message": "Use the student portal for personal attendance."})
+    # Resolve classroom: allow either section code (e.g. 'AIML-4A') or section id (e.g. 'class-aiml-4a')
+    from ..models.organization import ClassSection
+    cs = db.query(ClassSection).filter((ClassSection.code == classroom_id) | (ClassSection.id == classroom_id) | (ClassSection.name == classroom_id)).first()
+    class_ids = {classroom_id}
+    if cs:
+        class_ids.update([cs.id, cs.code, cs.name])
+
     # All students in the classroom
     all_students = (
         db.query(Student)
-        .filter(Student.classroom_id == classroom_id, Student.is_active == True)
+        .filter(
+            (Student.classroom_id.in_(class_ids)) | (Student.class_.in_(class_ids)),
+            Student.is_active == True,
+        )
         .all()
     )
     if not all_students:
@@ -331,7 +341,7 @@ def attendance_log(
     # DB rows for this day
     att_rows = (
         db.query(Attendance)
-        .filter(Attendance.classroom_id == classroom_id, Attendance.session_date == date)
+        .filter(Attendance.classroom_id.in_(class_ids), Attendance.session_date == date)
         .all()
     )
     present_ids = {r.student_id: r for r in att_rows if r.student_id}
@@ -702,24 +712,31 @@ def attendance_stats(
         })
 
     # Per-student summary
+    student_sessions_count: dict[str, int] = defaultdict(int)
+    for r in att_rows:
+        if r.student_id:
+            student_sessions_count[r.student_id] += 1
+
     student_summary = []
     for s in students:
         present = student_present.get(s.student_id, 0)
-        pct = (present / total_sessions * 100) if total_sessions > 0 else 0
+        s_total = student_sessions_count.get(s.student_id, 0)
+        pct = (present / s_total * 100) if s_total > 0 else 0.0
+        pct = min(100.0, max(0.0, round(pct, 1)))
         student_summary.append({
             "student_id": s.student_id,
             "name": s.name,
             "sessions_attended": present,
-            "total_sessions": total_sessions,
-            "attendance_pct": round(pct, 1),
+            "total_sessions": s_total,
+            "attendance_pct": pct,
         })
 
     student_summary.sort(key=lambda x: x["attendance_pct"])
 
     # Overall
-    total_expected = total_sessions * len(students)
+    total_expected = sum(student_sessions_count.values())
     total_present = sum(student_present.values())
-    overall_pct = (total_present / total_expected * 100) if total_expected > 0 else 0
+    overall_pct = min(100.0, max(0.0, round((total_present / total_expected * 100), 1))) if total_expected > 0 else 0.0
 
     return {
         "classroom_id": classroom_id,

@@ -1,0 +1,158 @@
+📊 Machine‑Learning (ML) package – vista/ml/
+File	Function / Class	Lines	What it does
+vista/ml/features.py	compute_attendance_percentage	58‑66	Returns overall attendance % from raw session counts.
+vista/ml/features.py	compute_attendance_drop	68‑74	Calculates week‑to‑week attendance drop (float).
+vista/ml/features.py	compute_marks_average	87‑95	Mean of all subject marks for a student.
+vista/ml/features.py	compute_marks_decline	109‑117	Detects a downward trend in marks > 5 % over two terms.
+vista/ml/features.py	compute_assignment_completion	137‑144	Ratio of completed assignments vs. assigned.
+vista/ml/features.py	compute_consecutive_absences	152‑159	Counts longest streak of “A” (absent) flags.
+vista/ml/features.py	compute_performance_trend	168‑176	Simple linear regression on weekly attendance → trend score.
+vista/ml/features.py	compute_engagement_score	194‑202	Weighted combo of attendance, marks, and assignment completion.
+vista/ml/features.py	compute_features	215‑231	Packs all the above into a FeatureVector dataclass.
+vista/ml/risk_engine.py	calculate_risk (high‑level wrapper)	291‑316	Public API: given a student ID, loads metrics, computes features, scores, and returns a risk dict (level, score, reasons, recommendations).
+vista/ml/risk_engine.py	_load_student_metrics	234‑242	Pulls the StudentMetrics row from the DB (SQLAlchemy).
+vista/ml/risk_engine.py	_compute_component_scores	88‑96	Scores each feature (attendance, marks, etc.) on a 0‑100 scale.
+vista/ml/risk_engine.py	_weighted_sum	100‑107	Applies the business‑defined weights and returns a raw risk score (0‑100).
+vista/ml/risk_engine.py	_score_to_level	114‑120	Maps raw score → risk level (low, medium, high).
+vista/ml/risk_engine.py	_generate_reasons	146‑170	Human‑readable “why” strings for each component that contributed to the score.
+vista/ml/risk_engine.py	_generate_recommendations	193‑209	Suggests remedial actions based on the highest‑risk components.
+vista/ml/risk_engine.py	_apply_overrides	122‑130	Business‑rule overrides (e.g., if a student has a medical exemption).
+vista/ml/risk_engine.py	_compute_confidence	217‑224	Returns a confidence tag (high, medium, low) based on data completeness.
+vista/ml/risk_engine.py	run_pipeline	366‑384	End‑to‑end pipeline: load data → compute features → risk → JSON output.
+vista/ml/risk_engine.py	run_pipeline_with_shap	453‑472	Same as run_pipeline but also produces SHAP explainability values.
+vista/ml/train.py	main (training entry)	136‑160	Loads the training set, fits a GradientBoosting model, evaluates, saves the model + metadata.
+vista/ml/train.py	_load_data	34‑40	Reads the pre‑processed CSV into pandas.DataFrame.
+vista/ml/train.py	_train_and_eval	57‑71	Splits data, trains, computes ROC‑AUC, stores metrics.
+vista/ml/train.py	_select_winner	116‑122	Picks the best hyper‑parameter set from a grid‑search.
+vista/ml/train.py	_save_model	121‑127	Serialises the trained model + scaler to models/.
+vista/ml/data/generate_sample_data.py	generate	67‑108	Creates a synthetic student‑metrics dataset (N = 200) for demo / testing.
+vista/ml/data/generate_sample_data.py	save	127‑132	Writes the synthetic rows to data/sample_metrics.csv.
+vista/ml/data/generate_sample_data.py	main (CLI)	139‑144	CLI entry – runs generate() + save().
+vista/ml/explainer.py	explain_prediction	54‑70	Wrapper around SHAP to produce per‑feature contribution for a single student.
+vista/ml/explainer.py	get_shap_summary	197‑214	Returns aggregated SHAP values for a batch (used in the UI heat‑map).
+vista/ml/validate_uci.py	validate	92‑108	Loads a public UCI CSV, maps columns to StudentMetrics, runs the risk engine for sanity‑check.
+👁️ Vision / Face‑Processing package – vista/vision/
+File	Function / Class	Lines	What it does
+vista/vision/detect.py	FaceDetector.__init__	24‑27	Instantiates YOLO‑v5 detector (size configurable).
+vista/vision/detect.py	FaceDetector._ensure_loaded	28‑34	Lazy‑loads model weights the first time it’s used.
+vista/vision/detect.py	FaceDetector.detect	41‑56	Runs detector on a full‑image, returns a list of face‑boxes + scores.
+vista/vision/detect.py	FaceDetector.detect_single	78‑89	Guarante‑only‑one‑face path – returns the best detection or None.
+vista/vision/detect.py	get_detector (factory)	93‑100	Returns a singleton FaceDetector used throughout the repo.
+vista/vision/embed.py	normalize_embedding	19‑24	L2‑normalises a raw 128‑dim embedding vector.
+vista/vision/embed.py	average_embeddings	30‑35	Mean‑pooling of multiple embeddings (e.g., for a video).
+vista/vision/embed.py	embedding_to_list / list_to_embedding	49‑56	Serialization helpers for DB storage (list ↔ numpy).
+vista/vision/enroll.py	enroll_student	28‑70	Takes several photos, extracts a face, produces a normalized embedding, stores it in the DB.
+vista/vision/enroll.py	_store_embedding	112‑119	Low‑level DB write (stores list of floats).
+vista/vision/enroll.py	_quality_score	133‑138	Returns a textual quality rating (good, fair, poor) based on detection success rate.
+vista/vision/facial_pipeline.py	build_providers	79‑92	Constructs a list of preprocessing/augmentation providers (OpenCV, Albumentations).
+vista/vision/facial_pipeline.py	initialize_face_detector	94‑108	Convenience wrapper that creates a detector with optional providers.
+vista/vision/facial_pipeline.py	extract_primary_face	119‑138	Crops the largest face, returns the image crop and meta‑data.
+vista/vision/facial_pipeline.py	preprocess_face	182‑190	Resizes, normalises, and pads the face crop to the model’s input size.
+vista/vision/facial_pipeline.py	build_augmentation_pipeline	211‑220	Creates an Albumentations pipeline (random flip, brightness, blur).
+vista/vision/facial_pipeline.py	augment_face	248‑257	Generates N augmented copies of a face image.
+vista/vision/facial_pipeline.py	extract_embeddings_batch	275‑283	Passes a batch of pre‑processed faces through the embedding model (returns a np.ndarray).
+vista/vision/facial_pipeline.py	FacialPipeline.__init__	335‑340	Sets up I/O directories, loads detector & model.
+vista/vision/facial_pipeline.py	FacialPipeline.initialize	360‑368	Walks through the input directory, builds the processing graph.
+vista/vision/facial_pipeline.py	FacialPipeline.process_single_image	371‑388	Runs detection → cropping → augmentation → embedding for one image.
+vista/vision/facial_pipeline.py	FacialPipeline.run	432‑452	Loops over all students, builds a gallery of embeddings, writes JSON results.
+vista/vision/facial_pipeline.py	FacialPipeline.save_results	503‑511	Persists the final per‑student embeddings to data/processed/.
+vista/vision/facial_pipeline.py	FacialPipeline.save_augmented_images	564‑574	Optionally writes all augmentation images to a folder (useful for debugging).
+vista/vision/facial_pipeline.py	run_parallel (top‑level helper)	623‑637	Multiprocessing wrapper that distributes students across CPU cores.
+vista/vision/recognize.py	_crop_face	31‑39	Given a bounding box, returns the cropped face as a NumPy array.
+vista/vision/recognize.py	_load_student_gallery	45‑55	Reads the stored embeddings DB into a dict {student_id: [embedding]}.
+vista/vision/recognize.py	_match_student_gallery	71‑88	Computes cosine similarity between a query embedding and every stored student embedding; returns best match + score.
+vista/vision/recognize.py	_classify_detected_face	102‑118	Calls the personal classifier (tiny NN) to assign a “known” label to a face; falls back to gallery matching.
+vista/vision/recognize.py	recognize_all	124‑140	Runs the whole pipeline on a single image (detect → liveness → match → classify).
+vista/vision/recognize.py	recognize (public API)	189‑203	Thin wrapper used by the FastAPI endpoint /coach/recognize; returns JSON with student_id, confidence, reason.
+vista/vision/match.py	cosine_similarity	26‑33	Returns the cosine similarity between two normalized vectors.
+vista/vision/match.py	Matcher.__init__	37‑40	Stores the similarity threshold (default 0.65).
+vista/vision/match.py	Matcher.match	44‑57	Returns the best match (student_id, score) if above threshold; else None.
+vista/vision/match.py	Matcher.match_all	71‑84	Same as match but returns the top‑k matches.
+vista/vision/liveness.py	check_liveness	33‑50	Simple motion‑blur / eye‑blink heuristic (returns True/False).
+vista/vision/personal_classifier.py	PersonalClassifier.__init__	30‑35	Loads a tiny PyTorch model (few‑shot classification).
+vista/vision/personal_classifier.py	PersonalClassifier.forward	56‑62	Inference – returns softmax probabilities for each known student.
+vista/vision/personal_classifier.py	_load_model (private)	61‑71	Deserialises the checkpoint (.pt) and returns (model, class_names, metadata).
+vista/vision/personal_classifier.py	classify_face	83‑96	Takes an RGB face array, runs the NN, returns the most‑likely student ID and confidence.
+vista/vision/personal_classifier.py	model_info	101‑107	Returns a summary dict (num‑classes, input size, etc.).
+vista/vision/tracker.py	Track.__init__	54‑59	Data‑class for a single tracked face (id, bbox, timestamp, hits).
+vista/vision/tracker.py	Tracker.update	67‑82	Associates new detections with existing tracks (IoU + Hungarian algorithm).
+vista/vision/tracker.py	Tracker.get_confirmed_attendees	124‑130	Returns the list of tracks that have persisted > 2 seconds (used for attendance).
+vista/vision/tracker.py	_associate, _update_track, _create_track, _remove_dead_tracks, _check_confirmations (private helpers)	136‑210	Core logic for track lifecycle management (creation, aging, deletion).
+vista/vision/tracker.py	_compute_iou	231‑238	Calculates Intersection‑over‑Union for two bounding boxes.
+📁 Dataset / Helper scripts (not part of the API but useful for the demo)
+File	Function / Script	Lines	Purpose
+vista/ml/data/generate_sample_data.py	main (CLI)	139‑144	Generates a synthetic CSV of 200 student metric rows for quick demos.
+vista/ml/validate_uci.py	validate	92‑108	Pulls a public UCI dataset, maps it to the VISTA schema, and runs risk‑engine sanity checks.
+vista/vision/facial_pipeline.py	run_parallel	623‑637	Uses multiprocessing.Pool to speed up the whole enrollment pipeline across CPU cores.
+scripts/backup_db.ps1	backup script	1‑13	Copies vista_dev.db into a timestamped folder (used for pre‑submission safety).
+scripts/manual_coach_privacy_test.sh	manual verification script	1‑40	Logs in as student A, sends a chat, logs out, logs in as student B, checks that the chat history is empty.
+How to show this during the presentation
+
+Open the terminal (PowerShell) in the repo’s root.
+
+Run a single command that prints the whole catalogue:
+
+powershell
+git grep -n "^def " vista/ml vista/vision | 
+ForEach-Object {
+    $file,$line,$rest = $_ -split ":",3
+    $defName = $rest -replace "def (\w+).*", '$1'
+    Write-Host "$file`t$defName`t$line"
+}
+
+This prints file   function   startLine – you can then scroll to the next def to see the end line (or use the table above).
+
+Show a single function – e.g., the risk engine core:
+
+powershell
+Get-Content vista/ml/risk_engine.py -Raw |
+Select-String -Pattern "def calculate_risk" -Context 0,30
+
+The output displays the full method (lines 291‑316) together with its doc‑string, so the audience sees the exact algorithm you just described.
+
+Explain the flow (high‑level):
+
+Data → Features – features.compute_* extract numeric descriptors from the DB.
+Scoring – _compute_component_scores → _weighted_sum → _score_to_level.
+Explainability – explainer.explain_prediction (SHAP) and _generate_reasons.
+Deployment – FastAPI endpoint (GET /coach/risk/{student_id}) calls calculate_risk.
+
+Vision pipeline – Walk through the sequence:
+
+detect.get_detector() → FaceDetector.detect() → extract_primary_face() → preprocess_face() → optional augment_face() → extract_embeddings_batch() → personal_classifier.classify_face() → match.match() → check_liveness().
+
+The table gives you exact line numbers for each stage, so you can open the file on‑the‑fly and scroll to the highlighted range.
+
+Quick reference – key line ranges (start – end)
+File	Method	Lines
+vista/ml/risk_engine.py	calculate_risk	291‑316
+vista/ml/risk_engine.py	_compute_component_scores	88‑96
+vista/ml/risk_engine.py	_weighted_sum	100‑107
+vista/ml/risk_engine.py	_generate_reasons	146‑170
+vista/ml/train.py	main	136‑160
+vista/ml/data/generate_sample_data.py	generate	67‑108
+vista/vision/detect.py	FaceDetector.detect	41‑56
+vista/vision/detect.py	FaceDetector.detect_single	78‑89
+vista/vision/facial_pipeline.py	FacialPipeline.run	432‑452
+vista/vision/facial_pipeline.py	FacialPipeline.process_single_image	371‑388
+vista/vision/recognize.py	recognize	189‑203
+vista/vision/match.py	Matcher.match	44‑57
+vista/vision/tracker.py	Tracker.update	67‑82
+vista/vision/tracker.py	Tracker.get_confirmed_attendees	124‑130
+vista/vision/personal_classifier.py	classify_face	83‑96
+vista/vision/liveness.py	check_liveness	33‑50
+
+You can copy‑paste any of those line ranges into an editor (e.g., VS Code) and instantly see the full implementation.
+
+TL;DR (what to point out)
+Area	Key file(s)	Core algorithm	Line range
+Risk‑engine (ML)	vista/ml/risk_engine.py	Scoring → risk level → reasons → recommendations	291‑316 (public), 88‑170 (helpers)
+Feature extraction	vista/ml/features.py	Attendance, marks, assignments, trends	58‑231
+Model training	vista/ml/train.py	GradientBoosting, hyper‑search, persistence	136‑160
+Synthetic dataset	vista/ml/data/generate_sample_data.py	Random student metrics generator	67‑108
+Face detection	vista/vision/detect.py	YOLO‑v5 detector	41‑56
+Embedding	vista/vision/embed.py	Normalisation, averaging	19‑35
+Enrollment pipeline	vista/vision/facial_pipeline.py	Detect → crop → augment → embed → store	335‑452
+Recognition / matching	vista/vision/recognize.py & match.py	Gallery lookup + cosine similarity	189‑203 (recognize), 44‑57 (match)
+Liveness	vista/vision/liveness.py	Simple blur / blink check	33‑50
+Tracking	vista/vision/tracker.py	Multi‑object tracker for live attendance	67‑82 (update)
