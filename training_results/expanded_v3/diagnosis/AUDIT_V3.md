@@ -217,6 +217,7 @@ Cosine of each detected face to the student's centroid (from single-pass sampled
 | 1DA25AI010 | IMG_20261112_151314_401.jpg | 3 | 0.259 | 0.718 |
 
 - Old npz class means: cos(1DA22AI402, 1DA24AI403) = 0.999; 1DA22AI402 vs current dataset 1DA24AI403 centroid = 0.863; npz 1DA24AI403 vs current dataset 1DA24AI403 = 0.858
+- Wrong-face photos (chosen face cos<0.3 to own centroid) added to exclude_photos: 13. Orphan aug-only class 1DA22AI402 is the same person/photos as 1DA24AI403 in the old npz (class-mean cos 0.999, identical source names) and is not a member: do not train on it.
 
 ## e) Stale-data check
 
@@ -234,11 +235,11 @@ Cosine of each detected face to the student's centroid (from single-pass sampled
   - 1DA25AI008: no augmented folder
   - 1DA25AI009: no augmented folder
   - 1DA25AI010: no augmented folder
-- exclude_photos (4): ['1DA23AI024/IMG_20260824_105652_141.jpg', '1DA23AI024/IMG_20260824_105940_864.jpg', '1DA23AI055/IMG20260824105047.jpg', '1DA25AI002/IMG_20261112_151236.jpg']; non-image `TEMP` files are ignored by the image filter.
+- exclude_photos (17): ['1DA23AI024/IMG_20260824_105652_141.jpg', '1DA23AI024/IMG_20260824_105940_864.jpg', '1DA23AI055/IMG20260824105047.jpg', '1DA25AI002/IMG_20261112_151236.jpg', '1DA23AI009/IMG20260824111809.jpg', '1DA23AI009/IMG20260824112017.jpg', '1DA23AI025/IMG_20260824_105652.jpg', '1DA23AI044/IMG20260824104642.jpg', '1DA23AI055/IMG20260824105346.jpg', '1DA23AI059/IMG_6659.jpeg', '1DA25AI007/IMG_20261112_151626_879.jpg', '1DA25AI007/IMG_20261112_151629_866.jpg', '1DA25AI009/IMG_20261112_151927_912.jpg', '1DA25AI010/IMG_20261112_151043_916.jpg', '1DA25AI010/IMG_20261112_151257_560.jpg', '1DA25AI010/IMG_20261112_151303_288.jpg', '1DA25AI010/IMG_20261112_151314_401.jpg']; non-image `TEMP` files are ignored by the image filter.
 - Untouched check: `agumented data` tree hash (name|size|mtime) b3eec7dda8e72337 over 20130 files, git status: clean; npz sha256[:16] c4dcdc085061c5a0, mtime 1794789259, git status: clean. Nothing was written to either by this audit.
 
 ### Visual review of contact sheets (opened and inspected, 13 sheets)
 - All 10 new students and the 3 random originals (1DA23AI042, 1DA23AI011, 1DA23AI047) show one consistent person per sheet. No mislabeled identity found among the sampled crops.
-- Wrong-face / non-face crops confirmed visually: 1DA25AI010 `..151303_288` and `..151314_401` (blurred side/partial head, not a frontal face), both already in exclude_photos via the identity check.
-- Low-quality but correct-person crops (kept, flagged only): 1DA25AI007 motion-blurred `..151626_879` and a blurred head turn; 1DA25AI004 near-black frame (~151020) and head-down profile (~151017); 1DA25AI008 extreme profiles/looking down; 1DA25AI009 looking up and profile; 1DA23AI042 many strong yaw/pitch poses and one head-turned blur (~111854). These match the pose/occlusion goals but may cost accuracy.
-- Multi-face crops are tagged `F2`..`F3` on the sheets. In the sampled sheets the chosen face was the correct person except for the identity-check failures listed above.
+- Wrong-face / non-face crops confirmed visually: 1DA25AI010 `..151303_288` and `..151314_401` (blurred side/partial head, not a frontal face), both in exclude_photos via the identity check.
+- Low-quality but correct-person crops (kept, flagged only): 1DA25AI007 motion-blurred `..151626_879` and a blurred head turn; 1DA25AI004 near-black frame (~151020) and head-down profile (~151017); 1DA25AI008 extreme profiles/looking down; 1DA25AI009 looking up and profile; 1DA23AI042 many strong yaw/pitch poses and one blurred head turn (~111854). They match the pose goals but may cost accuracy.
+- Multi-face crops are tagged F2..F3 on the sheets. In the sampled sheets the chosen face was the correct person except for the identity-check failures listed above.
