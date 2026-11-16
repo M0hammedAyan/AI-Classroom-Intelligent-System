@@ -1,33 +1,45 @@
 # Backend
-fastapi>=0.111.0
-uvicorn[standard]>=0.29.0
-gunicorn>=23.0.0
-sqlalchemy>=2.0.0
-pyjwt>=2.8.0
-bcrypt>=4.1.0
-python-multipart>=0.0.9
+# fastapi is held below 0.137: newer releases change app.routes (included
+# routers are no longer flattened), which breaks the route-inventory security test.
+fastapi>=0.111.0,<0.137
+starlette==1.10.0
+uvicorn[standard]==0.54.0
+gunicorn>=23.0.0; sys_platform != "win32"
+sqlalchemy==2.1.6
+pydantic==2.14.2
+pyjwt==2.15.1
+bcrypt==5.0.0
+python-multipart==0.0.33
+httpx==0.28.1
+psutil==7.2.2
+python-dotenv==1.2.1
 psycopg2-binary>=2.9.9
-reportlab>=5.0.0
-
+reportlab==5.1.0
+python-docx==1.2.0
+requests==2.34.2
 # Caching & Queues
-
 # ML
-scikit-learn>=1.9.0
-xgboost>=3.0.0
-pandas>=2.0.0
-numpy>=2.0.0
-shap>=0.51.0
-
+scikit-learn==1.9.1
+xgboost==3.2.0
+pandas==3.1.0
+numpy==2.4.6
+shap==0.51.0
+matplotlib==3.11.2
 # Vision
-insightface>=1.0.0
-onnxruntime>=1.27.0
-opencv-python>=4.8.0
-albumentations>=1.4.0
-torch>=2.0.0
-torchvision>=0.15.0
-
+insightface==2.0
+onnxruntime==1.29.0
+# insightface needs opencv-python, albumentations pulls opencv-python-headless;
+# both ship cv2, so keep them on the same version
+opencv-python==5.0.0.93
+opencv-python-headless==5.0.0.93
+albumentations==2.0.8
+pillow==13.0.0
+# CPU builds: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch==2.15.0
+torchvision==0.29.2
 # WebSocket
-websockets>=12.0
-
+websockets==17.4
 # Scheduling
-apscheduler>=3.10.0
+apscheduler==3.11.0
+# Tests
+pytest==9.2.0
