@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime, timezone
 
 import bcrypt
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -972,6 +972,7 @@ def create_subject(
 @router.get("/subjects")
 def list_subjects(
     department_id: str | None = None,
+    include_inactive: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -981,8 +982,11 @@ def list_subjects(
     - HOS: subjects in their school's departments
     - HOP: subjects in their department only
     - Teacher/Mentor/Student: subjects in their department
+    Inactive subjects are hidden by default unless include_inactive=True.
     """
     query = db.query(Subject)
+    if not include_inactive:
+        query = query.filter(Subject.is_active == True)
 
     if current_user.role == "hos":
         # Get all department IDs in this school
@@ -998,7 +1002,7 @@ def list_subjects(
     subjects = query.all()
     return {
         "subjects": [
-            {"id": s.id, "name": s.name, "code": s.code, "department_id": s.department_id, "semester": s.semester}
+            {"id": s.id, "name": s.name, "code": s.code, "department_id": s.department_id, "semester": s.semester, "is_active": s.is_active}
             for s in subjects
         ],
         "total": len(subjects),

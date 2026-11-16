@@ -19,7 +19,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .db import create_tables, seed_demo_data, SessionLocal
-from .routes import auth, attendance, students, risk, export, enroll, lms, admin, dashboards, student_portal, notifications, reports, academics, coach
+from .routes import auth, attendance, students, risk, export, enroll, lms, admin, dashboards, student_portal, notifications, reports, academics, coach, timetable
 from .websocket import ws_manager
 
 app = FastAPI(title="VISTA API", version="1.0.0")
@@ -92,6 +92,7 @@ app.include_router(dashboards.router)
 app.include_router(student_portal.router)
 app.include_router(notifications.router)
 app.include_router(reports.router)
+app.include_router(timetable.router)
 app.include_router(academics.router)
 
 

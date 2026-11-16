@@ -32,6 +32,7 @@ class Student(Base):
     usn_updated = Column(Boolean, nullable=False, default=False)  # True after first USN update
     phone = Column(Text, nullable=True)
     extracurricular = Column(Text, nullable=True)      # JSON array of activities
+    batch = Column(Text, nullable=True)                # Lab batch (e.g. B1, B2, B3)
 
     classroom = relationship("Classroom", back_populates="students")
     attendance_records = relationship("Attendance", back_populates="student")

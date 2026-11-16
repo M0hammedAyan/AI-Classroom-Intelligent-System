@@ -28,11 +28,11 @@ PASS = "✓"
 FAIL = "✗"
 
 
-def _check(condition: bool, msg: str) -> bool:
+def _check(condition: bool, msg: str) -> None:
     mark = PASS if condition else FAIL
     status = "PASS" if condition else "FAIL"
     print(f"  {mark} [{status}] {msg}")
-    return condition
+    assert condition, msg
 
 
 def _section(title: str) -> None:
@@ -45,7 +45,7 @@ def _section(title: str) -> None:
 # Test 1: Module imports
 # ---------------------------------------------------------------------------
 
-def test_imports() -> bool:
+def test_imports() -> None:
     _section("Test 1 — Module Imports")
     try:
         from vista.vision.detect import FaceDetector, get_detector
@@ -53,16 +53,16 @@ def test_imports() -> bool:
         from vista.vision.match import FaceMatcher, cosine_similarity
         from vista.vision.liveness import check_liveness
         from vista.vision.recognize import recognize
-        return _check(True, "All vision module imports successful")
+        _check(True, "All vision module imports successful")
     except ImportError as exc:
-        return _check(False, f"Import failed: {exc}")
+        _check(False, f"Import failed: {exc}")
 
 
 # ---------------------------------------------------------------------------
 # Test 2: Cosine similarity correctness
 # ---------------------------------------------------------------------------
 
-def test_cosine_similarity() -> bool:
+def test_cosine_similarity() -> None:
     _section("Test 2 — Cosine Similarity")
     from vista.vision.match import cosine_similarity
 
@@ -83,14 +83,14 @@ def test_cosine_similarity() -> bool:
     sim = cosine_similarity(a, c)
     ok3 = _check(abs(sim + 1.0) < 1e-6, f"Opposite vectors: sim={sim:.6f} (expected -1.0)")
 
-    return ok1 and ok2 and ok3
+    # assertions verified via _check
 
 
 # ---------------------------------------------------------------------------
 # Test 3: Face Matcher logic
 # ---------------------------------------------------------------------------
 
-def test_matcher() -> bool:
+def test_matcher() -> None:
     _section("Test 3 — Face Matcher Logic")
     from vista.vision.match import FaceMatcher
 
@@ -123,14 +123,14 @@ def test_matcher() -> bool:
     result = matcher.match(emb_a, {})
     ok4 = _check(result["student_id"] is None, "Empty gallery returns None")
 
-    return ok1 and ok2 and ok3 and ok4
+    # assertions verified via _check and ok4
 
 
 # ---------------------------------------------------------------------------
 # Test 4: Embedding utilities
 # ---------------------------------------------------------------------------
 
-def test_embeddings() -> bool:
+def test_embeddings() -> None:
     _section("Test 4 — Embedding Utilities")
     from vista.vision.embed import normalize_embedding, average_embeddings, embedding_to_list, list_to_embedding
 
@@ -152,10 +152,10 @@ def test_embeddings() -> bool:
     diff = np.max(np.abs(original - restored))
     ok3 = _check(diff < 1e-5, f"Serialization round-trip: max diff = {diff:.2e}")
 
-    return ok1 and ok2 and ok3
+    # assertions verified via _check
 
 
-def test_db_gallery_match_preferred() -> bool:
+def test_db_gallery_match_preferred() -> None:
     _section("Test 5 — DB Gallery Matching")
     import importlib
     rec = importlib.import_module("vista.vision.recognize")
@@ -173,14 +173,14 @@ def test_db_gallery_match_preferred() -> bool:
     result = rec._classify_detected_face("ignored.jpg", face)
     ok1 = _check(result["student_id"] == "CS22B001", f"DB-gallery match selects CS22B001: {result['student_id']}")
     ok2 = _check(result["confidence"] >= 0.55, f"DB-gallery confidence is high enough: {result['confidence']:.4f}")
-    return ok1 and ok2
+    # assertions verified via _check
 
 
 # ---------------------------------------------------------------------------
 # Test 6: Liveness heuristics
 # ---------------------------------------------------------------------------
 
-def test_liveness() -> bool:
+def test_liveness() -> None:
     _section("Test 5 — Liveness Heuristics")
     from vista.vision.liveness import check_liveness
 
@@ -199,26 +199,25 @@ def test_liveness() -> bool:
     result = check_liveness(face_tiny)
     ok3 = _check(result["liveness_passed"] is False, f"Tiny face fails liveness")
 
-    return ok1 and ok2 and ok3
+    # assertions verified via _check
 
 
 # ---------------------------------------------------------------------------
 # Test 6: InsightFace model loading (requires model downloaded)
 # ---------------------------------------------------------------------------
 
-def test_model_loading() -> bool:
+def test_model_loading() -> None:
     _section("Test 6 — InsightFace Model Loading")
     try:
         from vista.vision.detect import FaceDetector
         detector = FaceDetector()
         detector._ensure_loaded()
-        ok = _check(detector._app is not None, "InsightFace model loaded successfully")
-        return ok
+        _check(detector._app is not None, "InsightFace model loaded successfully")
     except Exception as exc:
         _check(False, f"Model loading failed: {exc}")
         print("  → This is expected if the model hasn't finished downloading.")
         print("  → Run: python -c \"from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider']).prepare(ctx_id=-1)\"")
-        return False
+        raise exc
 
 
 # ---------------------------------------------------------------------------
@@ -244,10 +243,8 @@ def main() -> None:
 
     for name, test_fn in tests:
         try:
-            if test_fn():
-                passed += 1
-            else:
-                failed += 1
+            test_fn()
+            passed += 1
         except Exception as exc:
             print(f"  {FAIL} [ERROR] {name} raised: {exc}")
             failed += 1

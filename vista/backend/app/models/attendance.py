@@ -27,6 +27,10 @@ class Attendance(Base):
     is_manual_override = Column(Boolean, nullable=False, default=False)
     override_note = Column(Text, nullable=True)
     source = Column(Text, nullable=False, default="face")  # face | manual | seed
+    slot_id = Column(Text, ForeignKey("timetable_slots.id"), nullable=True)
+    period_label = Column(Text, nullable=True)
+    is_extra_class = Column(Boolean, nullable=False, default=False)
+    extra_class_reason = Column(Text, nullable=True)
     created_at = Column(Text, nullable=False)
 
     student = relationship("Student", back_populates="attendance_records")

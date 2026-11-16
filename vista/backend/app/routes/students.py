@@ -96,7 +96,7 @@ def list_students(
     query = _get_scoped_student_query(db, current_user)
 
     if class_code:
-        query = query.filter(Student.class_ == class_code)
+        query = query.filter((Student.class_ == class_code) | (Student.classroom_id == class_code))
     if search:
         query = query.filter(
             (Student.name.ilike(f"%{search}%")) | (Student.student_id.ilike(f"%{search}%"))

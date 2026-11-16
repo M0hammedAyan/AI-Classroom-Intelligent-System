@@ -6,6 +6,7 @@ from .intervention import Intervention
 from .audit import AuditLog
 from .notification import Notification, NotificationRead
 from .chat import ChatMessage
+from .capture import CaptureEvent
 from .timetable import TimetableSlot, Announcement, StudyMaterial, Assignment, AssignmentSubmission, SemesterResult, ParentContact, ParentAlert
 
 __all__ = [
@@ -13,7 +14,7 @@ __all__ = [
     "School", "Department", "ClassSection", "Subject",
     "MentorAssignment", "TeacherSubjectAssignment", "AccessRequest",
     "Intervention", "AuditLog", "Notification", "NotificationRead",
-    "ChatMessage", "TimetableSlot", "Announcement", "StudyMaterial",
+    "ChatMessage", "CaptureEvent", "TimetableSlot", "Announcement", "StudyMaterial",
     "Assignment", "AssignmentSubmission", "SemesterResult",
     "ParentContact", "ParentAlert",
 ]

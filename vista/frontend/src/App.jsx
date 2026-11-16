@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import StudentTimetableView from './components/StudentTimetableView';
+import StudentReportView from './components/StudentReportView';
+import TeacherScheduleView from './components/TeacherScheduleView';
+import TeacherReportView from './components/TeacherReportView';
+import CaptureHistoryView from './components/CaptureHistoryView';
+import AdminTimetableView from './components/AdminTimetableView';
 import {
+  downloadStudentPdf,
   login,
   getStudents,
   getStudentAcademicRecord,
@@ -143,7 +150,7 @@ function Login({ onLogin }) {
     <section className="login-panel"><div className="brand-mark">V</div><p className="eyebrow">VISTA / ATTENDANCE</p>
       <h1>Attendance,<br /><em>without the guesswork.</em></h1>
       <p className="login-copy">Recognise the room in seconds, then keep the teacher in control when AI needs a human correction.</p>
-      <div className="login-points"><span>ΓùÅ Live camera capture</span><span>ΓùÅ Upload fallback</span><span>ΓùÅ Manual overrides</span></div>
+      <div className="login-points"><span>● Live camera capture</span><span>● Upload fallback</span><span>● Manual overrides</span></div>
     </section>
     <form className="login-card" onSubmit={submit}><p className="eyebrow">Teacher workspace</p><h2>Sign in to continue</h2>
       <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required /></label>
@@ -427,7 +434,7 @@ function CoachTipCard({ onOpenCoach }) {
         </div>
       </div>
       <button type="button" className="primary" style={{ whiteSpace: 'nowrap', fontSize: 12, padding: '8px 14px' }} onClick={onOpenCoach}>
-        Ask Coach ΓåÆ
+        Ask Coach →
       </button>
     </div>
   );
@@ -685,6 +692,7 @@ function StudentSubjectModal({ subjectId, onClose }) {
 }
 
 function StudentWorkspace({ auth, onLogout }) {
+  const [studentTab, setStudentTab] = useState('overview');
   const [dashboard, setDashboard] = useState(null);
   const [attendance, setAttendance] = useState(null);
   const [scores, setScores] = useState(null);
@@ -725,12 +733,39 @@ function StudentWorkspace({ auth, onLogout }) {
           <div>
             <p className="eyebrow">Student portal / read only</p>
             <h1>My academic view</h1>
-            <p>View your attendance and marks across all 4th Year AIML subjects. Click any subject for complete history.</p>
+            <p>View your attendance, timetable, and comprehensive CIE performance records.</p>
           </div>
         </div>
+
+        <div className="tabs-nav" style={{ marginTop: 20 }}>
+          <button
+            className={studentTab === 'overview' ? 'active' : ''}
+            onClick={() => setStudentTab('overview')}
+          >
+            Academic Overview
+          </button>
+          <button
+            className={studentTab === 'timetable' ? 'active' : ''}
+            onClick={() => setStudentTab('timetable')}
+          >
+            📅 Weekly Timetable
+          </button>
+          <button
+            className={studentTab === 'report' ? 'active' : ''}
+            onClick={() => setStudentTab('report')}
+          >
+            📄 My Comprehensive Report & Risk
+          </button>
+        </div>
         {error && <p className="error">{error}</p>}
-        <CoachTipCard onOpenCoach={() => setShowCoach(true)} />
-        <section className="stats">
+
+        {studentTab === 'timetable' && <StudentTimetableView />}
+        {studentTab === 'report' && <StudentReportView studentId={auth?.student_id || auth?.id} />}
+
+        {studentTab === 'overview' && (
+          <>
+            <CoachTipCard onOpenCoach={() => setShowCoach(true)} />
+            <section className="stats">
           <div>
             <span>Attendance</span>
             <strong className="green">{attendanceDisplay}</strong>
@@ -767,7 +802,7 @@ function StudentWorkspace({ auth, onLogout }) {
                 >
                   <span>
                     {item.subject_name}
-                    <small>{item.subject_code}  ·  Click to view ΓåÆ</small>
+                    <small>{item.subject_code}  ·  Click to view →</small>
                   </span>
                   <b>
                     {item.attendance_pct !== null ? `${item.attendance_pct}%` : 'No sessions'}  ·  {item.sessions_attended}/{item.total_sessions}
@@ -812,6 +847,8 @@ function StudentWorkspace({ auth, onLogout }) {
             subjectId={selectedSubjectId}
             onClose={() => setSelectedSubjectId(null)}
           />
+        )}
+          </>
         )}
 
         <button
@@ -1240,7 +1277,16 @@ function StudentDetail({ studentId, onBack, auth }) {
           <h1>{record.student.name}</h1>
           <p>{record.student.student_id}  ·  {record.student.class || '4th Year AIML'}</p>
         </div>
-        {auth.role !== 'student' && <button className="primary" onClick={() => setShowMarks(true)}>Add marks</button>}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button
+            className="secondary"
+            onClick={() => downloadStudentPdf(studentId, record.student.name)}
+            title="Download comprehensive PDF academic report"
+          >
+            📄 Download PDF Report
+          </button>
+          {auth.role !== 'student' && <button className="primary" onClick={() => setShowMarks(true)}>Add marks</button>}
+        </div>
       </div>
       {error && <p className="error">{error}</p>}
       <section className="stats">
@@ -1276,14 +1322,14 @@ function StudentDetail({ studentId, onBack, auth }) {
             ))}
           </div>
           <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>
-            {faceImages.has_embedding ? `Γ£à Face embedding active (enrolled ${faceImages.enrolled_at ? faceImages.enrolled_at.slice(0, 10) : 'previously'})` : 'ΓÜá∩╕Å No face embedding - not enrolled for face recognition.'}
+            {faceImages.has_embedding ? `✓ Face embedding active (enrolled ${faceImages.enrolled_at ? faceImages.enrolled_at.slice(0, 10) : 'previously'})` : '⚠️ No face embedding - not enrolled for face recognition.'}
           </p>
         </section>
       )}
       {faceImages && faceImages.total === 0 && (
         <section className="card" style={{ marginBottom: '1rem' }}>
           <div className="card-title"><div><p className="eyebrow">Face enrollment</p><h2>No enrollment photos</h2></div></div>
-          <p style={{ opacity: 0.6 }}>No face images found on disk for {studentId}. Upload enrollment photos via the Admin ΓåÆ Students ΓåÆ Enrol face button.</p>
+          <p style={{ opacity: 0.6 }}>No face images found on disk for {studentId}. Upload enrollment photos via the Admin → Students → Enrol face button.</p>
         </section>
       )}
       <section className="detail-grid">
@@ -1364,6 +1410,7 @@ function StudentDetail({ studentId, onBack, auth }) {
 }
 
 function AdminWorkspace({ auth, onLogout }) {
+  const [adminTab, setAdminTab] = useState('directory');
   const [users, setUsers] = useState([]);
   const [showComposeNotif, setShowComposeNotif] = useState(false);
   const [students, setStudents] = useState(ROSTER);
@@ -1538,8 +1585,47 @@ function AdminWorkspace({ auth, onLogout }) {
           </button>
         </div>
 
+        <div className="tabs-nav" style={{ marginTop: 20 }}>
+          <button
+            className={adminTab === 'directory' ? 'active' : ''}
+            onClick={() => setAdminTab('directory')}
+          >
+            Academic Directory & Roster
+          </button>
+          <button
+            className={adminTab === 'timetable' ? 'active' : ''}
+            onClick={() => setAdminTab('timetable')}
+          >
+            📅 Timetable & Batch Manager
+          </button>
+          <button
+            className={adminTab === 'captures' ? 'active' : ''}
+            onClick={() => setAdminTab('captures')}
+          >
+            🛡️ Face Capture Audit Log
+          </button>
+        </div>
+
         {error && !editor && <p className="error">{error}</p>}
 
+        {adminTab === 'timetable' && (
+          <AdminTimetableView
+            selectedClassId={
+              selectedClass
+                ? (classes.find((c) => c.code === selectedClass || c.id === selectedClass)?.id || selectedClass)
+                : (classes[0]?.id || 'class-aiml-4a')
+            }
+          />
+        )}
+        {adminTab === 'captures' && (
+          <CaptureHistoryView
+            userRole="admin"
+            classId={classes.find((c) => c.code === selectedClass || c.id === selectedClass)?.id || ''}
+          />
+        )}
+
+        {adminTab === 'directory' && (
+          <>
         {editor && (
           <div className="editor-overlay" role="presentation">
             <form className="card editor-form" onSubmit={saveEditor}>
@@ -1600,28 +1686,91 @@ function AdminWorkspace({ auth, onLogout }) {
           </div>
         )}
 
-        <section className="stats">
-          <div><span>Students</span><strong>{students.length}</strong><small>view and manage roster</small></div>
-          <div><span>Teachers</span><strong>{users.filter((u) => u.role === 'teacher').length}</strong><small>subject instructors</small></div>
-          <div><span>Subjects</span><strong>{subjects.length || SUBJECTS.length}</strong><small>configured curriculum</small></div>
+        {/* Class Selection & Quick Filter Banner */}
+        <section className="card" style={{ marginBottom: 20, padding: '16px 22px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+            <div>
+              <p className="eyebrow" style={{ margin: 0 }}>Class Scope Filter</p>
+              <h3 style={{ margin: '4px 0 0', fontSize: 16 }}>
+                {selectedClass
+                  ? `Viewing: ${classes.find((c) => c.code === selectedClass || c.id === selectedClass)?.name || selectedClass}`
+                  : 'Viewing: All Classes (Department Overview)'}
+              </h3>
+            </div>
+            <button className="secondary" onClick={() => openEditor('class')} style={{ fontSize: 12, padding: '6px 14px' }}>
+              + Add Class / Division
+            </button>
+          </div>
+
+          <div className="class-list" style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            <button
+              type="button"
+              className={`class-chip ${!selectedClass ? 'selected' : ''}`}
+              onClick={() => setSelectedClass('')}
+              style={{ padding: '10px 16px' }}
+            >
+              🌐 All Classes (Department Overview)
+              <small>{classes.length} classes · {students.length} students</small>
+            </button>
+
+            {classes.map((cs) => {
+              const classStudCount = students.filter(
+                (s) => s.class === cs.name || s.class_code === cs.code || s.classroom_id === cs.id
+              ).length;
+              const isSelected = selectedClass === cs.code || selectedClass === cs.id;
+
+              return (
+                <button
+                  type="button"
+                  className={`class-chip ${isSelected ? 'selected' : ''}`}
+                  key={cs.id}
+                  onClick={() => setSelectedClass(isSelected ? '' : cs.code)}
+                  style={{ padding: '10px 16px' }}
+                >
+                  {cs.name}
+                  <small>{cs.code} · {classStudCount} students · Sem {cs.semester || '-'}</small>
+                </button>
+              );
+            })}
+          </div>
         </section>
 
-        <section className="card class-manager">
-          <div className="card-title">
-            <div><p className="eyebrow">Class organization</p><h2>Classes and divisions</h2></div>
-            <button className="primary" onClick={() => openEditor('class')}>Add class</button>
+        {/* Dynamic Context-Aware Dashboard Statistics */}
+        <section className="stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          <div>
+            <span>{selectedClass ? 'Class Division' : 'Class Sections'}</span>
+            <strong style={{ fontSize: selectedClass ? 24 : 36, color: '#102b2b' }}>
+              {selectedClass
+                ? (classes.find((c) => c.code === selectedClass || c.id === selectedClass)?.code || selectedClass)
+                : classes.length}
+            </strong>
+            <small>
+              {selectedClass
+                ? (classes.find((c) => c.code === selectedClass || c.id === selectedClass)?.name || 'Active section')
+                : 'configured sections'}
+            </small>
           </div>
-          <div className="class-list">
-            {classes.map((cs) => (
-              <button
-                type="button"
-                className={`class-chip ${selectedClass === cs.code ? 'selected' : ''}`}
-                key={cs.id}
-                onClick={() => setSelectedClass(selectedClass === cs.code ? '' : cs.code)}
-              >
-                {cs.name}<small>{cs.code}</small>
-              </button>
-            ))}
+
+          <div>
+            <span>Enrolled Students</span>
+            <strong className="green">{filteredStudents.length}</strong>
+            <small>{selectedClass ? `in ${selectedClass}` : 'total across department'}</small>
+          </div>
+
+          <div>
+            <span>Teaching Faculty</span>
+            <strong>{users.filter((u) => u.role === 'teacher').length}</strong>
+            <small>instructors</small>
+          </div>
+
+          <div>
+            <span>Curriculum Subjects</span>
+            <strong>
+              {selectedClass
+                ? subjects.filter((s) => s.semester === (classes.find((c) => c.code === selectedClass || c.id === selectedClass)?.semester || '7')).length || subjects.length
+                : subjects.length || SUBJECTS.length}
+            </strong>
+            <small>{selectedClass ? 'semester modules' : 'total course modules'}</small>
           </div>
         </section>
 
@@ -1723,12 +1872,15 @@ function AdminWorkspace({ auth, onLogout }) {
           user={auth}
           assignedSubjects={subjects.length ? subjects : SUBJECTS.map((s) => ({ name: s[0], code: s[1] }))}
         />
+          </>
+        )}
       </main>
     </div>
   );
 }
 
 function AttendanceWorkspace({ auth, onLogout }) {
+  const [teacherTab, setTeacherTab] = useState('attendance');
   const [assignments, setAssignments] = useState([]);
   const [students, setStudents] = useState(ROSTER);
   const [subject, setSubject] = useState(SUBJECTS[0][1]);
@@ -1950,6 +2102,48 @@ function AttendanceWorkspace({ auth, onLogout }) {
           </div>
         </div>
 
+        <div className="tabs-nav" style={{ marginTop: 20 }}>
+          <button
+            className={teacherTab === 'attendance' ? 'active' : ''}
+            onClick={() => setTeacherTab('attendance')}
+          >
+            📸 Mark Attendance
+          </button>
+          <button
+            className={teacherTab === 'schedule' ? 'active' : ''}
+            onClick={() => setTeacherTab('schedule')}
+          >
+            📅 My Schedule & Classes
+          </button>
+          <button
+            className={teacherTab === 'report' ? 'active' : ''}
+            onClick={() => setTeacherTab('report')}
+          >
+            📊 Teaching Performance Report
+          </button>
+          <button
+            className={teacherTab === 'captures' ? 'active' : ''}
+            onClick={() => setTeacherTab('captures')}
+          >
+            🛡️ Capture History (Audit)
+          </button>
+        </div>
+
+        {teacherTab === 'schedule' && (
+          <TeacherScheduleView
+            onTakeAttendanceForSlot={(slot) => {
+              if (slot.subject_code) setSubject(slot.subject_code);
+              if (slot.class_code) setClassroom(slot.class_code);
+              setTeacherTab('attendance');
+            }}
+          />
+        )}
+
+        {teacherTab === 'report' && <TeacherReportView />}
+        {teacherTab === 'captures' && <CaptureHistoryView userRole="teacher" />}
+
+        {teacherTab === 'attendance' && (
+          <>
         <section className="stats">
           <div><span>Present</span><strong className="green">{present}</strong><small>of {total} students</small></div>
           <div><span>Absent</span><strong className="red">{absent}</strong><small>can be edited below</small></div>
@@ -1958,7 +2152,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
 
         <div className="content-grid">
           <section className="card capture-card">
-            <div className="card-title"><div><p className="eyebrow">01 / Capture</p><h2>Class image</h2></div><span className="live-dot">ΓùÅ Ready</span></div>
+            <div className="card-title"><div><p className="eyebrow">01 / Capture</p><h2>Class image</h2></div><span className="live-dot">● Ready</span></div>
             <div className={`camera-frame ${preview ? 'has-preview' : ''}`}>
               {preview ? (
                 <img src={preview} alt="Class capture preview" />
@@ -2097,6 +2291,8 @@ function AttendanceWorkspace({ auth, onLogout }) {
           user={auth}
           assignedSubjects={assignments.length ? assignments : SUBJECTS.map((s) => ({ name: s[0], code: s[1] }))}
         />
+          </>
+        )}
       </main>
     </div>
   );

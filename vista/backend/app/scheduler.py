@@ -7,7 +7,7 @@ Runs background tasks on a schedule:
 
 Usage:
     Called from main.py on startup. Runs in-process (not a separate worker).
-    For production, consider Celery + Redis instead.
+    Runs in-process with APScheduler.
 """
 from __future__ import annotations
 

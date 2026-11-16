@@ -10,13 +10,13 @@ async function request(path, options = {}) {
   if (response.status === 401) { localStorage.removeItem('vista_auth'); window.location.reload(); }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail?.message || error.error?.message || response.statusText);
+    throw new Error(error.detail?.message || error.detail || error.error?.message || response.statusText);
   }
   return response.json();
 }
 
 export const login = (email, password) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-export const getStudents = (page = 1, pageSize = 100) => request(`/students?page=${page}&page_size=${pageSize}`);
+export const getStudents = (page = 1, pageSize = 100, classCode = '') => request(`/students?page=${page}&page_size=${pageSize}${classCode ? `&class_code=${encodeURIComponent(classCode)}` : ''}`);
 export const getStudentAcademicRecord = (studentId) => request(`/students/${encodeURIComponent(studentId)}/academic-record`);
 export const getStudentImages = (studentId) => request(`/students/${encodeURIComponent(studentId)}/images`);
 export const getTeacherSubjects = () => request('/admin/teacher/my-subjects');
@@ -60,3 +60,101 @@ export const coachChat = (message) => request('/coach/chat', { method: 'POST', b
 export const getCoachHistory = (limit = 50) => request(`/coach/history?limit=${limit}`);
 export const clearCoachHistory = () => request('/coach/history', { method: 'DELETE' });
 export const getCoachSummary = () => request('/coach/summary');
+
+// Timetable
+export const getStudentTimetable = () => request('/timetable/student');
+export const getTeacherTimetable = () => request('/timetable/teacher');
+export const getClassTimetable = (classSectionId) => request(`/timetable/class/${encodeURIComponent(classSectionId)}`);
+export const getAdminTimetable = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return request(`/timetable/admin${query ? `?${query}` : ''}`);
+};
+export const createTimetableSlot = (body) => request('/timetable/slots', { method: 'POST', body: JSON.stringify(body) });
+export const updateTimetableSlot = (id, body) => request(`/timetable/slots/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(body) });
+export const deleteTimetableSlot = (id) => request(`/timetable/slots/${encodeURIComponent(id)}`, { method: 'DELETE' });
+export const assignStudentBatch = (studentId, batch) => request(`/timetable/admin/students/${encodeURIComponent(studentId)}/batch`, { method: 'PATCH', body: JSON.stringify({ batch }) });
+
+// Reports
+export const getMyStudentReport = () => request('/reports/student/me');
+export const getStudentReport = (studentId) => request(`/reports/student/${encodeURIComponent(studentId)}`);
+export const getMyTeacherReport = () => request('/reports/teacher/me');
+export const getTeacherReport = (teacherId) => request(`/reports/teacher/${encodeURIComponent(teacherId)}`);
+
+const _downloadFile = async (url, filename) => {
+  const headers = token() ? { Authorization: `Bearer ${token()}` } : {};
+  const response = await fetch(url, { headers });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail?.message || error.detail || 'Download failed');
+  }
+  const blob = await response.blob();
+  const objectUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(objectUrl);
+};
+
+export const downloadStudentPdf = async (studentId, studentName = 'student') => {
+  const safe = studentName.replace(/\s+/g, '_');
+  await _downloadFile(
+    `${BASE_URL}/reports/student/${encodeURIComponent(studentId)}/pdf`,
+    `VISTA_Report_${studentId}_${safe}.pdf`
+  );
+};
+
+export const downloadStudentCsv = async (studentId, studentName = 'student') => {
+  const safe = studentName.replace(/\s+/g, '_');
+  await _downloadFile(
+    `${BASE_URL}/reports/student/${encodeURIComponent(studentId)}/csv`,
+    `VISTA_Report_${studentId}_${safe}.csv`
+  );
+};
+
+export const downloadTeacherPdf = async (teacherId, teacherName = 'teacher') => {
+  const safe = teacherName.replace(/\s+/g, '_');
+  await _downloadFile(
+    `${BASE_URL}/reports/teacher/${encodeURIComponent(teacherId)}/pdf`,
+    `VISTA_Teacher_Report_${safe}.pdf`
+  );
+};
+
+export const downloadTeacherCsv = async (teacherId, teacherName = 'teacher') => {
+  const safe = teacherName.replace(/\s+/g, '_');
+  await _downloadFile(
+    `${BASE_URL}/reports/teacher/${encodeURIComponent(teacherId)}/csv`,
+    `VISTA_Teacher_Report_${safe}.csv`
+  );
+};
+
+export const downloadMyStudentCsv = async (studentId) => {
+  await _downloadFile(
+    `${BASE_URL}/reports/student/me/csv`,
+    `VISTA_My_Report_${studentId}.csv`
+  );
+};
+
+export const downloadMyTeacherPdf = async (teacherName = 'teacher') => {
+  const safe = teacherName.replace(/\s+/g, '_');
+  await _downloadFile(
+    `${BASE_URL}/reports/teacher/me/pdf`,
+    `VISTA_My_Teaching_Report_${safe}.pdf`
+  );
+};
+
+export const downloadMyTeacherCsv = async (teacherName = 'teacher') => {
+  const safe = teacherName.replace(/\s+/g, '_');
+  await _downloadFile(
+    `${BASE_URL}/reports/teacher/me/csv`,
+    `VISTA_My_Teaching_Report_${safe}.csv`
+  );
+};
+
+// Capture History
+export const getCaptureHistory = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return request(`/attendance/capture-history${query ? `?${query}` : ''}`);
+};

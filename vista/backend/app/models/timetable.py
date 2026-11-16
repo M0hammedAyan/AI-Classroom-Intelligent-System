@@ -11,12 +11,17 @@ class TimetableSlot(Base):
 
     id = Column(Text, primary_key=True)
     class_section_id = Column(Text, ForeignKey("class_sections.id"), nullable=False)
-    subject_id = Column(Text, ForeignKey("subjects.id"), nullable=False)
+    subject_id = Column(Text, ForeignKey("subjects.id"), nullable=True)
     teacher_id = Column(Text, ForeignKey("users.id"), nullable=True)
-    day_of_week = Column(Integer, nullable=False)  # 0=Monday, 1=Tuesday ... 4=Friday
+    day_of_week = Column(Integer, nullable=False)  # 0=Monday ... 5=Saturday
     start_time = Column(Text, nullable=False)       # "09:00"
-    end_time = Column(Text, nullable=False)         # "10:00"
-    room = Column(Text, nullable=True)              # "Room 301"
+    end_time = Column(Text, nullable=False)         # "09:55"
+    room = Column(Text, nullable=True)              # "Room A-302"
+    period_label = Column(Text, nullable=True)      # "S1", "S2", "TEA BREAK", "LUNCH"
+    slot_type = Column(Text, nullable=False, default="teaching")  # teaching | lab | free | break | non_teaching
+    batch = Column(Text, nullable=True)             # "B1", "B2", "B3" or None
+    is_unconfirmed = Column(Boolean, default=False)
+    effective_from = Column(Text, nullable=True)    # "2026-08-03"
     is_active = Column(Boolean, default=True)
     created_at = Column(Text, nullable=False)
 

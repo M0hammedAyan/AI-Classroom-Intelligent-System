@@ -5,14 +5,23 @@ import json
 import os
 import tempfile
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..db import get_db
+import hashlib
 from ..models.attendance import Attendance
+from ..models.timetable import TimetableSlot
+from ..models.capture import CaptureEvent
+from ..time_utils import (
+    get_current_ist_datetime,
+    get_ist_day_of_week,
+    get_ist_time_str,
+    time_to_minutes,
+)
 from ..models.student import Student
 from ..models.organization import TeacherSubjectAssignment, Subject, ClassSection
 from ..routes.auth import get_current_user
@@ -27,6 +36,10 @@ class MarkRequest(BaseModel):
     classroom_id: str
     session_date: str    # YYYY-MM-DD
     subject_id: str | None = None  # Optional: for per-subject attendance
+    slot_id: str | None = None
+    is_extra_class: bool = False
+    extra_class_reason: str | None = None
+    source: str = "camera"  # 'camera' | 'upload'
 
 
 class PatchRequest(BaseModel):
@@ -41,6 +54,59 @@ class ManualAttendanceRequest(BaseModel):
     subject_id: str | None = None
     status: str
     note: str | None = None
+    slot_id: str | None = None
+    period_label: str | None = None
+
+
+
+def _resolve_active_slot_for_capture(
+    db: Session,
+    current_user,
+    classroom_id: str,
+    subject_id: str | None,
+    grace_minutes: int = 10,
+) -> tuple[TimetableSlot | None, bool]:
+    """
+    Auto-resolves current active timetable slot for caller using server IST time.
+    Returns (matched_slot, is_within_grace).
+    """
+    ist_now = get_current_ist_datetime()
+    dow = get_ist_day_of_week(ist_now)
+    time_str = get_ist_time_str(ist_now)
+    curr_min = time_to_minutes(time_str)
+
+    cs = db.query(ClassSection).filter(
+        (ClassSection.id == classroom_id) | (ClassSection.code == classroom_id) | (ClassSection.name == classroom_id)
+    ).first()
+    cid = cs.id if cs else classroom_id
+
+    query = db.query(TimetableSlot).filter(
+        TimetableSlot.class_section_id == cid,
+        TimetableSlot.day_of_week == dow,
+        TimetableSlot.is_active == True,
+    )
+    if current_user.role == "teacher":
+        query = query.filter((TimetableSlot.teacher_id == current_user.id) | (TimetableSlot.teacher_id == None))
+    if subject_id:
+        query = query.filter((TimetableSlot.subject_id == subject_id) | (TimetableSlot.subject_id == None))
+
+    slots = query.all()
+
+    # Exact active period match
+    for s in slots:
+        st_m = time_to_minutes(s.start_time)
+        et_m = time_to_minutes(s.end_time)
+        if st_m <= curr_min <= et_m:
+            return s, False
+
+    # Within grace window (+/- 10 mins)
+    for s in slots:
+        st_m = time_to_minutes(s.start_time)
+        et_m = time_to_minutes(s.end_time)
+        if (st_m - grace_minutes <= curr_min < st_m) or (et_m < curr_min <= et_m + grace_minutes):
+            return s, True
+
+    return None, False
 
 
 def _check_attendance_scope(db: Session, current_user, classroom_id: str, subject_id: str | None):
@@ -217,6 +283,53 @@ def mark_attendance_batch(
     if len(image_bytes) > MAX_IMAGE_BYTES:
         raise HTTPException(status_code=400, detail={"code": "UPLOAD_TOO_LARGE", "message": "Image exceeds 30 MB limit."})
 
+    # Compute cryptographic hash of image bytes (NO RAW IMAGES OR EMBEDDINGS STORED)
+    image_sha256 = hashlib.sha256(image_bytes).hexdigest()
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Part 2: Resolve timetable slot and scheduled period gating
+    active_slot = None
+    is_extra = body.is_extra_class
+    extra_reason = body.extra_class_reason
+
+    if body.slot_id:
+        active_slot = db.query(TimetableSlot).filter(TimetableSlot.id == body.slot_id, TimetableSlot.is_active == True).first()
+    if not active_slot:
+        active_slot, _ = _resolve_active_slot_for_capture(db, _current_user, body.classroom_id, body.subject_id)
+
+    if not active_slot and _current_user.role == "teacher" and not is_extra:
+        # Teacher capture outside scheduled period without extra class declaration
+        failed_event = CaptureEvent(
+            id=f"cap-{uuid.uuid4().hex[:12]}",
+            teacher_id=_current_user.id,
+            subject_id=body.subject_id,
+            class_id=body.classroom_id,
+            slot_id=None,
+            captured_at=now,
+            source=body.source or "camera",
+            faces_detected=0,
+            recognized_count=0,
+            unrecognized_count=0,
+            liveness_rejected_count=0,
+            duplicates_skipped=0,
+            status="failed",
+            is_extra_class=False,
+            reason="Outside scheduled period without extra class declaration.",
+            image_sha256=image_sha256,
+        )
+        db.add(failed_event)
+        db.commit()
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "OUTSIDE_SCHEDULED_PERIOD",
+                "message": "Capture is outside your scheduled period. Please mark as an 'Extra / make-up class' with a reason.",
+            },
+        )
+
+    resolved_slot_id = active_slot.id if active_slot else None
+    resolved_period = active_slot.period_label if active_slot else None
+
     # Write to temp file, call vision.recognize_all(), delete temp file
     suffix = ".jpg"
     tmp_path = None
@@ -231,10 +344,34 @@ def mark_attendance_batch(
             os.remove(tmp_path)
 
     if not vision_results:
+        # Record failed capture event
+        fail_event = CaptureEvent(
+            id=f"cap-{uuid.uuid4().hex[:12]}",
+            teacher_id=_current_user.id,
+            subject_id=body.subject_id,
+            class_id=body.classroom_id,
+            slot_id=resolved_slot_id,
+            captured_at=now,
+            source=body.source or "camera",
+            faces_detected=0,
+            recognized_count=0,
+            unrecognized_count=0,
+            liveness_rejected_count=0,
+            duplicates_skipped=0,
+            status="failed",
+            is_extra_class=is_extra,
+            reason="No faces detected in image.",
+            image_sha256=image_sha256,
+        )
+        db.add(fail_event)
+        db.commit()
         raise HTTPException(status_code=400, detail={"code": "NO_FACE_DETECTED", "message": "No faces detected in image."})
 
-    now = datetime.now(timezone.utc).isoformat()
     response_results = []
+    recognized_count = 0
+    unrecognized_count = 0
+    liveness_rejected_count = 0
+    duplicates_skipped = 0
 
     for vision_result in vision_results:
         student_id = vision_result.get("student_id")
@@ -242,6 +379,7 @@ def mark_attendance_batch(
         liveness_passed = bool(vision_result.get("liveness_passed", False))
 
         if not liveness_passed:
+            liveness_rejected_count += 1
             status = "liveness_failed"
             att = Attendance(
                 id=str(uuid.uuid4()),
@@ -249,10 +387,15 @@ def mark_attendance_batch(
                 classroom_id=body.classroom_id,
                 subject_id=body.subject_id,
                 session_date=body.session_date,
+                slot_id=resolved_slot_id,
+                period_label=resolved_period,
+                is_extra_class=is_extra,
+                extra_class_reason=extra_reason,
                 timestamp=now,
                 status=status,
                 confidence=confidence,
                 is_manual_override=False,
+                source="face",
                 created_at=now,
             )
             db.add(att)
@@ -262,7 +405,7 @@ def mark_attendance_batch(
             continue
 
         if student_id is None:
-            # Unrecognized face — no row written
+            unrecognized_count += 1
             response_results.append({
                 "student_id": None,
                 "student_name": None,
@@ -275,18 +418,22 @@ def mark_attendance_batch(
             continue
 
         status = "present"
-        existing = (
-            db.query(Attendance)
-            .filter(
-                Attendance.student_id == student_id,
-                Attendance.classroom_id == body.classroom_id,
-                Attendance.session_date == body.session_date,
-                Attendance.subject_id == body.subject_id,
-                Attendance.status == status,
-            )
-            .first()
+        recognized_count += 1
+
+        # Check existing attendance in the same slot / date
+        existing_query = db.query(Attendance).filter(
+            Attendance.student_id == student_id,
+            Attendance.classroom_id == body.classroom_id,
+            Attendance.session_date == body.session_date,
+            Attendance.subject_id == body.subject_id,
+            Attendance.status == status,
         )
+        if resolved_slot_id:
+            existing_query = existing_query.filter(Attendance.slot_id == resolved_slot_id)
+
+        existing = existing_query.first()
         if existing:
+            duplicates_skipped += 1
             response_results.append(_mark_response(existing, student_id, db, liveness_passed))
             continue
 
@@ -296,10 +443,15 @@ def mark_attendance_batch(
             classroom_id=body.classroom_id,
             subject_id=body.subject_id,
             session_date=body.session_date,
+            slot_id=resolved_slot_id,
+            period_label=resolved_period,
+            is_extra_class=is_extra,
+            extra_class_reason=extra_reason,
             timestamp=now,
             status=status,
             confidence=confidence,
             is_manual_override=False,
+            source="face",
             created_at=now,
         )
         db.add(att)
@@ -307,7 +459,38 @@ def mark_attendance_batch(
         db.refresh(att)
         response_results.append(_mark_response(att, student_id, db, liveness_passed))
 
-    return {"results": response_results, "faces_detected": len(vision_results)}
+    # Log successful CaptureEvent audit row
+    cap_event = CaptureEvent(
+        id=f"cap-{uuid.uuid4().hex[:12]}",
+        teacher_id=_current_user.id,
+        subject_id=body.subject_id,
+        class_id=body.classroom_id,
+        slot_id=resolved_slot_id,
+        captured_at=now,
+        source=body.source or "camera",
+        faces_detected=len(vision_results),
+        recognized_count=recognized_count,
+        unrecognized_count=unrecognized_count,
+        liveness_rejected_count=liveness_rejected_count,
+        duplicates_skipped=duplicates_skipped,
+        status="completed",
+        is_extra_class=is_extra,
+        reason=extra_reason if is_extra else None,
+        image_sha256=image_sha256,
+    )
+    db.add(cap_event)
+    db.commit()
+
+    return {
+        "results": response_results,
+        "faces_detected": len(vision_results),
+        "recognized_count": recognized_count,
+        "duplicates_skipped": duplicates_skipped,
+        "slot_id": resolved_slot_id,
+        "period_label": resolved_period,
+        "is_extra_class": is_extra,
+        "capture_event_id": cap_event.id,
+    }
 
 
 @router.get("/log")
@@ -959,4 +1142,100 @@ def attendance_by_subject(
             "attendance_pct": round(overall_pct, 1),
         },
         "by_subject": breakdown,
+    }
+
+
+
+# ===========================================================================
+# Part 3: Attendance Capture History
+# ===========================================================================
+from ..models.capture import CaptureEvent
+
+
+@router.get("/capture-history")
+def get_capture_history(
+    teacher_id: str | None = None,
+    class_id: str | None = None,
+    status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Retrieve audit history of face attendance capture events.
+    Access Control:
+    - Admin: can view all captures or filter by teacher_id/class_id/status.
+    - Teacher: can only view their own captures (forced to current_user.id).
+    - Student: 403 Forbidden.
+    STRICT PRIVACY: Returns only metadata and hash, never images or embeddings.
+    """
+    if current_user.role == "student":
+        raise HTTPException(status_code=403, detail="Forbidden: Students cannot access capture history.")
+
+    query = db.query(CaptureEvent)
+
+    if current_user.role == "teacher":
+        query = query.filter(CaptureEvent.teacher_id == current_user.id)
+    elif current_user.role == "admin" and teacher_id:
+        query = query.filter(CaptureEvent.teacher_id == teacher_id)
+
+    if class_id:
+        query = query.filter(CaptureEvent.class_id == class_id)
+    if status:
+        query = query.filter(CaptureEvent.status == status)
+
+    total = query.count()
+    events = (
+        query.order_by(CaptureEvent.captured_at.desc())
+        .offset(max(0, offset))
+        .limit(min(100, max(1, limit)))
+        .all()
+    )
+
+    items = []
+    for e in events:
+        items.append({
+            "id": e.id,
+            "teacher_id": e.teacher_id,
+            "subject_id": e.subject_id,
+            "class_id": e.class_id,
+            "slot_id": e.slot_id,
+            "captured_at": e.captured_at,
+            "source": e.source,
+            "faces_detected": e.faces_detected,
+            "recognized_count": e.recognized_count,
+            "unrecognized_count": e.unrecognized_count,
+            "liveness_rejected_count": e.liveness_rejected_count,
+            "duplicates_skipped": e.duplicates_skipped,
+            "status": e.status,
+            "is_extra_class": e.is_extra_class,
+            "reason": e.reason,
+            "image_sha256": e.image_sha256,
+        })
+
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "events": items,
+    }
+
+
+@router.post("/capture-history/cleanup")
+def cleanup_capture_history(
+    days: int = 365,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Purges capture audit metadata older than retention policy (default 365 days). Admin only."""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin role required for capture retention cleanup.")
+
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    deleted_count = db.query(CaptureEvent).filter(CaptureEvent.captured_at < cutoff).delete()
+    db.commit()
+    return {
+        "message": f"Successfully purged {deleted_count} capture records older than {days} days.",
+        "deleted_count": deleted_count,
     }
