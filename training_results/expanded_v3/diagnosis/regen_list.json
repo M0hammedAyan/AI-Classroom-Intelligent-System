@@ -1,0 +1,208 @@
+{
+ "regen": [
+  "1DA25AI001",
+  "1DA25AI002",
+  "1DA25AI003",
+  "1DA25AI004",
+  "1DA25AI005",
+  "1DA25AI006",
+  "1DA25AI007",
+  "1DA25AI008",
+  "1DA25AI009",
+  "1DA25AI010"
+ ],
+ "keep": [
+  "1DA23AI001",
+  "1DA23AI004",
+  "1DA23AI005",
+  "1DA23AI009",
+  "1DA23AI011",
+  "1DA23AI024",
+  "1DA23AI025",
+  "1DA23AI031",
+  "1DA23AI033",
+  "1DA23AI036",
+  "1DA23AI042",
+  "1DA23AI044",
+  "1DA23AI047",
+  "1DA23AI049",
+  "1DA23AI050",
+  "1DA23AI055",
+  "1DA23AI059",
+  "1DA24AI403",
+  "1DA24AI404"
+ ],
+ "exclude_photos": [
+  "1DA23AI024/IMG_20260824_105652_141.jpg",
+  "1DA23AI024/IMG_20260824_105940_864.jpg",
+  "1DA23AI055/IMG20260824105047.jpg",
+  "1DA25AI002/IMG_20261112_151236.jpg"
+ ],
+ "orphan_aug_students_not_in_dataset": [
+  "1DA22AI402"
+ ],
+ "detail": {
+  "1DA23AI001": {
+   "photos": 39,
+   "aug_folders": 39,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI004": {
+   "photos": 29,
+   "aug_folders": 29,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI005": {
+   "photos": 39,
+   "aug_folders": 39,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI009": {
+   "photos": 35,
+   "aug_folders": 35,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI011": {
+   "photos": 27,
+   "aug_folders": 27,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI024": {
+   "photos": 29,
+   "aug_folders": 27,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI025": {
+   "photos": 38,
+   "aug_folders": 38,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI031": {
+   "photos": 34,
+   "aug_folders": 34,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI033": {
+   "photos": 41,
+   "aug_folders": 41,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI036": {
+   "photos": 28,
+   "aug_folders": 28,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI042": {
+   "photos": 33,
+   "aug_folders": 33,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI044": {
+   "photos": 38,
+   "aug_folders": 38,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI047": {
+   "photos": 36,
+   "aug_folders": 36,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI049": {
+   "photos": 33,
+   "aug_folders": 33,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI050": {
+   "photos": 30,
+   "aug_folders": 30,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI055": {
+   "photos": 36,
+   "aug_folders": 35,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA23AI059": {
+   "photos": 32,
+   "aug_folders": 32,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA24AI403": {
+   "photos": 33,
+   "aug_folders": 33,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA24AI404": {
+   "photos": 30,
+   "aug_folders": 30,
+   "missing_in_aug": [],
+   "orphan_in_aug": [],
+   "not_30": [],
+   "bbox_mismatch": []
+  },
+  "1DA25AI001": "no augmented folder",
+  "1DA25AI002": "no augmented folder",
+  "1DA25AI003": "no augmented folder",
+  "1DA25AI004": "no augmented folder",
+  "1DA25AI005": "no augmented folder",
+  "1DA25AI006": "no augmented folder",
+  "1DA25AI007": "no augmented folder",
+  "1DA25AI008": "no augmented folder",
+  "1DA25AI009": "no augmented folder",
+  "1DA25AI010": "no augmented folder"
+ }
+}
