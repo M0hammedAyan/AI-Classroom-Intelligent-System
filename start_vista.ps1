@@ -6,7 +6,7 @@ Write-Host " Starting VISTA Platform (Backend + Frontend)" -ForegroundColor Cyan
 Write-Host "=====================================================================" -ForegroundColor Cyan
 
 # Set database environment variable to guaranteed synchronized database
-$env:VISTA_DB_URL = "sqlite:///./vista_dev.db"
+$env:VISTA_DB_URL = "sqlite:///$($PSScriptRoot -replace '\\','/')/vista/backend/vista_dev.db"
 
 # 1. Start Backend
 Write-Host "[1/2] Starting FastAPI Backend on http://127.0.0.1:8002 ..." -ForegroundColor Green
