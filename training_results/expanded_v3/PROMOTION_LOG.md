@@ -29,3 +29,11 @@ Script: training_results\expanded_v3\threshold_check.py; results: threshold_chec
 - Wrong predictions: max conf 0.326, so every threshold >= 0.35 rejects all of them.
 - Non-students: 5 photos of ex-student 1DA22AI402 (not a class) were all predicted 1DA24AI403 at 0.89-0.93 (probably the same person or a lookalike duplicate, so NOT a valid unknown test; they pass any threshold). UI screenshot patches 0.13-0.20, background patch 0.09, flat gray 0.09 (all rejected). One random-noise image reached 0.77 (accepted at 0.60), an arbitrary-input overconfidence case; threshold cannot fix it, face detection upstream guards it.
 - Decision: keep VISTA_FACE_MODEL_THRESHOLD=0.60. Counts of lost correct predictions are identical (2/223, 0.9%) for 0.45-0.60, so the stricter value costs nothing here, and a false attendance mark is worse than a miss. No true unknown-person faces exist in the repo, so unknown-face rejection is unverified. start_vista.ps1 and .env.example already hold 0.60 (no change needed).
+
+## Step 4 - add 1DA25AI001-010
+- Names/class supplied by user (class "AI&ML 3rd sem"; classroom_id class-aiml-4a, the only existing classroom). Saved in new_students.csv.
+- App.jsx ROSTER: 10 `NAME|USN` lines added before the closing backtick line.
+- DB vista\backend\vista_dev.db (backup existed): 10 students rows (is_active 1, usn, usn_updated 0) and 10 users rows (role student, <usn>@vista.local, bcrypt "student123").
+- Enrolled with vista.vision.enroll.enroll_student, VISTA_DB_URL set before import, excluded photos from regen_list.json removed. All 10 have embeddings.
+- Backend restarted (reconcile_current_roster ran): /health ok; DB shows 75 active students, all 10 new still active with embeddings. /api/v1/students needs a token, so the count was read from the DB. Backend stopped, port 8002 free.
+- Rollback: restore vista\backend\vista_dev_pre_v3_promotion.db; git revert this commit.
