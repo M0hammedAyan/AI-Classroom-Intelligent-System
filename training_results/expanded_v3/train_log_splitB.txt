@@ -1,0 +1,18 @@
+2026-11-17 10:07:07,700 [INFO] Device: cuda (NVIDIA GeForce RTX 3050 6GB Laptop GPU)
+2026-11-17 10:07:07,711 [INFO] Split B: NUM_CLASSES = 29
+2026-11-17 10:07:07,711 [INFO] Loading D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\data\processed\facial_pipeline_results_expanded_v3.npz ...
+2026-11-17 10:07:18,515 [INFO] Samples: train=20274 val=138 test=138 (test untouched here)
+2026-11-17 10:07:18,515 [INFO] Class weights min=0.765 max=1.304
+2026-11-17 10:07:20,610 [INFO] LR backbone=0.0001 head=0.0001 label_smoothing=0.1 patience=7 max_epochs=30
+2026-11-17 10:08:36,384 [INFO] [B] Epoch 001/30 tr_loss=1.0469 tr_acc=0.9061 vl_loss=0.6984 vl_acc=0.9855 (76s)  ** best
+2026-11-17 10:09:54,070 [INFO] [B] Epoch 002/30 tr_loss=0.6954 tr_acc=0.9958 vl_loss=0.6924 vl_acc=0.9855 (78s)
+2026-11-17 10:11:13,444 [INFO] [B] Epoch 003/30 tr_loss=0.6800 tr_acc=0.9977 vl_loss=0.6893 vl_acc=0.9928 (79s)  ** best
+2026-11-17 10:12:33,989 [INFO] [B] Epoch 004/30 tr_loss=0.6757 tr_acc=0.9977 vl_loss=0.6857 vl_acc=0.9783 (81s)
+2026-11-17 10:13:54,946 [INFO] [B] Epoch 005/30 tr_loss=0.6759 tr_acc=0.9972 vl_loss=0.6938 vl_acc=0.9928 (81s)
+2026-11-17 10:15:17,272 [INFO] [B] Epoch 006/30 tr_loss=0.6731 tr_acc=0.9975 vl_loss=0.7157 vl_acc=0.9710 (82s)
+2026-11-17 10:16:39,299 [INFO] [B] Epoch 007/30 tr_loss=0.6696 tr_acc=0.9983 vl_loss=0.7127 vl_acc=0.9855 (82s)
+2026-11-17 10:18:01,846 [INFO] [B] Epoch 008/30 tr_loss=0.6705 tr_acc=0.9981 vl_loss=0.7119 vl_acc=0.9783 (83s)
+2026-11-17 10:19:24,550 [INFO] [B] Epoch 009/30 tr_loss=0.6615 tr_acc=0.9996 vl_loss=0.6850 vl_acc=0.9928 (83s)
+2026-11-17 10:20:48,059 [INFO] [B] Epoch 010/30 tr_loss=0.6597 tr_acc=1.0000 vl_loss=0.6837 vl_acc=0.9928 (83s)
+2026-11-17 10:20:48,062 [INFO] Early stop at epoch 10; best epoch 3 val_acc=0.9928
+2026-11-17 10:20:48,171 [INFO] [B] saved checkpoint + history in D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\training_results\expanded_v3 (best epoch 3, val_acc 0.9928)

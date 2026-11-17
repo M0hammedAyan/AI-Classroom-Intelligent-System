@@ -108,3 +108,4 @@ training_results/expanded_v2/*.pth
 agumented data_stale_v1/
 training_results/expanded_v3/*.pth
 data/processed/*v3*
+training_results/expanded_v3/graphs_report/USN_to_ID_PRIVATE.csv

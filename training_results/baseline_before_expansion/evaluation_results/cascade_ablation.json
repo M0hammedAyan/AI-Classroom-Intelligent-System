@@ -1,0 +1,40 @@
+{
+  "test_sample_count": 202,
+  "gallery_classes": 20,
+  "cosine_threshold": 0.55,
+  "resnet_model_threshold": 0.60,
+  "cosine_only": {
+    "total_samples": 202,
+    "tp": 157,
+    "fp": 11,
+    "fn": 34,
+    "accuracy": 0.7772,
+    "accuracy_wilson_ci_95": [71.50, 82.91],
+    "precision": 0.9345,
+    "precision_wilson_ci_95": [88.66, 96.30],
+    "recall": 0.8220,
+    "recall_wilson_ci_95": [76.16, 86.97],
+    "f1_score": 0.8747,
+    "false_accept_rate": 0.0545,
+    "far_wilson_ci_95": [3.07, 9.49],
+    "false_reject_rate": 0.1683,
+    "frr_wilson_ci_95": [12.30, 22.60]
+  },
+  "cascade_cosine_plus_resnet": {
+    "total_samples": 202,
+    "tp": 187,
+    "fp": 11,
+    "fn": 4,
+    "accuracy": 0.9257,
+    "accuracy_wilson_ci_95": [88.11, 95.45],
+    "precision": 0.9444,
+    "precision_wilson_ci_95": [90.33, 96.87],
+    "recall": 0.9791,
+    "recall_wilson_ci_95": [94.74, 99.18],
+    "f1_score": 0.9614,
+    "false_accept_rate": 0.0545,
+    "far_wilson_ci_95": [3.07, 9.49],
+    "false_reject_rate": 0.0198,
+    "frr_wilson_ci_95": [0.77, 4.98]
+  }
+}

@@ -1,0 +1,22 @@
+{
+ "done": {},
+ "no_face": {
+  "1DA23AI024/IMG_20260824_105652_141.jpg": true,
+  "1DA23AI024/IMG_20260824_105940_864.jpg": true,
+  "1DA23AI055/IMG20260824105047.jpg": true
+ },
+ "skipped_not_in_roster": [
+  "1DA25AI001",
+  "1DA25AI002",
+  "1DA25AI003",
+  "1DA25AI004",
+  "1DA25AI005",
+  "1DA25AI006",
+  "1DA25AI007",
+  "1DA25AI008",
+  "1DA25AI009",
+  "1DA25AI010",
+  "1DA25AI011",
+  "1DA25AI012"
+ ]
+}

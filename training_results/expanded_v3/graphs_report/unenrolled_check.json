@@ -1,0 +1,31 @@
+{
+ "all_photos_in_folder": {
+  "photos": 34,
+  "face_detected": 34,
+  "byte_identical_to_an_enrolled_photo": 33,
+  "pred_enrolled_class": 34,
+  "distinct_predicted_identities": 1,
+  "conf_min": 0.8652430176734924,
+  "conf_max": 0.9304410219192505,
+  "cos_nearest_photo_min": 0.9050835990772635,
+  "cos_nearest_photo_max": 1.0000001350225225,
+  "cos_centroid_min": 0.38215668929824953,
+  "cos_centroid_max": 0.8947135207835843,
+  "conf_ge_0.60": 34
+ },
+ "the_5_sampled_photos": {
+  "photos": 5,
+  "face_detected": 5,
+  "byte_identical_to_an_enrolled_photo": 5,
+  "pred_enrolled_class": 5,
+  "distinct_predicted_identities": 1,
+  "conf_min": 0.8945201635360718,
+  "conf_max": 0.9260844588279724,
+  "cos_nearest_photo_min": 0.9999999200983604,
+  "cos_nearest_photo_max": 1.0000000609824373,
+  "cos_centroid_min": 0.7265780802844948,
+  "cos_centroid_max": 0.8866390411782304,
+  "conf_ge_0.60": 5
+ },
+ "only_sampled_found": 5
+}

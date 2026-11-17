@@ -1,0 +1,116 @@
+{
+  "xgboost": {
+    "dataset": "student_data.csv (synthetic)",
+    "train_samples": 800,
+    "test_samples": 200,
+    "accuracy": 0.5,
+    "macro_f1": 0.3286,
+    "macro_precision": 0.3228,
+    "macro_recall": 0.3405,
+    "confusion_matrix": [
+      [
+        0,
+        3,
+        9
+      ],
+      [
+        1,
+        29,
+        51
+      ],
+      [
+        0,
+        36,
+        71
+      ]
+    ],
+    "per_class": {
+      "LOW": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 12
+      },
+      "MEDIUM": {
+        "precision": 0.4265,
+        "recall": 0.358,
+        "f1_score": 0.3893,
+        "support": 81
+      },
+      "HIGH": {
+        "precision": 0.542,
+        "recall": 0.6636,
+        "f1_score": 0.5966,
+        "support": 107
+      }
+    }
+  },
+  "logistic_regression": {
+    "dataset": "student_data.csv (synthetic)",
+    "accuracy": 0.365,
+    "macro_f1": 0.3183,
+    "confusion_matrix": [
+      [
+        6,
+        0,
+        6
+      ],
+      [
+        37,
+        19,
+        25
+      ],
+      [
+        34,
+        25,
+        48
+      ]
+    ],
+    "per_class": {
+      "LOW": {
+        "precision": 0.0779,
+        "recall": 0.5,
+        "f1_score": 0.1348,
+        "support": 12
+      },
+      "MEDIUM": {
+        "precision": 0.4318,
+        "recall": 0.2346,
+        "f1_score": 0.304,
+        "support": 81
+      },
+      "HIGH": {
+        "precision": 0.6076,
+        "recall": 0.4486,
+        "f1_score": 0.5161,
+        "support": 107
+      }
+    }
+  },
+  "shap_explainer_sample": {
+    "sample_input": {
+      "overall_attendance": 52.0,
+      "recent_attendance": 48.0,
+      "avg_score": 45.0,
+      "recent_score": 40.0,
+      "failed_subjects": 2.0
+    },
+    "generated_reasons": {
+      "reasons": [
+        "Overall attendance at 52% \u2014 below recommended level",
+        "Average marks at 45% \u2014 below passing threshold",
+        "2 subject(s) failed \u2014 significant academic concern"
+      ],
+      "shap_values": {
+        "overall_attendance": 2.986159086227417,
+        "recent_attendance": -0.0856718122959137,
+        "avg_score": 0.6706196665763855,
+        "recent_score": 0.0820067971944809,
+        "failed_subjects": 0.17346681654453278
+      },
+      "base_value": -0.48672956228256226,
+      "predicted_class": "HIGH",
+      "confidence": 0.9876729846000671
+    }
+  }
+}

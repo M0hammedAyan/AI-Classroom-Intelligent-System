@@ -1,0 +1,56 @@
+{
+  "xgboost": {
+    "accuracy": 0.5,
+    "macro_f1": 0.3286,
+    "confusion_matrix": [
+      [
+        0,
+        3,
+        9
+      ],
+      [
+        1,
+        29,
+        51
+      ],
+      [
+        0,
+        36,
+        71
+      ]
+    ]
+  },
+  "logistic_regression": {
+    "accuracy": 0.365,
+    "macro_f1": 0.3183,
+    "confusion_matrix": [
+      [
+        6,
+        0,
+        6
+      ],
+      [
+        37,
+        19,
+        25
+      ],
+      [
+        34,
+        25,
+        48
+      ]
+    ]
+  },
+  "rows": 1000,
+  "test": 200,
+  "majority_test": 107,
+  "label_counts_all": {
+    "HIGH": 535,
+    "MEDIUM": 405,
+    "LOW": 60
+  },
+  "matches_existing": {
+    "xgboost": true,
+    "logistic_regression": true
+  }
+}

@@ -1,0 +1,113 @@
+=================================================================
+VISTA — ResNet-50 Face Classifier Results (trained from .npz)
+(backbone: ImageNet pretrained ResNet-50, ArcFace preprocessing)
+Split A  (80/10/10)
+Generated: 2026-11-16 20:45:33
+=================================================================
+
+DATA SOURCE
+  NPZ: D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\data\processed\facial_pipeline_results_expanded.npz
+  Train samples (all 30 aug variants): 64
+  Val  samples  (aug_idx==0 only)     : 32
+  Test samples  (aug_idx==0 only)     : 32
+
+TRAINING CONFIG
+  Epochs run         : 1  (max 30)
+  Best epoch         : 1
+  Early stop patience: 7
+  Batch size         : 32
+  Learning rate      : 0.0001
+  Optimizer          : Adam
+  Loss               : CrossEntropyLoss
+  Backbone           : ResNet-50 (ImageNet, NOT ArcFace ONNX)
+  Input size         : 112x112, mean=0.5 std=0.5
+
+ACCURACY SUMMARY
+  Best val accuracy  : 6.25%
+  Final train acc    : 1.56%
+  Test accuracy      : 3.12%
+  Train/Test gap     : 1.56%
+
+EPOCH LOG (train_loss | train_acc | val_loss | val_acc)
+------------------------------------------------------------
+  Epoch 001:  3.6250 | 0.0156 | 3.4369 | 0.0625
+
+PER-CLASS TEST ACCURACY
+------------------------------------------------------------
+  1DA22AI402 (class 00): 0/3 = 0.0000
+  1DA23AI001 (class 01): 0/4 = 0.0000
+  1DA23AI004 (class 02): 0/3 = 0.0000
+  1DA23AI005 (class 03): 1/4 = 0.2500
+  1DA23AI009 (class 04): 0/3 = 0.0000
+  1DA23AI011 (class 05): 0/3 = 0.0000
+  1DA23AI024 (class 06): 0/3 = 0.0000
+  1DA23AI025 (class 07): 0/4 = 0.0000
+  1DA23AI031 (class 08): 0/3 = 0.0000
+  1DA23AI033 (class 09): 0/2 = 0.0000
+  1DA23AI036 (class 10): 0/0 = nan
+  1DA23AI042 (class 11): 0/0 = nan
+  1DA23AI044 (class 12): 0/0 = nan
+  1DA23AI047 (class 13): 0/0 = nan
+  1DA23AI049 (class 14): 0/0 = nan
+  1DA23AI050 (class 15): 0/0 = nan
+  1DA23AI055 (class 16): 0/0 = nan
+  1DA23AI059 (class 17): 0/0 = nan
+  1DA24AI403 (class 18): 0/0 = nan
+  1DA24AI404 (class 19): 0/0 = nan
+  1DA25AI001 (class 20): 0/0 = nan
+  1DA25AI002 (class 21): 0/0 = nan
+  1DA25AI003 (class 22): 0/0 = nan
+  1DA25AI004 (class 23): 0/0 = nan
+  1DA25AI005 (class 24): 0/0 = nan
+  1DA25AI006 (class 25): 0/0 = nan
+  1DA25AI007 (class 26): 0/0 = nan
+  1DA25AI008 (class 27): 0/0 = nan
+  1DA25AI009 (class 28): 0/0 = nan
+  1DA25AI010 (class 29): 0/0 = nan
+  1DA25AI011 (class 30): 0/0 = nan
+  1DA25AI012 (class 31): 0/0 = nan
+
+CLASSIFICATION REPORT
+------------------------------------------------------------
+              precision    recall  f1-score   support
+
+  1DA22AI402     0.0000    0.0000    0.0000         3
+  1DA23AI001     0.0000    0.0000    0.0000         4
+  1DA23AI004     0.0000    0.0000    0.0000         3
+  1DA23AI005     0.1429    0.2500    0.1818         4
+  1DA23AI009     0.0000    0.0000    0.0000         3
+  1DA23AI011     0.0000    0.0000    0.0000         3
+  1DA23AI024     0.0000    0.0000    0.0000         3
+  1DA23AI025     0.0000    0.0000    0.0000         4
+  1DA23AI031     0.0000    0.0000    0.0000         3
+  1DA23AI033     0.0000    0.0000    0.0000         2
+  1DA23AI036     0.0000    0.0000    0.0000         0
+  1DA23AI042     0.0000    0.0000    0.0000         0
+  1DA23AI044     0.0000    0.0000    0.0000         0
+  1DA23AI047     0.0000    0.0000    0.0000         0
+  1DA23AI049     0.0000    0.0000    0.0000         0
+  1DA23AI050     0.0000    0.0000    0.0000         0
+  1DA23AI055     0.0000    0.0000    0.0000         0
+  1DA23AI059     0.0000    0.0000    0.0000         0
+  1DA24AI403     0.0000    0.0000    0.0000         0
+  1DA24AI404     0.0000    0.0000    0.0000         0
+  1DA25AI001     0.0000    0.0000    0.0000         0
+  1DA25AI002     0.0000    0.0000    0.0000         0
+  1DA25AI003     0.0000    0.0000    0.0000         0
+  1DA25AI004     0.0000    0.0000    0.0000         0
+  1DA25AI005     0.0000    0.0000    0.0000         0
+  1DA25AI006     0.0000    0.0000    0.0000         0
+  1DA25AI007     0.0000    0.0000    0.0000         0
+  1DA25AI008     0.0000    0.0000    0.0000         0
+  1DA25AI009     0.0000    0.0000    0.0000         0
+  1DA25AI010     0.0000    0.0000    0.0000         0
+  1DA25AI011     0.0000    0.0000    0.0000         0
+  1DA25AI012     0.0000    0.0000    0.0000         0
+
+    accuracy                         0.0312        32
+   macro avg     0.0045    0.0078    0.0057        32
+weighted avg     0.0179    0.0312    0.0227        32
+
+
+=================================================================
+END
