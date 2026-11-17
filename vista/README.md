@@ -77,7 +77,7 @@ Frontend runs at `http://localhost:5173` (or next available port).
 
 ---
 
-## API Endpoints (114 Total Endpoints across 14 Route Modules)
+## API Endpoints (145 registered routes (app.routes) across 14 route modules)
 
 > The backend contains 110 route endpoints across 14 modules, plus 4 core endpoints (`/health`, `/metrics`, `/metrics/json`, `/ws/dashboard`). Below is a representative sample of primary routes; full interactive documentation is available at `/docs`.
 
@@ -113,7 +113,7 @@ Frontend runs at `http://localhost:5173` (or next available port).
 vista/
 ├── backend/app/          # FastAPI application
 │   ├── routes/           # 14 route modules (auth, students, attendance, risk, export, enroll, lms, admin, mentor, dashboards, student_portal, notifications, reports, academics)
-│   ├── models/           # 8 SQLAlchemy ORM model files (27 tables)
+│   ├── models/           # 8 SQLAlchemy ORM model files (28 tables)
 │   ├── db.py             # Database engine + seed data
 │   ├── websocket.py      # Real-time WebSocket manager
 │   ├── scheduler.py      # APScheduler cron jobs
@@ -127,7 +127,7 @@ vista/
 │   ├── risk_engine.py    # Rule-based + XGBoost + SHAP
 │   ├── explainer.py      # SHAP TreeExplainer integration
 │   ├── train.py          # Model training pipeline
-│   └── model.pkl         # Trained XGBoost artifact (F1=0.957 on synthetic data)
+│   └── model.pkl         # Trained XGBoost artifact (recorded: 50.00% accuracy, macro F1 0.3286 on synthetic data, below majority baseline)
 ├── vision/               # Computer Vision
 │   ├── detect.py         # SCRFD face detection
 │   ├── embed.py          # ArcFace R50 embeddings

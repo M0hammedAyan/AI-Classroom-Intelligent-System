@@ -103,7 +103,7 @@ Institution
 ### Machine Learning
 | Technology | Purpose |
 |---|---|
-| XGBoost | Risk classification (F1 = 0.957 on synthetic data) |
+| XGBoost | Risk classification (50.00% accuracy, macro F1 0.3286 on synthetic data; below the 53.50% majority baseline) |
 | Logistic Regression | Baseline model comparison |
 | SHAP (TreeExplainer) | Per-prediction explainability |
 | scikit-learn | Training pipeline, evaluation |
@@ -151,7 +151,7 @@ Institution
                                ▼
 ┌────────────────────────────────────────────────────────────────┐
 │                     BACKEND (FastAPI)                            │
-│  122 Routes (114 API) │ JWT Auth │ 3-Role RBAC │ WebSocket │
+│  145 Routes │ JWT Auth │ 3-Role RBAC │ WebSocket │
 └─────────┬──────────────────────────────────┬───────────────────┘
           │                                  │
           ▼                                  ▼
@@ -172,7 +172,7 @@ Institution
 
 ---
 
-## 6. API Summary (122 Routes / 114 API Endpoints)
+## 6. API Summary (145 registered routes)
 
 | Category / Module | Endpoints | Purpose |
 |---|---|---|
@@ -229,8 +229,8 @@ Institution
 
 | Model | Accuracy | Macro F1 | Status |
 |---|---|---|---|
-| XGBoost (100 trees) | 95% | 0.957 | ✅ Production |
-| Logistic Regression | 93% | 0.94 | Baseline |
+| XGBoost (100 trees) | 50.00% | 0.3286 | Synthetic data, below 53.50% majority baseline |
+| Logistic Regression | 36.50% | 0.3183 | Baseline |
 | Rule-Based Engine | — | — | ✅ Fallback |
 
 ### Risk Classification
@@ -301,13 +301,13 @@ npm run dev
 
 | Metric | Value |
 |---|---|
-| Total API endpoints | 122 (114 API + 4 system + 4 docs) |
+| Total registered routes | 145 (app.routes) |
 | Database tables | 24 |
 | Frontend pages | 20+ |
 | ML features | 8 engineered features (5 in pipeline) |
 | Vision pipeline stages | 5 (detect → crop → match/classify → liveness → track) |
 | User roles | 3 active roles (admin, teacher, student; HOS/HOP/mentor deprecated) |
 | Automated test cases | 14 (7 ML + 7 vision) |
-| Model performance | XGBoost macro F1 = 0.957 (synthetic validation); Face classifier test acc = 90.10% (split B NPZ) |
+| Model performance | XGBoost 50.00% accuracy, macro F1 0.3286 (synthetic data, below 53.50% majority baseline); Face classifier test acc = 99.28% (137/138, Split B, 29 classes; clean single-face closed-set crops) |
 | Lines of Python | ~6,000+ |
 | Lines of JavaScript | ~3,000+ |

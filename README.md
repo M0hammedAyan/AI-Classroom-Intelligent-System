@@ -1,179 +1,145 @@
-# VISTA — AI Classroom Intelligent System
+# VISTA: AI Classroom Intelligent System
 
-AI-powered academic monitoring: face recognition attendance + ML risk prediction + 3-role dashboard.
-
-**Status:** Pilot-ready | **Features:** 50+ | **Endpoints:** 120 registered routes | **Tables:** 27
-
----
-
-## Setup
-
-The backend is tested with Python 3.11 on Windows. Create and use the virtual
-environment from the repository root:
-
-```powershell
-py -3.11 -m venv .venv
-.venv\Scripts\python.exe -m pip install --upgrade pip
-.venv\Scripts\python.exe -m pip install -r vista\backend\requirements.txt
-```
-
-Start the services with module execution so the commands always use the
-selected environment:
-
-```powershell
-cd vista
-..\..\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8002 --reload
-```
-
-In another terminal:
-
-```powershell
-cd vista\frontend
-npm install
-npm run dev
-```
-
-## Quick Start
-
-```bash
-# Backend
-cd vista
-..\..\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
-..\..\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8002 --reload
-
-# Frontend
-cd vista/frontend
-npm install && npm run dev
-```
-
-Login: `admin@vista.local` / `admin123`
-
----
-
-## What VISTA Does
-
-| Module | Function |
-|--------|----------|
-| **Vision** | Identify students from classroom photos (InsightFace ArcFace / ResNet-50 classifier: 100% on 14-image 2-student pilot test set; 99.28% (137/138) test accuracy on 29-class v3 split B; earlier 20-class baseline 90.10%). The VISTA database now holds 75 active students (verified in `vista_dev.db`), 10 of them newly enrolled (1DA25AI001-010) with embeddings |
-| **ML** | Predict dropout risk from attendance + scores (Rule-based engine + XGBoost F1=0.957 on synthetic validation data, SHAP) |
-| **Platform** | 3-role dashboard (Admin, Teacher, Student); legacy HOS/HOP/Mentor roles deprecated |
-| **Alerts** | In-app notifications for admins & teachers; parent alert queuing in database (external SMS/email gateway planned) |
-
----
-
-## Key Features
-
-- Face attendance (single/batch/video) — one photo marks entire class
-- Per-subject attendance + marks tracking
-- Risk prediction with SHAP explainability
-- Timetable, assignments, study materials, announcements
-- Parent alert records (queued in DB; external SMS/email gateway planned)
-- Student PDF reports
-- Dark/light mode for all users (ocean green accent dark theme)
-- Real-time WebSocket dashboard updates
-- Role-specific dashboards (Admin, Teacher, Student)
-- Organization tree management (Admin creates Schools → Depts → Classes → Subjects → Users)
-- Docker production deployment
-- Clean build (zero warnings)
-
----
-
-## Tech Stack
-
-| Layer | Tech |
-|-------|------|
-| Vision | InsightFace (SCRFD + ArcFace R50) |
-| ML | XGBoost + SHAP + Rule Engine |
-| Backend | FastAPI, SQLAlchemy, JWT |
-| Frontend | React 18 + Vite |
-| Database | SQLite (dev) / PostgreSQL (prod) |
-| Infra | Docker Compose + Nginx + Redis + Celery |
-
----
+VISTA is a classroom monitoring platform for an engineering college. It marks attendance from classroom photos using face recognition, tracks marks and attendance, estimates academic risk, and gives students a study coach. The backend is FastAPI, the frontend is React with Vite, and the default database is SQLite.
 
 ## Roles
 
-> **Active roles (3):** Admin, Teacher, Student. Legacy roles HOS, HOP, and Mentor are deprecated and are rejected at login with HTTP 403 ROLE_DEPRECATED.
+Three roles are active: **admin**, **teacher** and **student**. The older HOS, HOP and Mentor roles are deprecated and rejected at login (HTTP 403 `ROLE_DEPRECATED`).
 
-| Role | Access |
-|------|--------|
-| Admin | Everything — full system control, org tree, biometric enrollment |
-| Teacher | Own classes — mark attendance, enter marks, assignments |
-| Student | Own data — attendance, scores, risk, materials, timetable |
+## Features
 
----
+- **Face attendance** from single photos, batches or video.
+  - Detection: InsightFace SCRFD (buffalo_l model pack).
+  - Matching: ArcFace gallery matching at cosine similarity 0.55.
+  - Fallback: a ResNet-50 classifier with 29 classes, accepted at confidence 0.60.
+  - Liveness: heuristic checks (detection confidence, face width, texture variance), applied to webcam capture only.
+- **Manual attendance** with an audit log of every change.
+- **CIE policy** handling for internal assessment marks.
+- **Risk engine**: rule-based risk scoring, with an XGBoost model and SHAP explanations.
+- **Role-scoped notifications**: users see only notifications meant for their role and scope.
+- **Study coach**: LLM-backed (OpenRouter or Ollama), with a deterministic rule-based fallback when no LLM is configured or reachable.
+- Timetable, assignments, study materials, announcements, PDF student reports, and a WebSocket dashboard.
 
-## Documentation
+## Verified results and caveats
 
-- [Technical Report](vista/docs/PROJECT_REPORT.md) — Full system documentation
-- [IEEE Paper Draft](vista/docs/IEEE_PAPER.md) — Research paper
-- [Plan B Roadmap](vista/PLANB.md) — Pilot → Publication → Product plan
-- [Pitch Deck](vista/docs/PITCH_DECK.md) — 10-slide presentation for college management
-- [Pilot Proposal](vista/docs/PILOT_PROPOSAL.md) — 1-page permission request
-- [Consent Form](vista/docs/CONSENT_FORM.md) — Student face data collection consent
-- [Demo Script](vista/docs/DEMO_SCRIPT.md) — 5-minute video recording guide
+| Component | Result | Caveat |
+|---|---|---|
+| ResNet-50 classifier, Split B (654/138/138) | 99.28% test accuracy (137/138), Wilson 95% CI 96.01-99.87% | Clean single-face closed-set test crops. Small test set. |
+| ResNet-50 classifier, Split A (740/95/95) | 97.89% (93/95) | Same caveats. |
+| ArcFace gallery, threshold 0.55 (138 probes) | precision 1.0000, recall 0.9058 | From a threshold sweep on the same test crops. |
+| Risk model (synthetic data) | XGBoost 50.00% accuracy, macro F1 0.3286. Logistic Regression 36.50%, macro F1 0.3183. | Below the 53.50% majority baseline. The model is not predictive. The rule-based engine is the working risk path. |
 
----
+The classifier numbers come from small test sets. Rejection of unknown (non-enrolled) faces was not tested for the classifier. Do not read these as classroom accuracy. A real classroom with varied pose, lighting and group photos will score lower.
 
-## Screenshots
+## Current system counts
 
-Login as any role to see role-specific dashboards:
-- **Admin**: Organization tree (Schools → Departments → Classes → Subjects → Users)
-- **Teacher**: My subjects, at-risk students, quick actions (mark attendance, enter marks)
-- ~~**Mentor**: Watchlist, assigned students, risk alerts~~ *(role deprecated)*
-- **Student**: Today's timetable, attendance heatmap, assignments, notices
+Recounted from the code and database:
 
----
+- **API routes:** 145 entries in `app.routes` (144 with HTTP methods).
+- **Database tables:** 28 (`sqlite_master`, `vista\backend\vista_dev.db`).
+- **Tests:** 150 collected by pytest.
+- **Students in the demo DB:** 75 active, of which 49 have a stored face embedding.
 
-## Team
+## Setup
 
-| Member | Role |
-|--------|------|
-| Mohammed Ayan | Tech Lead — architecture, ML, paper |
-| Saheel Pradhan | Vision — face recognition, enrollment |
-| Aryan Raj Singh | Backend — API, database, data |
-| Sujal Agrahari | Frontend — dashboard, UX |
+Requirements: Windows, Python 3.11, Node.js, Git LFS.
 
-**Institution:** DRAIT, Bangalore | School of CSE | AIML Department
-
----
-
-## Facial Pipeline (New Addition)
-
-### ✅ Completed
-- **End-to-end facial pipeline script** (`vista/vision/facial_pipeline.py`) with structured nested-loop architecture
-- **Dataset support**: Reads 21 student subfolders from `dataset/` (reg numbers as labels)
-- **Face Extraction**: InsightFace SCRFD detector + ArcFace R50 recognizer (buffalo_l model pack)
-- **Data Preprocessing**: Uniform resize to 160×160 with edge-case handling (bbox clamping)
-- **Data Augmentation**: Albumentations pipeline with 30 variants/face (HorizontalFlip, RandomBrightnessContrast, Rotate ±15°, GaussNoise)
-- **Feature Extraction**: Batch processing through ArcFace R50 → 512-dim embeddings
-- **Global Compilation**: Master arrays for ~21K images, embeddings, labels, metadata
-- **Robust Error Handling**: Skips corrupted images, missing faces; detailed progress logging
-- **Results Persistence**: Compressed `.npz` output with all arrays and metadata
-- **Per-student breakdown**: Individual stats per student folder (faces detected, augmentations, embeddings)
-- **Dependencies Added**: `albumentations>=1.4.0` to requirements.txt
-
-### 📋 Todo
-- [ ] Run pipeline on Python 3.11/3.12 (onnxruntime wheels not yet available for Python 3.14)
-- [ ] Verify output shapes match expected (~21K samples)
-- [ ] Integrate pipeline output with enrollment system (`vista/vision/enroll.py`)
-- [ ] Add unit tests for each pipeline stage
-- [ ] Validate face detection rate across all 21 students
-
-### 🔮 Future Suggestions
-- **Multi-face support**: Extend to process group photos (classroom attendance) using `recognize_all()`
-- **Advanced augmentations**: Add CutMix, MixUp, or face-specific augmentations (eyes/mouth masking)
-- **Quality assessment**: Integrate face quality scores (blur, pose, illumination) before augmentation
-- **Distributed processing**: Use multiprocessing/ray for parallel image processing
-- **Incremental updates**: Support adding new students without reprocessing entire dataset
-- **Embedding visualization**: t-SNE/UMAP projection of 512-dim embeddings for cluster analysis
-- **ONNX export**: Export ArcFace R50 to ONNX for faster inference in production
-- **Pipeline monitoring**: Add Prometheus metrics for processing time, success rates, queue depth
-
-
-### Run Command for Pipeline
-
-```bash
-# Run facial pipeline from project root
-python vista/vision/facial_pipeline.py
+```powershell
+git lfs pull                      # some augmented images are LFS stubs until pulled
+py -3.11 -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install -r vista\requirements.txt
+cd vista\frontend
+npm install
 ```
+
+PyTorch: `vista\requirements.txt` pins `torch` and `torchvision` and documents the CUDA index line in its comments (the dev environment uses the `cu132` build). CPU builds work: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu`.
+
+InsightFace downloads the `buffalo_l` model pack on first use into `%USERPROFILE%\.insightface\models\buffalo_l`. Face features need this folder, so the first run needs internet access (or copy the folder from another machine).
+
+Copy `.env.example` to `.env` and edit it. Keys go in `.env` only. `.env` is never committed.
+
+## Run
+
+Easiest: `.\start_vista.ps1` from the repo root. It sets the database path, selects the 29-class classifier at threshold 0.60, and opens the backend (port 8002) and frontend (port 5173) in two windows.
+
+Manually:
+
+```powershell
+# Backend (from vista\)
+cd vista
+..\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8002
+
+# Frontend (from vista\frontend\)
+npm run dev
+```
+
+API docs: http://127.0.0.1:8002/docs. Frontend: http://localhost:5173.
+
+Note: without `VISTA_FACE_MODEL`, the backend loads the older 20-class checkpoint `training_results\best_model_npz_splitB.pth`. To use the 29-class model, set `VISTA_FACE_MODEL` to `training_results\expanded_v3\best_model_expanded_v3_splitB.pth` (as an absolute path; `start_vista.ps1` does this).
+
+## Environment variables
+
+| Variable | Purpose |
+|---|---|
+| `VISTA_DB_URL` | SQLAlchemy database URL (default: `vista\backend\vista_dev.db`) |
+| `VISTA_FACE_MODEL` | Path to the classifier checkpoint (`.pth`) |
+| `VISTA_FACE_MODEL_THRESHOLD` | Classifier acceptance confidence (0.60 in `start_vista.ps1`) |
+| `VISTA_FACE_MATCH_THRESHOLD` | ArcFace gallery cosine threshold (default 0.55) |
+| `VISTA_FACE_MODEL_DEVICE` | Set to `cuda` to run the classifier on GPU; CPU otherwise |
+| `VISTA_JWT_SECRET` | JWT signing secret. Set it outside development. |
+| `LLM_USE_API`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OPENROUTER_BASE_URL` | Study coach through OpenRouter |
+| `LLM_USE_OLLAMA`, `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | Study coach through a local Ollama server |
+
+Set exactly one of `LLM_USE_API` or `LLM_USE_OLLAMA` to true. Otherwise the rule-based coach is used. API keys belong in `.env` and must never be committed.
+
+## Demo logins
+
+- Admin: `admin@vista.local` / `admin123`
+- Teacher: `teacher@vista.local` / `teacher123` (the account exists in the DB)
+- Students: `<usn>@vista.local` / `student123`, where `<usn>` is the student's lowercase university serial number
+
+These are development credentials. Change them before any real deployment.
+
+## Tests
+
+```powershell
+.venv\Scripts\python.exe -m pytest
+```
+
+The suite collects 150 tests. Five errors in `tests\test_timetable.py` are known and predate the latest changes. Frontend build check: `cd vista\frontend; npm run build`.
+
+## Repository structure
+
+| Folder | Contents |
+|---|---|
+| `vista\backend` | FastAPI app (`app\routes`, models, services) and the dev SQLite DB |
+| `vista\frontend` | React 18 + Vite dashboard |
+| `vista\vision` | SCRFD detection, ArcFace embedding and matching, ResNet-50 classifier, liveness, tracker |
+| `vista\ml` | Risk engine, XGBoost training, SHAP explainer |
+| `vista\scripts` | Seed and backup scripts |
+| `vista\docs`, `vista\md-docs` | Project documentation |
+| `tests` | Backend test suite |
+| `scripts` | Seed and backup scripts |
+| `training_results` | Classifier training code, checkpoints, split files and logs |
+| `evaluation` | Evaluation scripts and recorded results (`evaluation\results`) |
+| `figures` | Architecture, DFD and result figures for the report |
+| `dataset`, `data`, `agumented data` | Source photos, processed arrays, augmented images (LFS) |
+| `paper`, `docs`, `1report` | Paper draft, documents and the final report working files |
+
+## Where results live
+
+- Classifier training results, splits and logs: `training_results\expanded_v3\` (`history_split*.json`, `splits_*.json`, `eval_results.json`).
+- Final report graphs: `training_results\expanded_v3\graphs_report\`.
+- Gallery threshold sweep, risk model and latency results: `evaluation\results\`.
+- Diagrams and report figures: `figures\`.
+
+## Known limitations
+
+- Classifier accuracy was measured on clean, single-face, closed-set crops from small test sets. Unknown-face rejection was not tested.
+- The default classifier path is the older 20-class checkpoint unless `VISTA_FACE_MODEL` is set.
+- Liveness is heuristic and does not stop a determined spoof. It applies to webcam only.
+- The risk model was trained on synthetic data and does not beat the majority baseline. Use the rule-based engine for decisions.
+- Five tests in `tests\test_timetable.py` error out.
+- Parent alerts are queued in the database. No SMS or email gateway is connected.
+- The demo DB contains development data. Do not use it for production.

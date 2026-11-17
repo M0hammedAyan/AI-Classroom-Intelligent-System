@@ -72,7 +72,7 @@ snake_case for all Python files and function names.
 | `risk_engine.py` | Done | Rule-based engine, `calculate_risk()` public entry point, `calculate_risk_from_metrics()` for direct use |
 | `test_risk_engine.py` | Done | 7 test cases from `RISK_ENGINE_SPEC.md` — run with `python -m ml.test_risk_engine` |
 | `validate_uci.py` | Done | UCI dataset sanity checker — run with `python -m ml.validate_uci --file path/to/student-mat.csv` |
-| `train.py` | Done | Trains XGBoost + LR on synthetic data; XGBoost selected (macro F1 = 0.957) |
+| `train.py` | Done | Trains XGBoost + LR on synthetic data; XGBoost selected; recorded 50.00% accuracy, macro F1 0.3286 on synthetic data, below the 53.50% majority baseline. The earlier 0.957 is an earlier experiment |
 | `explainer.py` | Done | SHAP TreeExplainer for per-prediction feature attribution and reason generation |
 | `data/generate_sample_data.py` | Done | 200-student synthetic dataset generator |
 | `__init__.py` | Done | Exports public API: `calculate_risk`, `calculate_risk_from_metrics`, `run_pipeline` |

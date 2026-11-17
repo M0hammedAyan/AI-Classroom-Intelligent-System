@@ -46,7 +46,7 @@
 | 3.1 | Select target conference (IEEE CONECCT / ICCCNT / Springer LNNS) | Mohammed | ⬜ | Conference selected |
 | 3.2 | Write paper: Abstract + Introduction + Literature Review | Mohammed | ⬜ | Draft sections |
 | 3.3 | Write paper: System Architecture + Methodology | Mohammed | ⬜ | Draft sections |
-| 3.4 | Write paper: Results (pilot face recognition: 100% on 2 students / 90.10% on 20-class .npz split B, risk engine F1=0.957 on synthetic data) | Mohammed | ⬜ | Draft sections |
+| 3.4 | Write paper: Results (pilot face recognition: 100% on 2 students / 99.28% (137/138) on 29-class split B; the earlier 20-class 90.10% is superseded, risk model on synthetic data: XGBoost 50.00% accuracy, macro F1 0.3286, below the 53.50% majority baseline; the earlier 0.957 was an earlier experiment and is superseded) | Mohammed | ⬜ | Draft sections |
 | 3.5 | Review with guide/mentor | All | ⬜ | Feedback incorporated |
 
 ### Week 4: Submission
