@@ -37,3 +37,6 @@ Script: training_results\expanded_v3\threshold_check.py; results: threshold_chec
 - Enrolled with vista.vision.enroll.enroll_student, VISTA_DB_URL set before import, excluded photos from regen_list.json removed. All 10 have embeddings.
 - Backend restarted (reconcile_current_roster ran): /health ok; DB shows 75 active students, all 10 new still active with embeddings. /api/v1/students needs a token, so the count was read from the DB. Backend stopped, port 8002 free.
 - Rollback: restore vista\backend\vista_dev_pre_v3_promotion.db; git revert this commit.
+
+## Step 5 - End-to-end test
+Backend run with v3 env (python -m uvicorn from vista\, port 8002), admin login, POST /attendance/mark-batch with held-out Split B test photos. Gallery-vs-classifier decider logged in-process (e2e_test.py decider -> e2e_decider.json); API results in e2e_results.json. Test rows (session_date 2099-01-*, 12 attendance rows, 11 capture_events) deleted afterwards; DB not restored from backup. Pytest: 143 passed, 5 errors (tests/test_timetable.py, pre-existing). npm run build: OK. Backend stopped.

@@ -1,0 +1,298 @@
+[
+ {
+  "case": "original 1DA23AI001",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\dataset\\1DA23AI001\\IMG_20260824_105031.jpg",
+  "expected": "1DA23AI001",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA23AI001",
+     "student_name": "ABHAY B SUVARNA",
+     "status": "present",
+     "confidence": 0.7183768153190613,
+     "liveness_passed": true,
+     "attendance_id": "7f76021a-7888-4318-9240-0604e864a443",
+     "marked_at": "2026-11-17T07:03:07.868348+00:00"
+    }
+   ],
+   "faces_detected": 1,
+   "recognized_count": 1,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-e16312dd3c23"
+  },
+  "session_date": "2099-01-01"
+ },
+ {
+  "case": "original 1DA24AI403",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\dataset\\1DA24AI403\\IMG_20260824_111130_071.jpg",
+  "expected": "1DA24AI403",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA24AI403",
+     "student_name": "MOHAMMED AYAN",
+     "status": "present",
+     "confidence": 0.7278665900230408,
+     "liveness_passed": true,
+     "attendance_id": "2e5e28a5-6587-4023-8033-8bf421019a03",
+     "marked_at": "2026-11-17T07:03:16.449587+00:00"
+    }
+   ],
+   "faces_detected": 1,
+   "recognized_count": 1,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-bf08265bc1dc"
+  },
+  "session_date": "2099-01-02"
+ },
+ {
+  "case": "new 1DA25AI003",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\dataset\\1DA25AI003\\IMG_20261112_151828.jpg",
+  "expected": "1DA25AI003",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA25AI003",
+     "student_name": "SANGAMESH",
+     "status": "present",
+     "confidence": 0.894099771976471,
+     "liveness_passed": true,
+     "attendance_id": "784e6f4a-1c62-4fd6-9ba4-aebdabaaad40",
+     "marked_at": "2026-11-17T07:03:17.294490+00:00"
+    }
+   ],
+   "faces_detected": 1,
+   "recognized_count": 1,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-6ce9c35495cc"
+  },
+  "session_date": "2099-01-03"
+ },
+ {
+  "case": "new 1DA25AI010",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\dataset\\1DA25AI010\\IMG_20261112_151005_068.jpg",
+  "expected": "1DA25AI010",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA25AI010",
+     "student_name": "SURESH",
+     "status": "present",
+     "confidence": 0.9015190601348877,
+     "liveness_passed": true,
+     "attendance_id": "f897584a-75a6-466b-b655-835169b3a824",
+     "marked_at": "2026-11-17T07:03:19.146426+00:00"
+    },
+    {
+     "student_id": "1DA25AI002",
+     "student_name": "V BHUVAN CHANDRA",
+     "status": "present",
+     "confidence": 0.817707896232605,
+     "liveness_passed": true,
+     "attendance_id": "1c4bebdd-a1da-461b-8361-0eee11cb5745",
+     "marked_at": "2026-11-17T07:03:19.146426+00:00"
+    }
+   ],
+   "faces_detected": 2,
+   "recognized_count": 2,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-86cd3040ad6c"
+  },
+  "session_date": "2099-01-04"
+ },
+ {
+  "case": "404 test photo 0",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\dataset\\1DA24AI404\\IMG_6577.jpeg",
+  "expected": "1DA24AI404",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA24AI404",
+     "student_name": "VIGNESH V",
+     "status": "present",
+     "confidence": 0.6977069973945618,
+     "liveness_passed": true,
+     "attendance_id": "eb415f92-f1fc-4dae-9d87-71d766ee8466",
+     "marked_at": "2026-11-17T07:03:22.573518+00:00"
+    }
+   ],
+   "faces_detected": 1,
+   "recognized_count": 1,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-405ce9baea1a"
+  },
+  "session_date": "2099-01-05"
+ },
+ {
+  "case": "404 test photo 1",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\dataset\\1DA24AI404\\IMG_6582.jpeg",
+  "expected": "1DA24AI404",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA24AI404",
+     "student_name": "VIGNESH V",
+     "status": "present",
+     "confidence": 0.6485272645950317,
+     "liveness_passed": true,
+     "attendance_id": "27cf0e35-64c8-4785-858d-b261c666b51d",
+     "marked_at": "2026-11-17T07:03:24.218228+00:00"
+    }
+   ],
+   "faces_detected": 1,
+   "recognized_count": 1,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-a733d79738c7"
+  },
+  "session_date": "2099-01-06"
+ },
+ {
+  "case": "404 test photo 2",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\dataset\\1DA24AI404\\IMG_6595.jpeg",
+  "expected": "1DA24AI404",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA24AI404",
+     "student_name": "VIGNESH V",
+     "status": "present",
+     "confidence": 0.7485638856887817,
+     "liveness_passed": true,
+     "attendance_id": "18104954-e276-4de8-ba83-a80e27aa12d1",
+     "marked_at": "2026-11-17T07:03:25.669215+00:00"
+    }
+   ],
+   "faces_detected": 1,
+   "recognized_count": 1,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-de900874f218"
+  },
+  "session_date": "2099-01-07"
+ },
+ {
+  "case": "404 test photo 3",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\dataset\\1DA24AI404\\IMG_6596.jpeg",
+  "expected": "1DA24AI404",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA24AI404",
+     "student_name": "VIGNESH V",
+     "status": "present",
+     "confidence": 0.7393372654914856,
+     "liveness_passed": true,
+     "attendance_id": "e4d44204-7049-41ab-84ae-b543eb1d393a",
+     "marked_at": "2026-11-17T07:03:26.871529+00:00"
+    }
+   ],
+   "faces_detected": 1,
+   "recognized_count": 1,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-9379d2821eb7"
+  },
+  "session_date": "2099-01-08"
+ },
+ {
+  "case": "group collage (404-free: AI004+25AI005+AI403)",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\training_results\\expanded_v3\\e2e_inputs\\group_collage.jpg",
+  "expected": "multi",
+  "http": 200,
+  "resp": {
+   "results": [
+    {
+     "student_id": "1DA24AI403",
+     "student_name": "MOHAMMED AYAN",
+     "status": "present",
+     "confidence": 0.775672972202301,
+     "liveness_passed": true,
+     "attendance_id": "b1b1f944-e52e-48dd-8b4a-a701d97117a1",
+     "marked_at": "2026-11-17T07:03:28.505483+00:00"
+    },
+    {
+     "student_id": "1DA23AI004",
+     "student_name": "ANUJ PATEL",
+     "status": "present",
+     "confidence": 0.7172105312347412,
+     "liveness_passed": true,
+     "attendance_id": "d45a7961-6e9f-4ad6-881a-9631516b4519",
+     "marked_at": "2026-11-17T07:03:28.505483+00:00"
+    },
+    {
+     "student_id": "1DA25AI005",
+     "student_name": "PRAVEEN V",
+     "status": "present",
+     "confidence": 0.9388506412506104,
+     "liveness_passed": true,
+     "attendance_id": "c1854c78-5331-496f-9269-8fa18817116f",
+     "marked_at": "2026-11-17T07:03:28.505483+00:00"
+    }
+   ],
+   "faces_detected": 3,
+   "recognized_count": 3,
+   "duplicates_skipped": 0,
+   "slot_id": null,
+   "period_label": null,
+   "is_extra_class": true,
+   "capture_event_id": "cap-3bba9bca45f9"
+  },
+  "session_date": "2099-01-09"
+ },
+ {
+  "case": "non-face noise",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\training_results\\expanded_v3\\e2e_inputs\\noise.jpg",
+  "expected": null,
+  "http": 400,
+  "resp": {
+   "detail": {
+    "code": "NO_FACE_DETECTED",
+    "message": "No faces detected in image."
+   }
+  },
+  "session_date": "2099-01-10"
+ },
+ {
+  "case": "non-face gray",
+  "file": "D:\\CipherTECH\\Projects\\AI-Classroom-Intelligent-System\\training_results\\expanded_v3\\e2e_inputs\\gray.jpg",
+  "expected": null,
+  "http": 400,
+  "resp": {
+   "detail": {
+    "code": "NO_FACE_DETECTED",
+    "message": "No faces detected in image."
+   }
+  },
+  "session_date": "2099-01-11"
+ }
+]

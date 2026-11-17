@@ -1,0 +1,150 @@
+[
+ {
+  "case": "original 1DA23AI001",
+  "face": 0,
+  "expected": "1DA23AI001",
+  "gallery": {
+   "student_id": "1DA23AI001",
+   "confidence": 0.7183768153190613,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "original 1DA24AI403",
+  "face": 0,
+  "expected": "1DA24AI403",
+  "gallery": {
+   "student_id": "1DA24AI403",
+   "confidence": 0.7278665900230408,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "new 1DA25AI003",
+  "face": 0,
+  "expected": "1DA25AI003",
+  "gallery": {
+   "student_id": "1DA25AI003",
+   "confidence": 0.894099771976471,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "new 1DA25AI010",
+  "face": 0,
+  "expected": "1DA25AI010",
+  "gallery": {
+   "student_id": "1DA25AI010",
+   "confidence": 0.9015190601348877,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "new 1DA25AI010",
+  "face": 1,
+  "expected": "1DA25AI010",
+  "gallery": {
+   "student_id": null,
+   "confidence": 0.1896524727344513,
+   "matched": false
+  },
+  "classifier": {
+   "student_id": "1DA25AI002",
+   "confidence": 0.817707896232605
+  },
+  "decider": "classifier"
+ },
+ {
+  "case": "404 test photo 0",
+  "face": 0,
+  "expected": "1DA24AI404",
+  "gallery": {
+   "student_id": "1DA24AI404",
+   "confidence": 0.6977069973945618,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "404 test photo 1",
+  "face": 0,
+  "expected": "1DA24AI404",
+  "gallery": {
+   "student_id": "1DA24AI404",
+   "confidence": 0.6485272645950317,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "404 test photo 2",
+  "face": 0,
+  "expected": "1DA24AI404",
+  "gallery": {
+   "student_id": "1DA24AI404",
+   "confidence": 0.7485638856887817,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "404 test photo 3",
+  "face": 0,
+  "expected": "1DA24AI404",
+  "gallery": {
+   "student_id": "1DA24AI404",
+   "confidence": 0.7393372654914856,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "group collage (404-free: AI004+25AI005+AI403)",
+  "face": 0,
+  "expected": "multi",
+  "gallery": {
+   "student_id": "1DA24AI403",
+   "confidence": 0.775672972202301,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "group collage (404-free: AI004+25AI005+AI403)",
+  "face": 1,
+  "expected": "multi",
+  "gallery": {
+   "student_id": "1DA23AI004",
+   "confidence": 0.7172105312347412,
+   "matched": true
+  },
+  "decider": "gallery"
+ },
+ {
+  "case": "group collage (404-free: AI004+25AI005+AI403)",
+  "face": 2,
+  "expected": "multi",
+  "gallery": {
+   "student_id": null,
+   "confidence": 0.4894544184207916,
+   "matched": false
+  },
+  "classifier": {
+   "student_id": "1DA25AI005",
+   "confidence": 0.9388506412506104
+  },
+  "decider": "classifier"
+ },
+ {
+  "case": "non-face noise",
+  "faces": 0
+ },
+ {
+  "case": "non-face gray",
+  "faces": 0
+ }
+]
