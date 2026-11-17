@@ -54,7 +54,7 @@ Login: `admin@vista.local` / `admin123`
 
 | Module | Function |
 |--------|----------|
-| **Vision** | Identify students from classroom photos (InsightFace ArcFace / ResNet-50 classifier: 100% on 14-image 2-student pilot test set; 90.10% test accuracy on 20-class .npz split B) |
+| **Vision** | Identify students from classroom photos (InsightFace ArcFace / ResNet-50 classifier: 100% on 14-image 2-student pilot test set; 99.28% (137/138) test accuracy on 29-class v3 split B; earlier 20-class baseline 90.10%). The VISTA database now holds 75 active students (verified in `vista_dev.db`), 10 of them newly enrolled (1DA25AI001-010) with embeddings |
 | **ML** | Predict dropout risk from attendance + scores (Rule-based engine + XGBoost F1=0.957 on synthetic validation data, SHAP) |
 | **Platform** | 3-role dashboard (Admin, Teacher, Student); legacy HOS/HOP/Mentor roles deprecated |
 | **Alerts** | In-app notifications for admins & teachers; parent alert queuing in database (external SMS/email gateway planned) |

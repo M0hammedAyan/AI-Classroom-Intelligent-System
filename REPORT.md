@@ -1,4 +1,4 @@
-﻿# PROJECT REPORT
+# PROJECT REPORT
 
 ## VISTA: AI-BASED CLASSROOM ATTENDANCE MONITORING AND ACADEMIC RISK PREDICTION SYSTEM
 
@@ -91,7 +91,7 @@ Manual attendance marking in higher educational institutions consumes approximat
 
 The biometric vision subsystem employs a multi-stage architecture consisting of the Sample and Computation Redistribution for Efficient Face Detection (SCRFD) model for robust face localization, an ArcFace ResNet-50 backbone for extracting 512-dimensional angular margin facial embeddings, a cosine distance gallery matcher, and a secondary ResNet-50 personal classification fallback trained on local institutional datasets. Anti-spoofing is enforced using multi-metric texture and geometry heuristics. For academic monitoring, the platform computes 8 longitudinal temporal features and 3 critical override flags, feeding an XGBoost decision tree classifier paired with SHAP (SHapley Additive exPlanations) to transparently identify feature drivers pushing students toward low, medium, or high risk. The backend is implemented in FastAPI providing 120 RESTful endpoints, 27 relational database tables, role-based access control across 3 institutional roles (Admin, Teacher, and Student), automated midnight risk recalculation via APScheduler, and real-time dashboard updates via WebSockets.
 
-Empirical evaluation on a 20-student cohort across 20,130 processed face samples achieves a **90.10% test accuracy** (Split B) on the ResNet-50 classifier and an optimal ArcFace F1-score of **0.9246** at a cosine similarity threshold of 0.30, with a controlled pilot accuracy of **100%** on 14 images of 2 enrolled students. Latency profiling demonstrates full-frame face detection at **71.23 ms** and single-vector matching at **0.318 ms**, processing a full classroom of 60 students in **0.683 seconds** on standard x86 consumer CPUs without GPU requirements. The entire system operates strictly on-premise, preserving data sovereignty and providing higher education institutions with a scalable, privacy-preserving automated intelligence solution.
+Empirical evaluation achieves a **99.28% test accuracy** (Split B, 137/138 clean test crops, 29 classes, Wilson 95% CI 96.01-99.87%) on the promoted v3 ResNet-50 classifier (the earlier 20-class baseline reached 90.10% on 101 photos; classes and test sets differ), and, for the ArcFace matcher on the original 20-student cohort of 20,130 processed face samples, an optimal ArcFace F1-score of **0.9246** at a cosine similarity threshold of 0.30, with a controlled pilot accuracy of **100%** on 14 images of 2 enrolled students. Latency profiling demonstrates full-frame face detection at **71.23 ms** and single-vector matching at **0.318 ms**, processing a full classroom of 60 students in **0.683 seconds** on standard x86 consumer CPUs without GPU requirements. The entire system operates strictly on-premise, preserving data sovereignty and providing higher education institutions with a scalable, privacy-preserving automated intelligence solution.
 
 ---
 
@@ -1062,11 +1062,13 @@ As documented in `training_results/results_npz_splitB.txt`, the PyTorch ResNet-5
 | Metric | Measurement / Value | Benchmark Description |
 | :--- | :--- | :--- |
 | **Architecture** | Modified ResNet-50 | Pretrained torchvision backbone; custom linear classification head |
-| **Class Count ($K$)** | 20 Classes | Enrolled individual student identities |
+| **Class Count ($K$)** | 29 Classes (v3; baseline 20) | Enrolled individual student identities |
 | **Evaluation Strategy** | Split B (Unaugmented) | Trained on 2,240 augmented samples; strictly tested on unaugmented crops |
-| **Test Sample Count** | 101 Samples | Real facial test crops preserved from original dataset |
-| **Test Accuracy** | **90.10%** | $\frac{91}{101}$ test crops correctly assigned to true identity |
-| **Top-1 Categorical Error** | 9.90% | Confined to high-yaw and low-illumination instances |
+| **Test Sample Count** | 138 Samples (v3 Split B; baseline 101) | Clean unaugmented test crops preserved from original dataset |
+| **Test Accuracy** | **99.28%** (v3; baseline 90.10%) | $\frac{137}{138}$ test crops correctly assigned (Wilson 95% CI 96.01-99.87%; original-19 93/94 = 98.94%, new-10 44/44 = 100%; baseline $\frac{91}{101}$) |
+| **Top-1 Categorical Error** | 0.72% (v3; baseline 9.90%) | v3: 1 of 138 test crops misclassified; baseline errors were confined to high-yaw and low-illumination instances |
+
+**v3 caveats.** Caveats: the 20-class baseline and 29-class v3 differ in classes and test sets, so the figures are not directly comparable; test sets are small (v3 B: 138 photos, 4 to 6 per class), so intervals are wide; v3 tests clean single-face crops in a closed set with no unknown faces; the v1 expansion failed because of duplicated labels across USNs, not the training recipe (`training_results/expanded_v3/COMPARISON_REPORT.md`).
 | **Inference Time (CPU)** | **32.50 ms** | Average single-crop forward pass time on CPU |
 | **Throughput** | **30.8 frames/sec** | Sustained single-thread CPU execution |
 
@@ -1152,7 +1154,7 @@ During continuous benchmark execution, memory and CPU utilization were profiled 
 
 Academic integrity requires transparent disclosure of the empirical boundaries and limitations of this study:
 
-1. **Restricted Real-World Vision Pilot Size:** While the synthetic NPZ dataset contains 107 test crops across 20 classes (achieving $90.10\%$ accuracy on ResNet-50 and $85.98\%$ on ArcFace $\tau=0.30$), live physical testing progressed from an initial 14-photograph 2-student pilot (Saheel and Sujal) to a 7-student live laboratory capture (Figure 7.2) achieving $100\%$ detection and recognition across all 7 candidates. While these results demonstrate strong local feasibility, campus-wide performance across hundreds of students subject to extreme lighting variances, physical motion blur, and dense occlusions requires continued validation.
+1. **Restricted Real-World Vision Pilot Size:** While the synthetic NPZ dataset contains 107 test crops across 20 classes (achieving $90.10\%$ accuracy on the earlier 20-class baseline ResNet-50 and $85.98\%$ on ArcFace $\tau=0.30$), live physical testing progressed from an initial 14-photograph 2-student pilot (Saheel and Sujal) to a 7-student live laboratory capture (Figure 7.2) achieving $100\%$ detection and recognition across all 7 candidates. While these results demonstrate strong local feasibility, campus-wide performance across hundreds of students subject to extreme lighting variances, physical motion blur, and dense occlusions requires continued validation.
 2. **Synthetic Training Data for Risk Prediction:** The machine learning risk model was trained and evaluated on generated synthetic data (`generate_sample_data.py`). Real-world student trajectories exhibit nuanced psychosocial and demographic factors not captured in synthetic tabular distributions. Validation against historical multi-year university data is an essential prerequisite for production grading.
 3. **Heuristic Anti-Spoofing Constraints:** The passive anti-spoofing module relies on classical computer vision heuristics (Laplacian variance and RGB texture contrast). While computationally negligible ($< 5\text{ ms}$), heuristic checks are vulnerable to high-resolution tablet screens, video replays, or physical cutouts. Production deployment requires integrating deep presentation attack detection (such as MiniFASNet).
 4. **Gallery Scalability Boundary:** Linear cosine similarity scanning across enrolled numpy vectors scales well up to several hundred students ($5.62\text{ ms}$ for 500 students). However, university-wide deployments spanning thousands of students across multiple campuses will require hierarchical indexing structures (e.g., FAISS or HNSW indexers).
@@ -1227,7 +1229,7 @@ Figure 7.7 displays the comprehensive student profile and longitudinal risk over
 
 The empirical findings documented in this chapter validate the core architectural hypotheses of VISTA:
 - Vectorized facial recognition achieves an F1-score of **0.9246** at threshold $\tau = 0.30$, while the production default of $\tau = 0.55$ provides robust false-acceptance suppression ($91.30\%$ precision) with $78.50\%$ accuracy on 107 test crops across 20 classes.
-- ResNet-50 personal classification demonstrates strong discriminative capability with **90.10%** accuracy on Split B test data.
+- ResNet-50 personal classification (v3, 29 classes) reaches **99.28%** (137/138) on clean Split B test crops; the earlier 20-class baseline reached 90.10% on 101 photos (classes and test sets differ).
 - System throughput comfortably supports large lecture cohorts, processing 60 concurrent faces in **0.683 seconds** on CPU hardware without discrete GPU acceleration.
 - The hybrid risk engine guarantees early identification of at-risk students through deterministic safety overrides, mitigating the statistical class imbalance observed in purely synthetic ML datasets.
 

@@ -229,7 +229,7 @@ The empirical findings underscore critical trade-offs in automated classroom adm
 
 ## VIII. Limitations
 This investigation operates under several validated constraints:
-1. **Sample Size and Demographics:** The vision gallery comprises 20 enrolled students, evaluated across 202 unaugmented test crops and one 7-student live session. Demographic and skin tone fairness evaluations were not conducted.
+1. **Sample Size and Demographics:** The vision gallery comprises 20 enrolled students, evaluated across 202 unaugmented test crops and one 7-student live session. The ResNet-50 classifier was later retrained on 29 classes (v3), reaching 99.28% (137/138) on clean Split B test crops; this figure is not comparable to the 20-class results above. Caveats: the 20-class baseline and 29-class v3 differ in classes and test sets, so the figures are not directly comparable; test sets are small (v3 B: 138 photos, 4 to 6 per class), so intervals are wide; v3 tests clean single-face crops in a closed set with no unknown faces; the v1 expansion failed because of duplicated labels across USNs, not the training recipe (`training_results/expanded_v3/COMPARISON_REPORT.md`). Demographic and skin tone fairness evaluations were not conducted.
 2. **Closed-Set Evaluation:** The current test set lacks un-enrolled impostor faces; the open-set rejection rate of non-students requires formal testing.
 3. **Synthetic Risk Data:** Academic risk predictors were trained on synthetic distributions without empirical graduation labels.
 4. **Heuristic Anti-Spoofing:** Eye aspect ratio and Laplacian blur heuristics do not provide robust protection against 3D silicone mask or deepfake presentation attacks.
