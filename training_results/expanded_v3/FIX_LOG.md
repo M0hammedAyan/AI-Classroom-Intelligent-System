@@ -88,3 +88,9 @@ Output: `data/processed/facial_pipeline_results_expanded_v3.npz` (1666.2 MB, git
 |---|---|---|---|
 | A (80:10:10) | 740 / 22940 | 95 | 95 |
 | B (70:15:15) | 654 / 20274 | 138 | 138 |
+
+## Step 3 prep: train_expanded_v3.py
+- Fresh ImageNet ResNet-50 + random head, 29 classes (from splits json), no earlier weights. Device must be cuda (RTX 3050 confirmed in smoke). Input: npz RGB uint8 -> PIL -> 112x112 -> ToTensor -> mean=std=0.5, no channel flip (same as train_from_npz.py; verified v3 npz image 0 equals the RGB clean crop, mean abs diff 0.0 vs 21.8 if BGR).
+- Added vs baseline: label smoothing 0.1, class-weighted CrossEntropy (inverse train-sample frequency, mean 1; range 0.72-1.66 in split A). Same seed 42 for A and B, patience 7, max 30 epochs, ReduceLROnPlateau as baseline.
+- **LR decision: keep baseline 1e-4 for backbone and head (no lower backbone LR).** Evidence (train/val only, split A, 3000 random train samples, 64 val photos, 3 epochs): backbone 1e-4 gave val acc 0.906/0.984/0.984 with train acc 0.47/0.93/0.99; backbone 1e-5 gave val 0.641/0.797/0.891 with train acc 0.22/0.60/0.77. No sign of overfitting (val tracks train), so the lower LR only slows learning. --backbone-lr/--head-lr flags remain available.
+- Status file train_status_v3.json: done=yes only when split B finishes; split A finish writes done=no, split=B.
