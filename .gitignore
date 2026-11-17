@@ -118,3 +118,6 @@ training_results/expanded_v3/graphs_report/USN_to_ID_PRIVATE.csv
 1report/*_original_backup.docx
 training_results/**/smoke/*.pth
 training_results/expanded_v3/graphs_report/_old_*
+
+*.pyc
+figures/.mplconfig/

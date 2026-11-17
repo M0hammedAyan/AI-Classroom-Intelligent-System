@@ -193,3 +193,86 @@ backup\                                  (empty directory)
 - Untracked DB backups: `vista/backend/vista_dev_preA3.db`, `vista/backend/vista_dev_BACKUP_before_tests.db`, `vista/backend/vista_dev_pre_v3_promotion.db`, plus `db_backup/*`, `test_vista.db`, `vista_dev.db`, `vista/vista_dev.db`, `vista/backend/vista_dev.db`
 - Raw training logs and smoke `.pth` checkpoints (models: untouched)
 
+
+## Deleted
+
+Deleted in the commit "chore: remove dead scratch scripts and files". Tracked files were removed with `git rm` (recoverable from history). Untracked scratch was removed with `Remove-Item`.
+
+### Tracked (git rm, 71 files)
+
+```nscripts/check_classes_and_assignments.py
+scripts/check_teacher_subjects.py
+scripts/check_teachers.py
+scripts/search_db_3rd_year.py
+scripts/search_frontend_3rd.py
+scripts/verify_attendance_stats.py
+scripts/fix_attendance_logic.py
+scripts/fix_attendance_stats.py
+scripts/fix_security_tests.py
+scripts/fix_security_tests_v2.py
+scripts/add_academic_record_test.py
+scripts/patch_db.py
+scripts/patch_reports_part4.py
+scripts/patch_reports_v2.py
+scripts/register_timetable.py
+scripts/update_models.py
+scripts/run_db_migration.py
+update_audit_and_viva.py
+update_part_b.py
+pytest_final.txt
+train_expanded.py
+regenerate_npz_expanded.py
+.agents/tasks/vista-part-a-2026-11-07/final-test-run.txt
+.agents/tasks/dataset-expansion/s1_audit.py
+.agents/tasks/dataset-expansion/s3-progress-advanced.old1.json
+training_results/expanded/smoke/history_expanded_splitA.json
+training_results/expanded/smoke/results_expanded_splitA.txt
+training_results/expanded/smoke/confusion_matrix_expanded_splitA.png
+training_results/expanded/smoke/training_curve_expanded_splitA.png
+training_results/expanded_v3/smoke/history_splitA.json
+training_results/expanded_v3/e2e_cleanup.py
+training_results/expanded_v3/e2e_cleanup2.py
+training_results/expanded_v3/poll.log
+training_results/expanded_v3/e2e_backend.pid
+training_results/expanded_v3/splitB.pid
+figures/.mplconfig/fontlist-v390.json
+vista/backend/tests/__pycache__/__init__.cpython-311.pyc
+vista/backend/tests/__pycache__/conftest.cpython-311-pytest-8.2.0.pyc
+vista/backend/tests/__pycache__/conftest.cpython-311-pytest-8.2.2.pyc
+vista/backend/tests/__pycache__/test_attendance.cpython-311-pytest-8.2.0.pyc
+vista/backend/tests/__pycache__/test_attendance.cpython-311-pytest-8.2.2.pyc
+vista/backend/tests/__pycache__/test_auth.cpython-311-pytest-8.2.0.pyc
+vista/backend/tests/__pycache__/test_auth.cpython-311-pytest-8.2.2.pyc
+vista/backend/tests/__pycache__/test_dashboard.cpython-311-pytest-8.2.0.pyc
+vista/backend/tests/__pycache__/test_dashboard.cpython-311-pytest-8.2.2.pyc
+vista/backend/tests/__pycache__/test_export.cpython-311-pytest-8.2.0.pyc
+vista/backend/tests/__pycache__/test_export.cpython-311-pytest-8.2.2.pyc
+vista/backend/tests/__pycache__/test_risk.cpython-311-pytest-8.2.0.pyc
+vista/backend/tests/__pycache__/test_risk.cpython-311-pytest-8.2.2.pyc
+vista/backend/tests/__pycache__/test_students.cpython-311-pytest-8.2.0.pyc
+vista/backend/tests/__pycache__/test_students.cpython-311-pytest-8.2.2.pyc
+vista/ml/__pycache__/__init__.cpython-311.pyc
+vista/ml/__pycache__/__init__.cpython-314.pyc
+vista/ml/__pycache__/explainer.cpython-311.pyc
+vista/ml/__pycache__/features.cpython-311.pyc
+vista/ml/__pycache__/features.cpython-314.pyc
+vista/ml/__pycache__/risk_engine.cpython-311.pyc
+vista/ml/__pycache__/risk_engine.cpython-314.pyc
+vista/ml/__pycache__/test_risk_engine.cpython-311.pyc
+vista/ml/__pycache__/test_risk_engine.cpython-314.pyc
+vista/ml/__pycache__/train.cpython-311.pyc
+vista/ml/__pycache__/train.cpython-314.pyc
+vista/vision/__pycache__/__init__.cpython-311.pyc
+vista/vision/__pycache__/detect.cpython-311.pyc
+vista/vision/__pycache__/embed.cpython-311.pyc
+vista/vision/__pycache__/enroll.cpython-311.pyc
+vista/vision/__pycache__/liveness.cpython-311.pyc
+vista/vision/__pycache__/match.cpython-311.pyc
+vista/vision/__pycache__/recognize.cpython-311.pyc
+vista/vision/__pycache__/test_recognize.cpython-311.pyc
+vista/vision/__pycache__/tracker.cpython-311.pyc
+```n
+### Untracked (Remove-Item)
+
+Everything listed under 'Untracked scratch from recent agent sessions' above, including the audit helper scripts, `backup\` and `.pytest_cache\`.
+
