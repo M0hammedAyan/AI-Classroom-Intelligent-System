@@ -276,3 +276,11 @@ vista/vision/__pycache__/tracker.cpython-311.pyc
 
 Everything listed under 'Untracked scratch from recent agent sessions' above, including the audit helper scripts, `backup\` and `.pytest_cache\`.
 
+
+## Dead code removals
+
+Tool: pyflakes + autoflake (unused imports only). No variables, functions or comments were removed. Frontend (vista/frontend/src) has no eslint/tsconfig, so it was not changed. Tests: 93 passed, 5 errors in tests/test_timetable.py (same before and after).
+
+Unused imports removed: audit_v3_b.py (re; import line split one per line), build_final_report_suite.py (sys, WD_ALIGN_VERTICAL), regenerate_aug_v3.py (numpy), regenerate_npz.py (defaultdict), vista/backend/app/main.py (os, Metrics), models/intervention.py (Boolean), monitoring.py (uuid, Any), permissions.py (Any, TeacherSubjectAssignment, local Department/ClassSection), routes/academics.py (json), routes/admin.py (has_permission), routes/auth.py (uuid), routes/dashboards.py (json, MentorAssignment), routes/enroll.py (uuid), routes/export.py (datetime), routes/notifications.py (Any), routes/reports.py (csv, get_student_metrics, KeepTogether, TA_LEFT), routes/student_portal.py (datetime, timezone), routes/students.py (os), routes/timetable.py (Query), services/coach_service.py (re, LLMResult, CIE_MAX, Score), time_utils.py (Any), websocket.py (WebSocketDisconnect), vista/ml/features.py (field), vista/ml/validate_uci.py (compute_features), vision/detect.py (Path, numpy), vision/enroll.py (numpy), vision/facial_pipeline.py (os), vision/liveness.py (numpy), vision/recognize.py (list_to_embedding), vision/tracker.py (Any).
+
+Left alone on purpose: model-registration imports in db.py, routes/__init__.py router imports, shap availability checks in ml/explainer.py, mock_server, mentor.py, tests, vision/test_recognize.py, unused locals, and a pre-existing bug in routes/attendance.py (undefined name User at line 1163, duplicate CaptureEvent import), reported but not fixed.

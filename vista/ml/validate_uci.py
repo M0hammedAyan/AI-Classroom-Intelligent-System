@@ -32,7 +32,7 @@ except ImportError:
     print("pandas is required: pip install pandas")
     sys.exit(1)
 
-from vista.ml.features import StudentMetrics, compute_features
+from vista.ml.features import StudentMetrics
 from vista.ml.risk_engine import InsufficientDataError, calculate_risk_from_metrics
 
 # ---------------------------------------------------------------------------

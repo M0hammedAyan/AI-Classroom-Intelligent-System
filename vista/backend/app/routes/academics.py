@@ -3,7 +3,6 @@ Academics API — Timetable, Semester Results, Announcements, Study Materials, A
 """
 from __future__ import annotations
 
-import json
 import os
 import uuid
 from datetime import datetime, timezone

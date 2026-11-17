@@ -12,12 +12,11 @@ Usage:
 from __future__ import annotations
 
 import json
-from typing import Any
 
 from sqlalchemy.orm import Session
 
 from .models.user import User
-from .models.organization import MentorAssignment, TeacherSubjectAssignment
+from .models.organization import MentorAssignment
 
 
 # Role hierarchy (higher number = more access)
@@ -101,7 +100,6 @@ def can_view_student(user: User, student_id: str, db: Session) -> bool:
     if user.role == "hos":
         # Check if student belongs to their school
         from .models.student import Student
-        from .models.organization import Department, ClassSection
         student = db.query(Student).filter(Student.student_id == student_id).first()
         if not student:
             return False

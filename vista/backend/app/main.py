@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
@@ -25,7 +24,7 @@ from .websocket import ws_manager
 app = FastAPI(title="VISTA API", version="1.0.0")
 
 # ── Monitoring setup ──
-from .monitoring import setup_logging, metrics, Metrics
+from .monitoring import setup_logging, metrics
 setup_logging()
 
 # ── Request logging + metrics middleware ──

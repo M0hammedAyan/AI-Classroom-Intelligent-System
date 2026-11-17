@@ -26,7 +26,7 @@ from ..models.organization import (
 )
 from ..models.student import Classroom, Student
 from ..models.user import User
-from ..permissions import can_approve_requests, get_user_permissions, has_permission
+from ..permissions import can_approve_requests, get_user_permissions
 from ..routes.auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])

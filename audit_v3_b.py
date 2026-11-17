@@ -1,6 +1,11 @@
 ﻿"""Audit v3 parts c, d, e. Outputs under training_results/expanded_v3/diagnosis/.
 Usage: python audit_v3_b.py [--stage detect|report]. Detection cached in photo_stats.csv."""
-import argparse, csv, hashlib, json, random, re, subprocess
+import argparse
+import csv
+import hashlib
+import json
+import random
+import subprocess
 from pathlib import Path
 import numpy as np
 ROOT = Path(__file__).resolve().parent

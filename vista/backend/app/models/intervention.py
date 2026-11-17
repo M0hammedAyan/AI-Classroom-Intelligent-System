@@ -1,7 +1,7 @@
 """Intervention tracking — mentors log actions taken for students."""
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Column, ForeignKey, Text
+from sqlalchemy import Column, ForeignKey, Text
 
 from ..db import Base
 

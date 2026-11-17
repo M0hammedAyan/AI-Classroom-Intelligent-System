@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone, timedelta
-from typing import Any
 
 # Asia/Kolkata timezone offset is fixed at +05:30
 IST_OFFSET = timezone(timedelta(hours=5, minutes=30))

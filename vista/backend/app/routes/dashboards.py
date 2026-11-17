@@ -5,7 +5,6 @@ Each role gets scoped data for their dashboard.
 """
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -15,7 +14,7 @@ from ..db import get_db
 from ..models.attendance import Attendance, RiskFlag, Score
 from ..models.student import Student
 from ..models.user import User
-from ..models.organization import Department, MentorAssignment, TeacherSubjectAssignment, Subject
+from ..models.organization import Department, TeacherSubjectAssignment, Subject
 from ..routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboards"])

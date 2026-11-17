@@ -21,7 +21,6 @@ import cv2
 import numpy as np
 
 from .detect import get_detector
-from .embed import list_to_embedding
 from .liveness import check_liveness
 from .match import FaceMatcher
 from .personal_classifier import classify_face

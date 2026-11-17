@@ -31,7 +31,6 @@ from __future__ import annotations
 import logging
 import sys
 import time
-from collections import defaultdict
 from pathlib import Path
 
 import cv2

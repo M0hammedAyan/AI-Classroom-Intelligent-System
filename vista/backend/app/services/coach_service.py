@@ -14,7 +14,6 @@ import json
 import logging
 import math
 import os
-import re
 import urllib.error
 import urllib.request
 import uuid
@@ -27,12 +26,12 @@ from dotenv import load_dotenv
 load_dotenv()
 load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
-from .llm_resilience import resilient_chat_completion, LLMResult
+from .llm_resilience import resilient_chat_completion
 
 from sqlalchemy.orm import Session
 
-from ..cie_policy import CIE_ELIGIBILITY_AVG, CIE_MAX, calculate_cie2_needed_to_avoid_cie3, evaluate_cie
-from ..models.attendance import Attendance, RiskFlag, Score
+from ..cie_policy import CIE_ELIGIBILITY_AVG, calculate_cie2_needed_to_avoid_cie3, evaluate_cie
+from ..models.attendance import Attendance, RiskFlag
 from ..models.chat import ChatMessage
 from ..models.organization import ClassSection, Subject
 from ..models.student import Student

@@ -1,7 +1,6 @@
 """Individual Student PDF Report — comprehensive academic + attendance + risk report."""
 from __future__ import annotations
 
-import csv
 import io
 import json
 from datetime import datetime, timezone
@@ -10,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from ..db import get_db, get_student_metrics
+from ..db import get_db
 from ..models.attendance import Attendance, Score, RiskFlag
 from ..models.student import Student
 from ..models.organization import MentorAssignment
@@ -91,9 +90,9 @@ def student_report_pdf(
     from reportlab.lib.units import cm, mm
     from reportlab.platypus import (
         SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer,
-        HRFlowable, KeepTogether
+        HRFlowable
     )
-    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from reportlab.lib.enums import TA_CENTER
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(

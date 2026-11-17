@@ -11,7 +11,6 @@ from __future__ import annotations
 import base64
 import os
 import tempfile
-import uuid
 from datetime import datetime, timezone
 
 import cv2

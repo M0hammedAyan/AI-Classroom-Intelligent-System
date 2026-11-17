@@ -17,7 +17,6 @@ import json
 import logging
 from pathlib import Path
 
-import numpy as np
 
 from .detect import get_detector
 from .embed import average_embeddings, embedding_to_list

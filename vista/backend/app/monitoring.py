@@ -15,10 +15,8 @@ import json
 import logging
 import os
 import time
-import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any
 
 import httpx
 
