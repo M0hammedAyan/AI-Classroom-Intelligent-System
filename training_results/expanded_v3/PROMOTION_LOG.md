@@ -40,3 +40,13 @@ Script: training_results\expanded_v3\threshold_check.py; results: threshold_chec
 
 ## Step 5 - End-to-end test
 Backend run with v3 env (python -m uvicorn from vista\, port 8002), admin login, POST /attendance/mark-batch with held-out Split B test photos. Gallery-vs-classifier decider logged in-process (e2e_test.py decider -> e2e_decider.json); API results in e2e_results.json. Test rows (session_date 2099-01-*, 12 attendance rows, 11 capture_events) deleted afterwards; DB not restored from backup. Pytest: 143 passed, 5 errors (tests/test_timetable.py, pre-existing). npm run build: OK. Backend stopped.
+
+## Step 7: commit and push
+- Commits on main: 901c0fe84, 5f767afb2, ab8d0e15d, 34dafcd59, e42b81a62, 4e80e5fc6 (docs), 7dc3ab541 (e2e_cleanup2.py).
+- Pushed to origin/main (https://github.com/M0hammedAyan/AI-Classroom-Intelligent-System.git), normal push, no force.
+- Not staged: dataset deletions, .db/.pth/.npz, untracked scratch dirs.
+
+## ROLLBACK
+1. Model: unset VISTA_FACE_MODEL or restore start_vista.ps1 (git checkout 901c0fe84 -- start_vista.ps1), or point VISTA_FACE_MODEL at training_results\best_model_npz_splitB.pth.
+2. DB: stop backend, copy vista\backend\vista_dev_pre_v3_promotion.db over vista\backend\vista_dev.db.
+3. Roster: git revert 34dafcd59 (App.jsx ROSTER + student additions).
