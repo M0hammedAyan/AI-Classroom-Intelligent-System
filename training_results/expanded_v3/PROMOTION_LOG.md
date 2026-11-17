@@ -20,3 +20,12 @@
 - vista\backend\.env.example documents both.
 - Code default unchanged; old best_model_npz_splitB.pth untouched (rollback: point env to it).
 - Verified (CPU): model_info() -> 29 classes, threshold 0.6; load_state_dict OK via ResNet50FaceClassifier; random-noise face -> None (conf 0.18).
+
+## Step 3: threshold check (v3 Split B, CPU, app preprocessing via personal_classifier)
+Script: training_results\expanded_v3\threshold_check.py; results: threshold_check_results.json; plot: threshold_check.png. Sanity calibration only, not a new accuracy claim; nothing tuned on train.
+- Clean test crops (splits_B test, npz aug idx 0, n=138): 137 correct (max-softmax median 0.916, mean 0.901, p05 0.853, min 0.377), 1 wrong (conf 0.326).
+- Raw test photos (<=3 per student, SCRFD bbox crop as recognize._crop_face, n=87, no missed detections): 86 correct (median 0.915, mean 0.907, p05 0.863, min 0.651), 1 wrong (conf 0.203).
+- Correct predictions below threshold (of 223 correct): 0.60: 2, 0.55: 2, 0.50: 2, 0.45: 2, 0.40: 1, 0.35: 0. All below-threshold correct ones are clean-crop; raw photos: 0 at every level.
+- Wrong predictions: max conf 0.326, so every threshold >= 0.35 rejects all of them.
+- Non-students: 5 photos of ex-student 1DA22AI402 (not a class) were all predicted 1DA24AI403 at 0.89-0.93 (probably the same person or a lookalike duplicate, so NOT a valid unknown test; they pass any threshold). UI screenshot patches 0.13-0.20, background patch 0.09, flat gray 0.09 (all rejected). One random-noise image reached 0.77 (accepted at 0.60), an arbitrary-input overconfidence case; threshold cannot fix it, face detection upstream guards it.
+- Decision: keep VISTA_FACE_MODEL_THRESHOLD=0.60. Counts of lost correct predictions are identical (2/223, 0.9%) for 0.45-0.60, so the stricter value costs nothing here, and a false attendance mark is worse than a miss. No true unknown-person faces exist in the repo, so unknown-face rejection is unverified. start_vista.ps1 and .env.example already hold 0.60 (no change needed).
