@@ -109,3 +109,12 @@ agumented data_stale_v1/
 training_results/expanded_v3/*.pth
 data/processed/*v3*
 training_results/expanded_v3/graphs_report/USN_to_ID_PRIVATE.csv
+
+# scratch
+1report/_x/
+1report/_x.zip
+1report/_dump.txt
+1report/_fmt.txt
+1report/*_original_backup.docx
+training_results/**/smoke/*.pth
+training_results/expanded_v3/graphs_report/_old_*
