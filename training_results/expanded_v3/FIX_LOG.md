@@ -70,3 +70,21 @@ Stale move: regen students had no augmented folder, so nothing was moved to `agu
 - none
 
 Multi-face photos: the highest-det-score face is used (same as original pipeline). Photos where that face was a different person were already excluded by the audit. No other multi-face photo was altered; largest/central heuristics were not applied because the audit validated the highest-score rule against each student's centroid.
+
+## Step 2 part 2: npz and splits (build_npz_v3.py)
+
+Output: `data/processed/facial_pipeline_results_expanded_v3.npz` (1666.2 MB, gitignored), keys `images` (28830,160,160,3) uint8, `embeddings` (28830,512) float32 (ArcFace R50 via `extract_embeddings_batch`, L2-normalised), `labels`, `metadata` (dicts with source_image, student_id, augmentation_index, original_bbox, det_score), same as the original npz. 29 classes, 930 source photos, 31 samples per photo.
+
+**Classes:** 29 (19 kept + 10 new). 1DA22AI402 is excluded: it has no `dataset/` folder (raw photos removed), so no clean crop can be made for it and it could not have val/test samples. Its old augmented samples are not used. This matches the 29 members stated in the request.
+
+**augmentation_index mapping.** Baseline: 0-29, where index 0 was itself randomly augmented, so val/test were not clean. v3: `0` = clean identity crop (SCRFD primary face, 160x160, no augmentation), `1..30` = the 30 augmented variants. Baseline index k maps to v3 index k+1.
+- New 10 students: clean = `agumented data/<USN>/<photo>/clean.jpg`, variants = aug_000..029 -> index 1..30.
+- Kept 19 students: clean crop = `training_results/expanded_v3/clean_crops/<USN>/<photo>.jpg` (made in part 1 from the raw photo with the same detector/preprocess). Their on-disk `aug_*.jpg` files are Git-LFS pointer stubs (133 bytes, objects not local), so the 30 variants were reused from the baseline npz (baseline index 0-29 -> v3 index 1-30). bbox/det_score also come from the baseline npz. Nothing was written to the baseline npz or the aug folders.
+- Excluded photos (17) have no samples at all, even where an old aug folder exists.
+
+**Splits** (`splits_A.json`, `splits_B.json`, `split_counts.csv`): unit = source photo; per class, one seeded (42) shuffle is shared by both splits, then test = first n_test, val = next n_val, rest train (n_val/n_test = max(3, round(n*ratio))). Val/test use only augmentation_index 0; train uses index 0-30 of its photos. Assertions: disjoint sources and sample indices, val/test only index 0 with one sample per photo, partition covers all photos, plus an MD5 of the raw photo file must not appear on two sides of a split (no duplicate content exists in the data). Every class has at least 3 val and 3 test photos in both splits; no class falls short.
+
+| Split | train photos / samples | val | test |
+|---|---|---|---|
+| A (80:10:10) | 740 / 22940 | 95 | 95 |
+| B (70:15:15) | 654 / 20274 | 138 | 138 |
