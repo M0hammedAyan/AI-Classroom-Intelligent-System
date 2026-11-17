@@ -94,3 +94,10 @@ Output: `data/processed/facial_pipeline_results_expanded_v3.npz` (1666.2 MB, git
 - Added vs baseline: label smoothing 0.1, class-weighted CrossEntropy (inverse train-sample frequency, mean 1; range 0.72-1.66 in split A). Same seed 42 for A and B, patience 7, max 30 epochs, ReduceLROnPlateau as baseline.
 - **LR decision: keep baseline 1e-4 for backbone and head (no lower backbone LR).** Evidence (train/val only, split A, 3000 random train samples, 64 val photos, 3 epochs): backbone 1e-4 gave val acc 0.906/0.984/0.984 with train acc 0.47/0.93/0.99; backbone 1e-5 gave val 0.641/0.797/0.891 with train acc 0.22/0.60/0.77. No sign of overfitting (val tracks train), so the lower LR only slows learning. --backbone-lr/--head-lr flags remain available.
 - Status file train_status_v3.json: done=yes only when split B finishes; split A finish writes done=no, split=B.
+
+## Launcher fix (split B never started)
+- Root cause: run_chain.ps1 used Start-Process -PassThru + WaitForExit() and tested $pa.ExitCode -eq 0. Without reading .Handle right after Start-Process, ExitCode is empty, so B was skipped. Test: python -c pass gave ExitCode empty without .Handle, 0 with .Handle.
+- run_chain.ps1: reads .Handle after Start-Process; success = split checkpoint .pth exists and log contains 'saved checkpoint'.
+- New run_splitB.ps1 starts only split B (no exit-code logic), writes splitB.pid.
+- train_expanded_v3.py status logic reviewed: split B finish already writes done=yes, split=B; no change made.
+

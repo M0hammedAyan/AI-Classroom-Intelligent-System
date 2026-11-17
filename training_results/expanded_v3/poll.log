@@ -1,0 +1,5 @@
+2026-11-17T09:41:50 | {"done": "no", "split": "A", "epoch": 5, "error": ""} | [A] Epoch 005/30 tr_loss=0.6779 tr_acc=0.9967 vl_loss=0.6508 vl_acc=1.0000 (93s)
+2026-11-17T09:47:22 | {"done":"no","split":"B","epoch":8,"error":"train_expanded_v3.py process gone while done=no; split B never started (no train_splitB.log)"} | [A] saved checkpoint + history (best epoch 1, val_acc 1.0000)
+2026-11-17T10:14:35 | {"done": "no", "split": "B", "epoch": 5, "error": ""} | 2026-11-17 10:13:54,946 [INFO] [B] Epoch 005/30 tr_loss=0.6759 tr_acc=0.9972 vl_loss=0.6938 vl_acc=0.9928 (81s)
+2026-11-17T10:20:08 | {"done": "no", "split": "B", "epoch": 9, "error": ""} | 2026-11-17 10:19:24,550 [INFO] [B] Epoch 009/30 tr_loss=0.6615 tr_acc=0.9996 vl_loss=0.6850 vl_acc=0.9928 (83s)
+2026-11-17T10:25:28 | {"done": "yes", "split": "B", "epoch": 10, "error": ""} | 2026-11-17 10:20:48,171 [INFO] [B] saved checkpoint + history in D:\CipherTECH\Projects\AI-Classroom-Intelligent-System\training_results\expanded_v3 (best epoch 3, val_acc 0.9928)
