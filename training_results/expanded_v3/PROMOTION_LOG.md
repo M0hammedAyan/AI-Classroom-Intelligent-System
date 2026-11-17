@@ -14,3 +14,9 @@
 2. git checkout <commit-before-promotion> -- start_vista.ps1
 3. Stop backend, then Copy-Item vista\backend\vista_dev_pre_v3_promotion.db vista\backend\vista_dev.db -Force
 4. git revert the App.jsx ROSTER commit.
+
+## Step 2: wire model
+- start_vista.ps1 sets VISTA_FACE_MODEL (absolute path to best_model_expanded_v3_splitB.pth; relative paths resolve against cwd) and VISTA_FACE_MODEL_THRESHOLD=0.60 (final value in step 3).
+- vista\backend\.env.example documents both.
+- Code default unchanged; old best_model_npz_splitB.pth untouched (rollback: point env to it).
+- Verified (CPU): model_info() -> 29 classes, threshold 0.6; load_state_dict OK via ResNet50FaceClassifier; random-noise face -> None (conf 0.18).
