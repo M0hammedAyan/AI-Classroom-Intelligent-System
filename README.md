@@ -61,7 +61,7 @@ Copy `.env.example` to `.env` and edit it. Keys go in `.env` only. `.env` is nev
 
 ## Run
 
-Easiest: `.\start_vista.ps1` from the repo root. It sets the database path, selects the 29-class classifier at threshold 0.60, and opens the backend (port 8002) and frontend (port 5173) in two windows.
+Easiest: `.\start_vista.ps1` (works from any folder; uses the project `.venv`). It sets the database path, selects the 29-class classifier at threshold 0.60, and opens the backend (port 8002) and frontend (port 5173) in two windows.
 
 Manually:
 
