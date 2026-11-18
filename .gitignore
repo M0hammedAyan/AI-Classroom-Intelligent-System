@@ -28,6 +28,11 @@ ENV/
 *.swp
 *.swo
 *~
+.agents
+.archify
+.cursor
+.kiro
+
 
 # ── OS ──
 .DS_Store

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VISTA – Visual Intelligence System for Tracking and Analysis</title>
+<style>
+:root{--bg:#0c0f16;--panel:#141926;--panel2:#1b2232;--ink:#e9edf5;--mut:#94a0b8;--acc:#ff5a3c;--acc2:#4da3ff;--ok:#2ecc9a;--warn:#ffb84d;--line:#262e42}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.55}
+#prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--acc),var(--acc2));z-index:50;width:0}
+nav{position:sticky;top:0;z-index:40;background:rgba(12,15,22,.88);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:4px;padding:10px 24px;align-items:center;overflow-x:auto}
+nav b{margin-right:18px;letter-spacing:.12em;white-space:nowrap}
+nav a{color:var(--mut);text-decoration:none;font-size:14px;padding:6px 12px;border-radius:20px;white-space:nowrap;transition:.2s}
+nav a:hover,nav a.on{color:#fff;background:var(--panel2)}
+nav .demo{margin-left:auto;background:var(--acc);color:#fff;font-weight:700}
+section{max-width:1160px;margin:0 auto;padding:84px 24px 20px}
+.kick{color:var(--acc);font-size:13px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+h2{font-size:38px;letter-spacing:-.02em;line-height:1.1;margin-bottom:10px}
+.sub{color:var(--mut);max-width:760px;margin-bottom:28px}
+.hero{padding-top:90px;text-align:center}
+.hero h1{font-size:clamp(56px,10vw,120px);letter-spacing:-.05em;line-height:1;background:linear-gradient(120deg,#fff,var(--acc2) 55%,var(--acc));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{max-width:720px;margin:14px auto 28px;color:var(--mut);font-size:19px}
+.btn{display:inline-block;background:var(--acc);color:#fff;border:0;padding:12px 22px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;transition:.2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,90,60,.35)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.grid{display:grid;gap:16px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr 1fr}
+@media(max-width:860px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}@media(max-width:560px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;transition:.25s}
+.stat .n{font-size:42px;font-weight:800;color:var(--acc2);letter-spacing:-.03em}
+.stat .l{color:var(--mut);font-size:13px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--mut);padding:7px 14px;border-radius:20px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s}
+.chip:hover{color:#fff}.chip.on{background:var(--acc2);border-color:var(--acc2);color:#04101f}
+.tech{cursor:pointer}.tech:hover{border-color:var(--acc2);transform:translateY(-4px)}
+.tech h3{font-size:17px}.tech .tg{font-size:11px;letter-spacing:.12em;color:var(--acc2);text-transform:uppercase;font-weight:700}
+.tech p{color:var(--mut);font-size:14px;margin-top:6px}
+.tech .more{max-height:0;overflow:hidden;transition:.35s;color:var(--ink);font-size:14px}
+.tech.open .more{max-height:160px;margin-top:8px}
+.tech.hide{display:none}
+.reveal{opacity:0;transform:translateY(24px);transition:.7s}.reveal.in{opacity:1;transform:none}
+svg text{font-family:inherit}
+.node rect{fill:var(--panel2);stroke:var(--line);stroke-width:2;transition:.3s}
+.node.act rect{stroke:var(--acc);fill:#2a1f26}
+.node text{fill:var(--ink);font-weight:700;font-size:14px}
+.mn{cursor:pointer}.mn rect,.mn polygon{fill:var(--panel2);stroke:#3a4560;stroke-width:2;transition:.25s}
+.mn text{fill:var(--ink);font-size:13px;font-weight:700}
+.mn.hot rect{fill:#3a1d1a;stroke:var(--acc)}
+.mn:hover rect,.mn:hover polygon,.mn.act rect,.mn.act polygon{stroke:var(--acc2);stroke-width:3}
+.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.panel{min-height:230px}
+.panel h3{margin-bottom:8px}
+ul{padding-left:20px}li{margin:6px 0;color:#cfd6e6}
+.flip{perspective:900px;height:200px;cursor:pointer}
+.flip .in{position:relative;width:100%;height:100%;transition:.6s;transform-style:preserve-3d}
+.flip.f .in{transform:rotateY(180deg)}
+.flip .fr,.flip .bk{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:18px;border:1px solid var(--line);overflow:auto}
+.flip .fr{background:var(--panel)}.flip .fr h3{margin-top:30px;font-size:19px}.flip .fr .ic{font-size:30px}
+.flip .bk{background:linear-gradient(135deg,#1d2a45,#2b1b22);transform:rotateY(180deg);font-size:14px;color:#dfe6f5}
+.bar{display:flex;align-items:center;gap:10px;margin:9px 0;font-size:14px}.bar .t{width:170px;color:var(--mut)}
+.bar .tr{flex:1;background:#0f1320;border-radius:6px;height:26px;overflow:hidden}.bar .f{height:100%;width:0;background:linear-gradient(90deg,var(--acc2),#7fd0ff);transition:1.3s;color:#04101f;font-weight:700;font-size:13px;padding:4px 8px;white-space:nowrap}
+.note{border-left:3px solid var(--warn);background:#2a2415;padding:10px 14px;border-radius:0 8px 8px 0;color:#f0dfb8;font-size:14px;margin-top:14px}
+.road{position:relative;margin-left:14px;border-left:2px solid var(--line);padding-left:26px}
+.ri{position:relative;margin-bottom:16px;cursor:pointer}
+.ri:before{content:"";position:absolute;left:-35px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--acc2);transition:.2s}
+.ri.open:before,.ri:hover:before{background:var(--acc)}
+.ri .d{max-height:0;overflow:hidden;transition:.35s;color:var(--mut);font-size:14px}.ri.open .d{max-height:140px;margin-top:6px}
+.tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;background:#22304d;color:var(--acc2);margin-left:6px}
+.step{display:flex;gap:14px;align-items:flex-start}.step .no{font-size:48px;font-weight:800;color:var(--acc);line-height:1}
+footer{text-align:center;color:var(--mut);padding:60px 24px;font-size:13px}
+.cta{text-align:center;background:linear-gradient(135deg,#1a2540,#2c1c24);border:1px solid var(--line);border-radius:16px;padding:44px 20px;margin-top:20px}
+</style></head><body>
+<div id="prog"></div>
+<nav><b>VISTA</b>
+<a href="#stack">Tech stack</a><a href="#model">Trained model</a><a href="#backend">Backend</a><a href="#innov">Innovation</a><a href="#results">Results</a><a href="#future">Future upgrades</a>
+<a class="demo" href="VISTA_Live_Demo.html">▶ Live demo</a></nav>
+
+<section class="hero" id="top">
+ <div class="kick">Dr. Ambedkar Institute of Technology · NAVONMESHOS 2026</div>
+ <h1>VISTA</h1>
+ <div style="font-size:clamp(18px,2.6vw,28px);font-weight:700;margin-top:8px">Visual Intelligence System for Tracking and Analysis</div>
+ <p>A classroom system that marks attendance from a photo, flags at-risk students early, and coaches each student from their own records.</p>
+ <a class="btn" href="#stack">Explore the project</a> <a class="btn ghost" href="VISTA_Live_Demo.html">Open the live demo</a>
+ <div class="grid g4" style="margin-top:46px">
+  <div class="card stat"><div class="n" data-n="145">0</div><div class="l">API route entries</div></div>
+  <div class="card stat"><div class="n" data-n="28">0</div><div class="l">database tables</div></div>
+  <div class="card stat"><div class="n" data-n="29">0</div><div class="l">classifier classes</div></div>
+  <div class="card stat"><div class="n"><span data-n="0.683" data-d="3">0</span>s</div><div class="l">60 faces, CPU only</div></div>
+ </div>
+</section>
+
+<section id="stack">
+ <div class="kick">01 · Tech stack</div><h2>Every layer, one filter away</h2>
+ <p class="sub">Pick a layer. Click a card for what it does in VISTA.</p>
+ <div class="chips" id="stChips"></div>
+ <div class="grid g4" id="stGrid"></div>
+</section>
+
+<section id="model">
+ <div class="kick">02 · Our trained model</div><h2>The ResNet-50 we trained is in the live attendance path</h2>
+ <p class="sub">Every face first tries the ArcFace gallery. If the best cosine score is below 0.55, the face crop goes to our trained classifier. Click a box in the decision path for details.</p>
+ <div class="grid g2" style="grid-template-columns:1.15fr 1fr;align-items:start">
+  <div class="card">
+   <svg viewBox="0 0 560 360" style="width:100%">
+    <defs><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0L8,4L0,8z" fill="#5d6a88"/></marker></defs>
+    <g stroke="#5d6a88" stroke-width="2" fill="none" marker-end="url(#am)">
+     <path d="M280 62V92"/><path d="M280 150V180"/><path d="M200 210H110V256"/><path d="M360 210H450V256"/><path d="M450 314V330"/>
+    </g>
+    <text x="150" y="200" fill="#2ecc9a" font-size="12" font-weight="700">≥ 0.55</text><text x="368" y="200" fill="#ff5a6e" font-size="12" font-weight="700">&lt; 0.55</text>
+    <g class="mn" data-k="det"><rect x="170" y="14" width="220" height="48" rx="8"/><text x="280" y="44" text-anchor="middle">SCRFD face + ArcFace 512-d</text></g>
+    <g class="mn" data-k="gal"><rect x="170" y="92" width="220" height="58" rx="8"/><text x="280" y="118" text-anchor="middle">Cosine vs enrolled gallery</text><text x="280" y="138" text-anchor="middle" font-size="11" fill="#94a0b8">students.embedding in SQLite</text></g>
+    <g class="mn" data-k="dec"><polygon points="280,180 360,210 280,240 200,210"/><text x="280" y="215" text-anchor="middle">best ≥ 0.55?</text></g>
+    <g class="mn" data-k="acc"><rect x="30" y="256" width="160" height="58" rx="8"/><text x="110" y="282" text-anchor="middle">Accept</text><text x="110" y="300" text-anchor="middle" font-size="11" fill="#94a0b8">decided_by = gallery</text></g>
+    <g class="mn hot" data-k="cls"><rect x="350" y="256" width="200" height="58" rx="8"/><text x="450" y="280" text-anchor="middle">Our ResNet-50 (29 classes)</text><text x="450" y="300" text-anchor="middle" font-size="11" fill="#ffd0c6">softmax ≥ 0.60 → accept</text></g>
+    <text x="450" y="350" text-anchor="middle" font-size="12" fill="#94a0b8">else → unrecognized</text>
+   </svg>
+   <div class="card" id="mInfo" style="background:var(--panel2);margin-top:6px"><b>Click a box.</b></div>
+  </div>
+  <div>
+   <div class="grid g2">
+    <div class="card stat"><div class="n">99.28%</div><div class="l">Split B test accuracy (137/138)</div></div>
+    <div class="card stat"><div class="n">97.89%</div><div class="l">Split A test accuracy (93/95)</div></div>
+    <div class="card stat"><div class="n">86/87</div><div class="l">raw held-out photos correct</div></div>
+    <div class="card stat"><div class="n">11/12</div><div class="l">faces accepted by our model in the end-to-end API test (10 correct)</div></div>
+   </div>
+   <div class="tabs" style="margin-top:14px" id="mTabs"></div>
+   <div class="card" id="mBody" style="min-height:190px"></div>
+  </div>
+ </div>
+ <div class="note">Test sets are small, clean and closed-set (only enrolled students). In the end-to-end test, one face in a 1DA25AI010 photo was wrongly accepted as 1DA25AI002 (0.82), and one face was correctly rejected at 0.20. The model has no "unknown person" class, so it always predicts one of the 29 students. The 0.60 threshold and SCRFD face detection run before it are the guards.</div>
+</section>
+
+<section id="backend">
+ <div class="kick">03 · Backend</div><h2>FastAPI on the server, SQLite in one file</h2>
+ <p class="sub">The backend holds the rules. The browser only displays what the API allows each role to see.</p>
+ <div class="tabs" id="beTabs"></div>
+ <div class="card panel" id="beBody"></div>
+</section>
+
+<section id="innov">
+ <div class="kick">04 · Innovation</div><h2>What is different here</h2>
+ <p class="sub">Click a card to flip it.</p>
+ <div class="grid g3" id="inGrid"></div>
+</section>
+
+<section id="results">
+ <div class="kick">05 · Measured results</div><h2>Numbers, with their limits</h2>
+ <div class="card" id="resBars"></div>
+ <div class="note">The classifier numbers come from small, clean, closed-set test crops. Rejection of unknown (non-enrolled) faces was not tested. Real classrooms with varied pose and lighting will score lower. The XGBoost risk model (macro F1 0.3286, trained on synthetic labels) is below the 53.5% majority baseline, so the rule engine decides risk and SHAP only explains.</div>
+</section>
+
+<section id="future">
+ <div class="kick">06 · Future upgrades</div><h2>What we would build next</h2>
+ <p class="sub">Click an item for the reason behind it.</p>
+ <div class="road" id="road"></div>
+ <div class="cta"><h2 style="margin-bottom:8px">Follow one photo through the whole system</h2><p class="sub" style="margin:0 auto 18px">An animated architecture tree: upload, API checks, SCRFD, the split into faces, ArcFace, our trained model, database writes and the response.</p><a class="btn" href="VISTA_Live_Demo.html">▶ Open the live demo</a></div>
+</section>
+<footer>VISTA · CSE Programme, SCSE · Dr. Ambedkar Institute of Technology, Bengaluru</footer>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+// progress + scrollspy
+addEventListener('scroll',()=>{const h=document.documentElement;$('#prog').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+ let id='';$$('section[id]').forEach(s=>{if(s.getBoundingClientRect().top<140)id=s.id});$$('nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')=='#'+id))});
+// reveal + counters
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
+$$('.card,.flip,.ri').forEach(e=>{e.classList.add('reveal');io.observe(e)});
+$$('[data-n]').forEach(el=>{const t=+el.dataset.n,d=+(el.dataset.d||0);let k=0;const iv=setInterval(()=>{k+=1/40;if(k>=1){k=1;clearInterval(iv)}el.textContent=(t*k).toFixed(d)},30)});
+
+// tech stack
+const T=[['Frontend','React 18 + Vite','Single-page portals for admin, teacher and student.','Served on port 5173. Tailwind-styled dashboards, live updates over a WebSocket.'],
+['Frontend','WebSocket dashboard','Pushes live updates to the dashboard.','Teachers and admins see attendance and alerts without refreshing.'],
+['Backend','FastAPI + Uvicorn','Async Python API on port 8002.','145 route entries across modules. Auto-generated docs at /docs.'],
+['Backend','APScheduler','Background jobs.','A midnight job recomputes risk for every student.'],
+['Data','SQLite + SQLAlchemy','28 tables in one portable file.','vista_dev.db needs no database server. Holds attendance, marks, embeddings, audit logs, notifications.'],
+['ML','InsightFace (buffalo_l)','SCRFD detector + ArcFace embedder.','Finds all faces in one pass, then makes a 512-dimensional L2-normalised vector per face.'],
+['ML','Our trained ResNet-50','Face classifier we trained on our own class.','29 students. Runs whenever the ArcFace gallery match is below 0.55. Accepted at confidence 0.60. See the Trained model section.'],
+['ML','XGBoost + SHAP','Risk explanation.','SHAP shows which features (absences, CIE scores, streak) pushed a student toward a risk label.'],
+['AI Coach','OpenRouter or Ollama','LLM phrases the answer.','Python computes the facts first. If no LLM is reachable, a deterministic rule-based reply is used.'],
+['Security','JWT + role guards','Three active roles.','Admin, teacher and student. Old HOS/HOP/Mentor roles are rejected at login (403).'],
+['Security','Sanitise, rate-limit, CSP','Input and transport hardening.','HTML-escaped notification text, HTTP 429 on bursts, CSP headers.'],
+['Data','Audit log','Every manual change recorded.','Manual attendance overrides require a reason and store old/new status and who changed it.']];
+const L=['All',...new Set(T.map(t=>t[0]))];let lf='All';
+$('#stChips').innerHTML=L.map(l=>`<button class="chip ${l=='All'?'on':''}" data-l="${l}">${l}</button>`).join('');
+$('#stGrid').innerHTML=T.map(t=>`<div class="card tech" data-l="${t[0]}"><div class="tg">${t[0]}</div><h3>${t[1]}</h3><p>${t[2]}</p><div class="more">${t[3]}</div></div>`).join('');
+$$('#stChips .chip').forEach(c=>c.onclick=()=>{lf=c.dataset.l;$$('#stChips .chip').forEach(x=>x.classList.toggle('on',x==c));$$('#stGrid .tech').forEach(t=>t.classList.toggle('hide',lf!='All'&&t.dataset.l!=lf))});
+$$('.tech').forEach(t=>t.onclick=()=>t.classList.toggle('open'));
+
+// trained model
+const MI={det:['SCRFD + ArcFace (pretrained, InsightFace buffalo_l)','SCRFD finds each face at 640×640 detection size. InsightFace aligns it with 5 landmarks and ArcFace (w600k_r50) returns a normalised 512-d embedding.'],
+gal:['Gallery match (vista/vision/match.py)','The embedding is compared with every active student’s stored embedding using a dot product (cosine for normalised vectors). The best score wins.'],
+dec:['Threshold 0.55','VISTA_FACE_MATCH_THRESHOLD, default 0.55. At or above it, the gallery decides. Below it, the face goes to our model.'],
+acc:['Gallery accept','Returned with decided_by = "gallery" and the cosine score as confidence.'],
+cls:['Our trained classifier (vista/vision/personal_classifier.py)','The face is cropped from the original photo by its SCRFD box, resized to 112×112, normalised, and passed through ResNet-50. If the top softmax probability is ≥ 0.60 (VISTA_FACE_MODEL_THRESHOLD), that student is accepted with decided_by = "classifier". Otherwise the face is unrecognized.']};
+$$('.mn').forEach(g=>g.onclick=()=>{$$('.mn').forEach(x=>x.classList.remove('act'));g.classList.add('act');const m=MI[g.dataset.k];$('#mInfo').innerHTML=`<b>${m[0]}</b><p style="color:var(--mut);font-size:14px;margin-top:4px">${m[1]}</p>`});
+const MT={'Architecture':['ResNet-50 backbone (conv1 → layer4 → avgpool), 2048 features.','Head: BatchNorm → ReLU → Dropout 0.4 → Linear 2048→512 → BatchNorm → ReLU → Dropout 0.3 → Linear 512→29.','Input 112×112 RGB, normalised to mean 0.5, std 0.5.','Output: softmax over 29 enrolled students (USNs stored in the checkpoint).'],
+'Training':['Data: our own class photos, augmented into data/processed/facial_pipeline_results_expanded_v3.npz.','Split B: 20,274 training samples, 138 validation, 138 test (test untouched during training).','Trained on an NVIDIA RTX 3050 6 GB laptop GPU, learning rate 1e-4, label smoothing 0.1, class weights, early stopping (patience 7).','Best epoch 3 (validation 99.28%); stopped at epoch 10.'],
+'In the app':['start_vista.ps1 sets VISTA_FACE_MODEL to training_results/expanded_v3/best_model_expanded_v3_splitB.pth and the threshold to 0.60.','Loaded once and cached (lru_cache). Runs on CPU unless VISTA_FACE_MODEL_DEVICE=cuda.','Called from recognize_all() for every face the gallery does not accept, during POST /attendance/mark-batch, /mark and /mark-video.','Health check: model_info() reports checkpoint, device, threshold and class count.'],
+'Evidence':['Split B test: 137/138 correct (99.28%, Wilson 95% CI 96.01–99.87%).','Split A test: 93/95 correct (97.89%), macro F1 0.977.','Raw held-out photos cropped like the app does: 86 of 87 correct, median confidence 0.915.','End-to-end via the real API: in a 3-person collage all 3 faces were identified by our model (0.90–0.94).']};
+$('#mTabs').innerHTML=Object.keys(MT).map((k,i)=>`<button class="chip ${i?'':'on'}">${k}</button>`).join('');
+function setM(k){$$('#mTabs .chip').forEach(c=>c.classList.toggle('on',c.textContent==k));$('#mBody').innerHTML=`<ul>${MT[k].map(x=>`<li>${x}</li>`).join('')}</ul>`}
+$$('#mTabs .chip').forEach(c=>c.onclick=()=>setM(c.textContent));setM('Architecture');
+
+// backend tabs
+const B={'Modules':['Feature modules',['Face attendance from single photos, batches or video.','Manual attendance with an audit trail.','CIE policy handling for internal marks.','Risk engine: rule-based scoring with XGBoost + SHAP explanations.','Study coach (LLM with rule-based fallback).','Timetable, assignments, study materials, announcements, PDF student reports.']],
+'Security':['Security controls',['JWT authentication on every protected route.','Role guards: a teacher posting to another teacher’s subject gets HTTP 403; a student posting a notification gets 403.','Server-side HTML escaping of notification title and body.','Per-sender rate limit returns HTTP 429. Limits are in memory and reset on restart.','CSP headers. Secrets live in .env, never in the repository.']],
+'Policy engine':['Attendance and CIE rules',['75% attendance per subject for eligibility (VTU norm).','CIE 3 is required if the average of CIE 1 and 2 is below 20/25, or one of them is missed.','Final internal mark is the best two of three, scaled to 50.','Student portal shows cie3_eligible and cie3_reason per subject, calculated on request.']],
+'Risk':['Risk engine',['Rule-based path decides: 7 or more consecutive absences, attendance below 75% in a subject, and low CIE scores.','Risk is recalculated on every attendance record and by a nightly job.','XGBoost + SHAP explain feature contributions (about 14 ms per student).','Interventions are logged per student.']],
+'Study coach':['Grounded study coach',['Python computes attendance %, missable classes, recovery streak and marks needed.','Only those computed facts, with names and USNs removed, go to the LLM.','If no key is set or the call fails, generate_rule_based_reply() answers deterministically.','Each reply returns the provider, a disclaimer and the facts used.']]};
+$('#beTabs').innerHTML=Object.keys(B).map((k,i)=>`<button class="chip ${i?'':'on'}">${k}</button>`).join('');
+function setBe(k){$$('#beTabs .chip').forEach(c=>c.classList.toggle('on',c.textContent==k));$('#beBody').innerHTML=`<h3>${B[k][0]}</h3><ul>${B[k][1].map(x=>`<li>${x}</li>`).join('')}</ul>`}
+$$('#beTabs .chip').forEach(c=>c.onclick=()=>setBe(c.textContent));setBe('Modules');
+
+
+// innovation
+const I=[['🧬','Two-stage recognition','ArcFace cosine matching first, then the ResNet-50 we trained on our own class for faces below 0.55. False rejection fell from 16.83% to 1.98% (N=202, 20 classes); false acceptance on that set was 5.45%.'],
+['🧾','Grounded study coach','The model never calculates. Python computes every number from the database, the LLM only phrases it. 10 of 10 test queries were answered correctly.'],
+['🔍','Rules decide, SHAP explains','A transparent rule engine sets the risk level. XGBoost + SHAP show which features mattered, without being trusted as the decision-maker.'],
+['🛡️','Privacy fence','Names, USNs, email and phone are stripped before any text goes to an LLM. Ollama can run the coach fully on-premise.'],
+['📝','Audit-first overrides','Manual attendance edits need a written reason and store who, when, and old versus new status.'],
+['💻','No special hardware','One photo replaces RFID or biometric terminals. 60 faces take 0.683 s on a laptop CPU (Intel i7-13700H), no GPU.']];
+$('#inGrid').innerHTML=I.map(i=>`<div class="flip" onclick="this.classList.toggle('f')"><div class="in"><div class="fr"><div class="ic">${i[0]}</div><h3>${i[1]}</h3><div style="color:var(--mut);font-size:13px">Click to flip</div></div><div class="bk">${i[2]}</div></div></div>`).join('');
+
+// results
+const RS=[['Classifier accuracy, Split B',99.28,'%'],['Classifier accuracy, Split A',97.89,'%'],['False rejection, cosine only',16.83,'%'],['False rejection, with cascade',1.98,'%'],['Gallery recall at 0.55',90.58,'%'],['Gallery precision at 0.55',100,'%']];
+$('#resBars').innerHTML=RS.map(r=>`<div class="bar"><span class="t">${r[0]}</span><div class="tr"><div class="f" data-w="${r[1]}">${r[1]}${r[2]}</div></div></div>`).join('');
+new IntersectionObserver((es,o)=>{if(es[0].isIntersecting){$$('#resBars .f').forEach(f=>f.style.width=Math.max(8,+f.dataset.w)+'%');o.disconnect()}},{threshold:.3}).observe($('#resBars'));
+
+// future
+const F=[['Open-set impostor testing','Evaluate with real non-enrolled faces and measure false-accept rate.','Evaluation'],['Anti-spoofing liveness','Replace heuristic liveness with MiniFASNet or depth-based checks so a printed photo fails.','Security'],['Real risk labels','Train on real historical outcomes, then beat the majority baseline before trusting the model.','ML'],['Fully on-premise coach','Run Ollama locally so no student statistics leave the server.','Privacy'],['Persistent rate limiting','Redis-backed limits and sessions that survive restarts.','Production'],['Larger, varied dataset','Collect more lighting, pose and group-photo conditions to approach classroom accuracy.','Data']];
+$('#road').innerHTML=F.map(f=>`<div class="ri" onclick="this.classList.toggle('open')"><b>${f[0]}</b><span class="tag">${f[2]}</span><div class="d">${f[1]}</div></div>`).join('');
+</script></body></html>

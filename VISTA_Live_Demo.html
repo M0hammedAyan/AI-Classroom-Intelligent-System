@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VISTA – Visual Intelligence System for Tracking and Analysis · Pipeline</title>
+<style>
+:root{--bg:#0b0e15;--panel:#131826;--panel2:#1a2133;--ink:#e9edf5;--mut:#8e9ab3;--acc:#ff5a3c;--acc2:#4da3ff;--ok:#2ecc9a;--warn:#ffb84d;--bad:#ff5a6e;--line:#273049}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",Helvetica,Arial,sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header a{color:var(--mut);text-decoration:none;font-size:14px}header a:hover{color:#fff}
+header h1{font-size:18px}header h1 span{color:var(--mut);font-weight:500;font-size:14px;margin-left:6px}
+.ctl{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mut)}
+button,select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:7px 12px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
+button:hover{border-color:var(--acc2)}button:disabled{opacity:.4;cursor:default}
+.wrap{flex:1;display:grid;grid-template-columns:1fr 400px;min-height:0}
+@media(max-width:1100px){.wrap{grid-template-columns:1fr}.side{max-height:none}}
+#treeBox{overflow:auto;padding:14px 18px 40px;position:relative}
+.side{border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.side h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);padding:12px 14px 6px}
+#insp{padding:0 14px 12px;font-size:13px;color:#cfd6e6;min-height:120px;border-bottom:1px solid var(--line)}
+#insp b{color:#fff;font-size:14px;display:block;margin-bottom:4px}
+#insp code{color:#9fd0ff;font-size:12px}
+#log{flex:1;overflow:auto;padding:4px 10px 20px;font-family:Consolas,"Cascadia Mono",monospace;font-size:12px}
+.le{border-left:3px solid var(--line);padding:5px 8px;margin:5px 0;background:#10141f;border-radius:0 6px 6px 0;animation:li .35s}
+.le .h{font-family:"Segoe UI",sans-serif;font-weight:700;font-size:12px;color:#fff}
+.le .p{color:#a9b6d0;white-space:pre-wrap;word-break:break-word;margin-top:2px}
+@keyframes li{from{opacity:0;transform:translateX(12px)}to{opacity:1}}
+/* console */
+.console{display:grid;grid-template-columns:260px 1fr;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;max-width:1200px}
+.console canvas{width:260px;border-radius:8px;display:block}
+.fld{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 12px}
+.fld div{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--mut)}
+.fld b{display:block;color:var(--ink);font-size:13px}
+#go{background:var(--acc);border-color:var(--acc);font-size:15px;padding:11px 20px}
+#go:hover{box-shadow:0 6px 20px rgba(255,90,60,.35)}
+.hint{font-size:12px;color:var(--mut);margin-top:8px}
+/* tree */
+svg{width:100%;max-width:1200px;display:block}
+svg text{font-family:"Segoe UI",Helvetica,Arial,sans-serif}
+.nd{cursor:pointer}
+.nd .bx{fill:var(--panel);stroke:#323c58;stroke-width:1.6;transition:stroke .3s,fill .3s}
+.nd .t{fill:#dfe5f2;font-size:13px;font-weight:700}
+.nd .s{fill:var(--mut);font-size:10.5px}
+.nd.act .bx{stroke:var(--acc2);stroke-width:3;fill:#14223b;filter:drop-shadow(0 0 10px rgba(77,163,255,.55))}
+.nd.done .bx{stroke:var(--ok);stroke-width:2}
+.nd.fail .bx{stroke:var(--bad);stroke-width:2.4;fill:#2a141a}
+.nd.skip{opacity:.38}.nd.skip .bx{stroke-dasharray:5 4}
+.nd.ours .bx{fill:#2a1813;stroke:#7a3b2c}
+.nd.ours.act .bx{stroke:var(--acc);fill:#3a1d16;filter:drop-shadow(0 0 12px rgba(255,90,60,.6))}
+.nd.ours.done .bx{stroke:var(--ok)}
+.ed{fill:none;stroke:#2c3550;stroke-width:2}
+.ed.lit{stroke:var(--c,#4da3ff);stroke-dasharray:6 6;animation:fl 1s linear infinite;stroke-width:2.4}
+@keyframes fl{to{stroke-dashoffset:-24}}
+.zone{fill:none;stroke:#273049;stroke-dasharray:3 6}
+.zl{fill:#56617c;font-size:11px;letter-spacing:.16em;font-weight:700}
+/* results */
+#final{display:none;max-width:1200px;margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+#final.on{display:block;animation:up .7s}
+@keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1}}
+.fgrid{display:grid;grid-template-columns:520px 1fr;gap:16px}
+@media(max-width:900px){.fgrid{grid-template-columns:1fr}}
+#ann{width:100%;border-radius:8px}
+.kp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kp div{background:var(--panel2);border-radius:10px;padding:12px}
+.kp .n{font-size:34px;font-weight:800;letter-spacing:-.03em}.kp .l{font-size:12px;color:var(--mut)}
+pre{background:#0e121c;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;color:#a9c7ff;margin-top:10px;overflow:auto;max-height:220px}
+.note{font-size:12px;color:#e8d6ad;border-left:3px solid var(--warn);background:#251f12;padding:8px 12px;border-radius:0 8px 8px 0;margin-top:12px;max-width:1200px}
+</style></head><body>
+<header>
+ <a href="VISTA_Showcase.html">← Showcase</a>
+ <h1>VISTA <span>Visual Intelligence System for Tracking and Analysis · face attendance pipeline</span></h1>
+ <div class="ctl">Speed <select id="spd"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+ <button id="pause" disabled>❚❚ Pause</button><button id="replay">↻ Reset</button>
+ <label><input type="checkbox" id="follow" checked> follow</label></div>
+</header>
+<div class="wrap">
+ <div id="treeBox">
+  <div class="console">
+   <canvas id="prev" width="640" height="400"></canvas>
+   <div>
+    <div style="font-weight:700">Teacher console · Mark attendance</div>
+    <div class="fld"><div>Class<b>AIML · Sec A</b></div><div>Subject<b>Machine Learning</b></div><div>Date<b>21-11-2026</b></div><div>Period<b>auto (timetable)</b></div></div>
+    <button id="go">🔍 Detect &amp; mark attendance</button>
+    <div class="hint">Sample classroom photo (drawn for this demo). Press Detect to watch where it goes. Click any box in the tree for details.</div>
+   </div>
+  </div>
+  <svg id="tree" viewBox="0 0 1200 1380"></svg>
+  <div class="note">Scores, IDs and the photo are sample values for illustration. The steps, function names, thresholds (gallery cosine 0.55, our classifier 0.60) and database writes follow the code in <code>vista/backend/app/routes/attendance.py</code> and <code>vista/vision/recognize.py</code>. The backend loops over faces one after another; they are drawn side by side here so each face's path is visible.</div>
+  <div id="final">
+   <div style="font-size:12px;letter-spacing:.16em;color:var(--acc);font-weight:700;margin-bottom:8px">FINAL RESULT</div>
+   <div class="fgrid"><canvas id="ann" width="640" height="400"></canvas>
+    <div><div class="kp">
+     <div><div class="n" id="k1" style="color:var(--acc2)">0</div><div class="l">faces detected by SCRFD</div></div>
+     <div><div class="n" id="k2" style="color:var(--ok)">0</div><div class="l">marked present</div></div>
+     <div><div class="n" id="k3" style="color:var(--acc)">0</div><div class="l">identified by our trained ResNet-50</div></div>
+     <div><div class="n" id="k4" style="color:var(--warn)">0</div><div class="l">unrecognized, sent back for review</div></div></div>
+     <pre id="json"></pre></div></div>
+  </div>
+ </div>
+ <div class="side">
+  <h3>Inspector</h3><div id="insp"><b>Click any box</b>Each box in the tree is one step of the real request. Its details show here.</div>
+  <h3>Transaction log</h3><div id="log"></div>
+ </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const NS='http://www.w3.org/2000/svg';
+function el(tag,a={},p){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+
+/* ---------- sample scene ---------- */
+const W=640,H=400,scene=document.createElement('canvas');scene.width=W;scene.height=H;
+const F=[[110,175,42,'#e8b98f','#2b1b12'],[255,170,40,'#c68c5f','#111'],[400,178,43,'#f1c9a5','#5a3a1f'],[540,190,36,'#9b6a45','#0d0d0d']];
+function face(g,[x,y,r,sk,hr]){g.fillStyle='#2b3552';g.beginPath();g.ellipse(x,y+r*2.2,r*1.55,r*1.15,0,0,7);g.fill();
+ g.fillStyle=sk;g.beginPath();g.ellipse(x,y,r*.82,r,0,0,7);g.fill();g.fillStyle=hr;g.beginPath();g.ellipse(x,y-r*.35,r*.9,r*.72,0,Math.PI,0);g.fill();
+ g.fillStyle='#fff';[-1,1].forEach(s=>{g.beginPath();g.ellipse(x+s*r*.33,y-r*.05,r*.16,r*.1,0,0,7);g.fill()});
+ g.fillStyle='#161616';[-1,1].forEach(s=>{g.beginPath();g.arc(x+s*r*.33,y-r*.05,r*.07,0,7);g.fill()});
+ g.strokeStyle='#8a3b3b';g.lineWidth=2;g.beginPath();g.arc(x,y+r*.3,r*.25,.15*Math.PI,.85*Math.PI);g.stroke()}
+(()=>{const g=scene.getContext('2d');const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#3b445b');gr.addColorStop(1,'#222a3b');g.fillStyle=gr;g.fillRect(0,0,W,H);
+ g.fillStyle='#e9eef4';g.fillRect(190,14,260,46);g.fillStyle='#5d6a80';g.font='13px sans-serif';g.fillText('Machine Learning · Unit 4',250,42);
+ g.fillStyle='#4a3f36';g.fillRect(0,232,W,20);F.forEach(f=>face(g,f));g.fillStyle='#4a3f36';g.fillRect(0,330,W,70)})();
+$('#prev').getContext('2d').drawImage(scene,0,0);
+const BB=F.map(([x,y,r])=>[Math.round(x-r*.95),Math.round(y-r*1.15),Math.round(x+r*.95),Math.round(y+r*1.15)]);
+const CROP=BB.map(b=>{const c=document.createElement('canvas');c.width=c.height=112;c.getContext('2d').drawImage(scene,b[0],b[1],b[2]-b[0],b[3]-b[1],0,0,112,112);return c.toDataURL()});
+const SCENE_URL=scene.toDataURL();
+
+/* ---------- scripted sample outcome ---------- */
+const COL=['#4da3ff','#b58cff','#2ecc9a','#ffb84d'];
+const GAL=['STU-01','STU-02','STU-03','STU-04','STU-05','STU-06'];
+const LANE=[
+ {det:.91,cos:[.71,.18,.22,.09,.14,.11],acc:'gallery',id:'STU-01',conf:.71},
+ {det:.89,cos:[.12,.43,.20,.15,.08,.17],acc:'classifier',id:'STU-02',conf:.92,top:[['STU-02',.92],['STU-06',.03],['STU-04',.01]]},
+ {det:.86,cos:[.16,.21,.38,.12,.19,.10],acc:'classifier',id:'STU-03',conf:.88,top:[['STU-03',.88],['STU-01',.05],['STU-05',.02]]},
+ {det:.74,cos:[.08,.11,.13,.17,.21,.06],acc:null,id:null,conf:.34,top:[['STU-05',.34],['STU-04',.21],['STU-06',.12]]}];
+
+/* ---------- tree layout ---------- */
+const svg=$('#tree');const NODES={};const INFO={};
+const LX=[150,450,750,1050];
+const Y={L1:520,L2:612,L3:700,L4:800,L5:895,L6:995,L7:1090,DD:1180,END:1300};
+function info(k,t,b){INFO[k]=[t,b]}
+function build(){
+ svg.innerHTML='';for(const k in NODES)delete NODES[k];
+ const defs=el('defs',{},svg);const m=el('marker',{id:'ar',markerWidth:8,markerHeight:8,refX:7,refY:4,orient:'auto'},defs);el('path',{d:'M0,0L8,4L0,8z',fill:'#3a4565'},m);
+ const z=(x,y,w,h,l)=>{el('rect',{class:'zone',x,y,width:w,height:h,rx:14},svg);const t=el('text',{class:'zl',x:x+14,y:y+18},svg);t.textContent=l};
+ z(6,8,1188,200,'REQUEST · REACT → FASTAPI');z(6,222,1188,250,'VISION · INSIGHTFACE');z(6,472,1188,668,'PER-FACE PIPELINE · vista/vision/recognize.py');z(6,1145,1188,228,'DATABASE · SQLITE → RESPONSE');
+ window.EG=el('g',{},svg);window.NG=el('g',{},svg);window.FX=el('g',{},svg);
+ // request row
+ N('up',110,70,190,70,'① Photo uploaded','teacher console','Upload','The teacher picks a classroom photo (JPEG/PNG) with class, subject and date.');
+ N('react',335,70,200,70,'② React client','base64 + JWT','React client','The browser encodes the image as base64 and sends JSON with the teacher’s JWT in the Authorization header.');
+ N('api',575,70,220,70,'③ POST /attendance/mark-batch','FastAPI · MarkRequest','FastAPI route','<code>mark_attendance_batch()</code> in routes/attendance.py. Pydantic validates the MarkRequest body.');
+ N('auth',815,70,200,70,'④ Auth + scope','get_current_user','Auth and scope','JWT is decoded to the user. <code>_check_attendance_scope</code> blocks a teacher from marking a class/subject they do not teach.');
+ N('val',1060,70,220,70,'⑤ Decode + hash','≤ 30 MB · SHA-256','Validate and hash','base64 is decoded (400 INVALID_IMAGE if it fails), size is checked against 30 MB (UPLOAD_TOO_LARGE), and a SHA-256 hash is computed. Only the hash is stored, never the raw image.');
+ N('slot',1060,170,220,56,'⑥ Timetable slot','resolve active period','Timetable slot','<code>_resolve_active_slot_for_capture</code> finds the current period. A teacher outside a scheduled period without an extra-class reason gets 400 OUTSIDE_SCHEDULED_PERIOD and a failed CaptureEvent is logged.');
+ N('tmp',815,170,200,56,'⑦ Temp file','written, deleted after','Temp file','Bytes are written to a NamedTemporaryFile so OpenCV can read them. It is deleted in a finally block once vision returns.');
+ N('rec',575,170,220,56,'⑧ recognize_all()','skip_liveness=True','recognize_all()','The vision entry point. For uploaded photos the route passes <code>skip_liveness=True</code>; liveness only runs on live webcam frames (/mark-video).');
+ // scrfd
+ N('scrfd',600,348,640,196,'⑨ InsightFace buffalo_l · SCRFD detector','app.get(image) · det_size 640×640','SCRFD detector','<code>FaceDetector.detect()</code> in vista/vision/detect.py. SCRFD (det_10g) finds every face in one pass and returns bbox, det_score and 5 landmarks. In the same call InsightFace aligns each face and ArcFace computes its embedding. Faces are sorted by det_score.');
+ const sc=NODES.scrfd.g;el('image',{href:SCENE_URL,x:296,y:268,width:320,height:200},sc);
+ window.SCAN=el('rect',{x:296,y:268,width:320,height:0,fill:'rgba(77,163,255,.18)'},sc);
+ window.BOXG=el('g',{},sc);
+ window.SCT=el('text',{x:640,y:300,class:'t',style:'font-size:15px'},sc);SCT.textContent='waiting…';
+ [['outputs per face:',326],['bbox [x1,y1,x2,y2]',346],['det_score',364],['5 landmarks → align 112×112',382],['ArcFace embedding (512-d)',400],['sorted by det_score',418]].forEach(([t,y],i)=>{const e=el('text',{x:640,y,class:'s',style:'font-size:12px'+(i?'':';font-weight:700;fill:#c8d1e6')},sc);e.textContent=t});
+ // lanes
+ LX.forEach((x,i)=>{const c=COL[i];
+  N('L1_'+i,x,Y.L1,240,84,`⑩ Face ${i+1}`,'',`Face ${i+1} crop`,'One detected face. The bbox and det_score come from SCRFD. This is where one photo becomes several separate face items.',{c});
+  el('rect',{x:x-112,y:Y.L1-26,width:60,height:60,rx:6,fill:'#0e121c',stroke:c},NODES['L1_'+i].g);
+  NODES['L1_'+i].s.setAttribute('x',x-44);NODES['L1_'+i].t.setAttribute('x',x-44);
+  N('L2_'+i,x,Y.L2,240,44,'Liveness','skipped · uploaded photo','Liveness','<code>check_liveness</code> (detection confidence ≥ 0.5, face width ≥ 50 px, Laplacian variance ≥ 20) runs only for webcam frames. For an uploaded photo the route skips it and every face counts as live.',{c});
+  N('L3_'+i,x,Y.L3,240,84,'⑪ Align → ArcFace','w600k_r50 · 512-d','ArcFace embedding','The face is aligned to 112×112 with its 5 landmarks and ArcFace R50 outputs a 512-number vector, L2-normalised (length 1). Faces of the same person give vectors pointing the same way.',{c});
+  N('L4_'+i,x,Y.L4,240,84,'⑫ Cosine vs gallery','','Gallery match','<code>_match_student_gallery</code> loads every active student with a stored 512-d embedding and takes the dot product with this face (cosine similarity, since both are normalised). The highest score is the candidate.',{c});
+  N('L5_'+i,x,Y.L5,120,64,'≥ 0.55 ?','','Gallery threshold','VISTA_FACE_MATCH_THRESHOLD = 0.55. If the best cosine is at or above it the gallery decides (decided_by = "gallery"). Otherwise the face goes to our trained model.',{c,diamond:1});
+  N('L6_'+i,x,Y.L6,200,88,'⑬ Our ResNet-50','crop → 112×112 → softmax','Our trained classifier','<code>classify_face()</code> in vista/vision/personal_classifier.py. The face is cropped from the original photo by its bbox, resized to 112×112, normalised, and passed through the ResNet-50 we trained on 29 students of our class (expanded_v3 Split B, 99.28% test accuracy). Top probability ≥ 0.60 → accepted as decided_by = "classifier".',{c,ours:1});
+  N('L7_'+i,x,Y.L7,200,46,'Result','','Per-face result','{student_id, confidence, liveness_passed, decided_by}. If neither path accepts, student_id is None.',{c});
+ });
+ N('dd',600,Y.DD,440,56,'⑭ Dedupe','keep highest confidence per student · unrecognized kept','Dedupe','If two faces resolve to the same student only the higher-confidence one is kept. Unrecognized faces are always kept so the teacher can review them.');
+ N('att',215,Y.END,370,130,'⑮ attendance table','duplicate check → INSERT per recognized face','Attendance rows','For each recognized student the route checks for an existing present row (same student, class, subject, date, slot). If none, it inserts an Attendance row: status present, confidence, source "face", is_manual_override false. Unrecognized faces are returned but not stored.');
+ N('cap',600,Y.END,360,130,'⑯ capture_events table','one audit row per capture','CaptureEvent','An audit row with teacher, subject, class, slot, faces_detected, recognized/unrecognized/duplicate counts, status and the image SHA-256.');
+ N('resp',985,Y.END,370,130,'⑰ 200 OK → teacher screen','JSON response','Response','Returns results for every face plus faces_detected, recognized_count, duplicates_skipped, slot_id, period_label and capture_event_id. The UI shows present students and flags unrecognized faces.');
+ // edges
+ E('up','react');E('react','api');E('api','auth');E('auth','val');E('val','slot');E('slot','tmp');E('tmp','rec');E('rec','scrfd');
+ LX.forEach((x,i)=>{E('scrfd','L1_'+i);E('L1_'+i,'L2_'+i);E('L2_'+i,'L3_'+i);E('L3_'+i,'L4_'+i);E('L4_'+i,'L5_'+i);E('L5_'+i,'L6_'+i);E('L6_'+i,'L7_'+i);
+  E('L5_'+i,'L7_'+i,`M${x+60} ${Y.L5}H${x+114}V${Y.L7}H${x+100}`);E('L7_'+i,'dd');
+  const ty=el('text',{x:x+70,y:Y.L5-6,class:'s',fill:'#2ecc9a'},EG);ty.textContent='yes';const tn=el('text',{x:x+6,y:Y.L5+48,class:'s'},EG);tn.textContent='no';});
+ E('dd','att');E('att','cap');E('cap','resp');
+}
+function N(k,x,y,w,h,t,s,it,ib,o={}){
+ const g=el('g',{class:'nd'+(o.ours?' ours':'')},NG);let bx;
+ if(o.diamond)bx=el('polygon',{class:'bx',points:`${x},${y-h/2} ${x+w/2},${y} ${x},${y+h/2} ${x-w/2},${y}`},g);
+ else bx=el('rect',{class:'bx',x:x-w/2,y:y-h/2,width:w,height:h,rx:9},g);
+ if(o.c&&!o.diamond)el('rect',{x:x-w/2,y:y-h/2,width:4,height:h,rx:2,fill:o.c},g);
+ const te=el('text',{class:'t',x:o.diamond?x:x-w/2+12,y:o.diamond?y+4:y-h/2+19,'text-anchor':o.diamond?'middle':'start'},g);te.textContent=t;
+ const se=el('text',{class:'s',x:x-w/2+12,y:y-h/2+35},g);se.textContent=s;
+ const ct=el('g',{},g);
+ NODES[k]={g,x,y,w,h,t:te,s:se,ct,o};info(k,it,ib);g.onclick=()=>inspect(k);
+}
+function E(a,b,d){const A=NODES[a],B=NODES[b];
+ if(!d){if(Math.abs(A.y-B.y)<4){const dir=B.x>A.x?1:-1;d=`M${A.x+dir*A.w/2} ${A.y}H${B.x-dir*B.w/2}`}
+  else if(Math.abs(A.x-B.x)<4)d=`M${A.x} ${A.y+A.h/2}V${B.y-B.h/2}`;
+  else{const sy=A.y+A.h/2,ey=B.y-B.h/2,m=(sy+ey)/2;d=`M${A.x} ${sy}V${m}H${B.x}V${ey}`}}
+ el('path',{class:'ed',id:`e-${a}-${b}`,d,'marker-end':'url(#ar)'},EG)}
+function inspect(k){$$('.nd').forEach(n=>n.style.outline='');const i=INFO[k];$('#insp').innerHTML=`<b>${i[0]}</b>${i[1]}`}
+
+/* ---------- clock / control ---------- */
+let clock=0,last=performance.now(),paused=false,tok=0,running=false;
+(function tick(t){const dt=Math.min(100,t-last);last=t;if(!paused)clock+=dt*(+$('#spd').value);requestAnimationFrame(tick)})(last);
+function sleep(ms){const my=tok,end=clock+ms;return new Promise((r,j)=>{(function w(){if(my!==tok)return j('abort');if(clock>=end)return r();requestAnimationFrame(w)})()})}
+function tween(ms,fn){const my=tok,s=clock;return new Promise((r,j)=>{(function w(){if(my!==tok)return j('abort');const k=Math.min(1,(clock-s)/ms);fn(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2);if(k>=1)return r();requestAnimationFrame(w)})()})}
+const st=(k,c)=>{const g=NODES[k].g;g.classList.remove('act','done','fail','skip');if(c)g.classList.add(c)};
+function follow(y){if(!$('#follow').checked)return;const b=$('#treeBox'),r=svg.getBoundingClientRect(),br=b.getBoundingClientRect();const s=r.width/1200;const top=r.top-br.top+b.scrollTop+y*s-b.clientHeight*.45;b.scrollTo({top,behavior:'smooth'})}
+function log(h,p,c='#4da3ff'){const d=document.createElement('div');d.className='le';d.style.borderLeftColor=c;d.innerHTML=`<div class="h">${h}</div>${p?`<div class="p">${p}</div>`:''}`;$('#log').appendChild(d);$('#log').scrollTop=1e9}
+async function travel(a,b,c='#4da3ff',ms=650){const p=document.getElementById(`e-${a}-${b}`);p.style.setProperty('--c',c);p.classList.add('lit');
+ const L=p.getTotalLength(),dot=el('circle',{r:7,fill:c,style:`filter:drop-shadow(0 0 7px ${c})`},FX);
+ try{await tween(ms,k=>{const pt=p.getPointAtLength(L*k);dot.setAttribute('cx',pt.x);dot.setAttribute('cy',pt.y)})}finally{dot.remove()}}
+function txt(k,x,y,t,cls='s',extra={}){const e=el('text',{x,y,class:cls,...extra},NODES[k].ct);e.textContent=t;return e}
+async function count(e,to,ms,fmt=v=>v.toFixed(2)){await tween(ms,k=>e.textContent=fmt(to*k))}
+
+/* ---------- the run ---------- */
+async function step(k,ms,h,p,c){st(k,'act');inspect(k);follow(NODES[k].y);if(h)log(h,p,c);await sleep(ms);st(k,'done')}
+async function play(){
+ build();$('#log').innerHTML='';$('#final').classList.remove('on');
+ running=true;$('#go').disabled=true;$('#pause').disabled=false;
+ try{
+ await step('up',700,'① Photo uploaded','classroom.jpg · 640×400 · image/jpeg');
+ await travel('up','react');
+ await step('react',800,'② React → API','POST /api/v1/attendance/mark-batch\nAuthorization: Bearer eyJhbGciOi…\n{ image: "/9j/4AAQSkZJRg…" (base64),\n  classroom_id, subject_id, session_date,\n  source: "upload" }');
+ await travel('react','api');
+ await step('api',700,'③ mark_attendance_batch()','MarkRequest validated by Pydantic');
+ await travel('api','auth');
+ await step('auth',800,'④ Auth + scope','get_current_user → role = teacher\n_check_attendance_scope(class, subject) ✓');
+ await travel('auth','val');
+ await step('val',900,'⑤ Decode + hash','base64.b64decode → 412 KB (limit 30 MB) ✓\nimage_sha256 = 9f2c4b7a…e41a');
+ await travel('val','slot');
+ await step('slot',800,'⑥ Timetable slot','_resolve_active_slot_for_capture → period P3\n(outside a period without extra-class reason → 400)');
+ await travel('slot','tmp');
+ await step('tmp',600,'⑦ Temp file','tempfile → …\\Temp\\tmpa81f3c.jpg');
+ await travel('tmp','rec');
+ await step('rec',700,'⑧ recognize_all()','recognize_all(tmp, skip_liveness=True, dedupe=True)');
+ await travel('rec','scrfd');
+ // SCRFD
+ st('scrfd','act');inspect('scrfd');follow(NODES.scrfd.y);log('⑨ SCRFD detect','detector.detect(tmp) → InsightFace app.get(img)');
+ SCT.textContent='scanning…';
+ await tween(1300,k=>SCAN.setAttribute('height',200*k));
+ const S=.5;
+ for(let i=0;i<4;i++){const b=BB[i];el('rect',{x:296+b[0]*S,y:268+b[1]*S,width:(b[2]-b[0])*S,height:(b[3]-b[1])*S,fill:'none',stroke:COL[i],'stroke-width':2.5},BOXG);
+  const t=el('text',{x:296+b[0]*S,y:268+b[1]*S-4,fill:COL[i],'font-size':11,'font-weight':700},BOXG);t.textContent=`#${i+1} ${LANE[i].det}`;SCT.textContent=`faces found: ${i+1}`;await sleep(260)}
+ SCAN.setAttribute('height',0);
+ log('⑨ 4 faces found',BB.map((b,i)=>`face ${i+1}: bbox [${b}] det ${LANE[i].det}`).join('\n'));
+ await sleep(500);
+ // break into crops
+ log('⑩ Split into face items','one photo → 4 separate faces, each processed on its own path');
+ follow(Y.L1-100);
+ await Promise.all(LX.map(async(x,i)=>{await sleep(i*120);const b=BB[i];
+  const im=el('image',{href:CROP[i],x:296+b[0]*S,y:268+b[1]*S,width:(b[2]-b[0])*S,height:(b[3]-b[1])*S},FX);
+  travel('scrfd','L1_'+i,COL[i],900).catch(()=>{});
+  const x0=296+b[0]*S,y0=268+b[1]*S,w0=(b[2]-b[0])*S,h0=(b[3]-b[1])*S,x1=x-112,y1=Y.L1-26;
+  await tween(900,k=>{im.setAttribute('x',x0+(x1-x0)*k);im.setAttribute('y',y0+(y1-y0)*k);im.setAttribute('width',w0+(60-w0)*k);im.setAttribute('height',h0+(60-h0)*k)});
+ }));
+ st('scrfd','done');
+ // lanes
+ const out=await Promise.all(LX.map((x,i)=>lane(x,i)));
+ // dedupe
+ follow(Y.DD);st('dd','act');inspect('dd');log('⑭ Dedupe','4 results → 3 unique students + 1 unrecognized (kept)\nno duplicates in this photo');
+ txt('dd',388,Y.DD+18,'4 faces → STU-01 · STU-02 · STU-03 · 1 unrecognized','s',{style:'font-size:12px;fill:#c8d1e6'});
+ await sleep(900);st('dd','done');
+ await travel('dd','att','#2ecc9a',700);
+ // attendance
+ follow(Y.END);st('att','act');inspect('att');log('⑦ Temp file deleted','os.remove(tmp) in finally block','#8e9ab3');
+ const rows=out.filter(o=>o.id);let ry=Y.END-18;
+ for(const o of rows){log('⑮ INSERT attendance',`existing present row for ${o.id} in P3? no\nINSERT {student_id:"${o.id}", status:"present",\n confidence:${o.conf.toFixed(2)}, source:"face", is_manual_override:false}`,'#2ecc9a');
+  const t=txt('att',42,ry,`✓ ${o.id}   present   conf ${o.conf.toFixed(2)}   source=face`,'s',{style:'font-size:12px;fill:#bff0dc;font-family:Consolas,monospace'});ry+=20;await sleep(550)}
+ txt('att',42,ry,'? face 4   unrecognized → returned, not stored','s',{style:'font-size:12px;fill:#ffd79a;font-family:Consolas,monospace'});
+ log('⑮ Unrecognized face','student_id = None → in response only, no DB row','#ffb84d');
+ await sleep(500);st('att','done');
+ await travel('att','cap','#2ecc9a',600);
+ st('cap','act');inspect('cap');log('⑯ INSERT capture_events','{faces_detected:4, recognized_count:3,\n unrecognized_count:1, liveness_rejected_count:0,\n duplicates_skipped:0, status:"completed",\n source:"upload", image_sha256:"9f2c4b7a…"}','#2ecc9a');
+ [['faces_detected: 4',-18],['recognized: 3 · unrecognized: 1',2],['duplicates: 0 · status: completed',22],['image_sha256: 9f2c4b7a…',42]].forEach(([t,dy])=>txt('cap',432,Y.END+dy,t,'s',{style:'font-size:12px;fill:#c8d1e6;font-family:Consolas,monospace'}));
+ await sleep(900);st('cap','done');
+ await travel('cap','resp','#2ecc9a',600);
+ st('resp','act');inspect('resp');
+ const J={results:out.map(o=>({student_id:o.id,status:o.id?'present':'unrecognized',confidence:+o.conf.toFixed(2)})),faces_detected:4,recognized_count:3,duplicates_skipped:0,slot_id:'slot-P3',period_label:'P3',is_extra_class:false,capture_event_id:'cap-3f9a1c0d2e7b'};
+ log('⑰ 200 OK',JSON.stringify(J,null,1).slice(0,420)+'…','#2ecc9a');
+ [['HTTP 200 · faces_detected 4',-18],['recognized_count 3',2],['capture_event_id cap-3f9a…',22],['→ teacher sees present list + 1 flagged face',42]].forEach(([t,dy])=>txt('resp',812,Y.END+dy,t,'s',{style:'font-size:12px;fill:#c8d1e6;font-family:Consolas,monospace'}));
+ await sleep(800);st('resp','done');
+ await finale(out,J);
+ }catch(e){if(e!=='abort')console.error(e)}
+ running=false;$('#go').disabled=false;$('#pause').disabled=true;
+}
+
+async function lane(x,i){const L=LANE[i],c=COL[i],k=n=>`${n}_${i}`;
+ await sleep(i*350);
+ // L1
+ st(k('L1'),'act');NODES[k('L1')].s.textContent=`det_score ${L.det}`;
+ txt(k('L1'),x-44,Y.L1+12,`bbox [${BB[i].join(',')}]`);txt(k('L1'),x-44,Y.L1+28,`${BB[i][2]-BB[i][0]}×${BB[i][3]-BB[i][1]} px`);
+ log(`⑩ Face ${i+1}`,`bbox [${BB[i]}] · det_score ${L.det}`,c);await sleep(600);st(k('L1'),'done');
+ await travel(k('L1'),k('L2'),c,450);
+ st(k('L2'),'skip');await sleep(350);
+ await travel(k('L2'),k('L3'),c,450);
+ // L3 ArcFace
+ st(k('L3'),'act');if(i==0)follow(Y.L3);
+ const bars=[];for(let j=0;j<36;j++)bars.push(el('rect',{x:x-110+j*6,y:Y.L3+26,width:4,height:0,fill:c,opacity:.85},NODES[k('L3')].ct));
+ const vals=bars.map(()=>Math.random()*2-1);
+ await tween(800,q=>bars.forEach((b,j)=>{const h=Math.abs(vals[j])*16*q;b.setAttribute('height',h);b.setAttribute('y',vals[j]>0?Y.L3+18-h:Y.L3+18)}));
+ log(`⑪ Face ${i+1} embedding`,`[${vals.slice(0,5).map(v=>(v*.08).toFixed(3)).join(', ')}, … ] 512 values · ‖v‖ = 1.000`,c);
+ st(k('L3'),'done');await travel(k('L3'),k('L4'),c,450);
+ // L4 cosine
+ st(k('L4'),'act');if(i==0)follow(Y.L4);
+ const best=L.cos.indexOf(Math.max(...L.cos));
+ const gb=L.cos.map((v,j)=>{const r=el('rect',{x:x-108+j*15,y:Y.L4+32,width:11,height:0,fill:j==best?c:'#3a4565'},NODES[k('L4')].ct);return r});
+ await tween(700,q=>gb.forEach((r,j)=>{const h=L.cos[j]*44*q;r.setAttribute('height',h);r.setAttribute('y',Y.L4+32-h)}));
+ const tl=el('line',{x1:x-112,x2:x-16,y1:Y.L4+32-.55*44,y2:Y.L4+32-.55*44,stroke:'#ff5a6e','stroke-dasharray':'3 3'},NODES[k('L4')].ct);
+ txt(k('L4'),x-8,Y.L4+2,`best ${GAL[best]}`,'s',{style:'font-size:12px;fill:#dfe5f2;font-weight:700'});
+ const sv=txt(k('L4'),x-8,Y.L4+26,'0.00','t',{style:`font-size:20px;fill:${c}`});await count(sv,L.cos[best],500);
+ NODES[k('L4')].s.textContent=`vs ${GAL.length} enrolled · line = 0.55`;
+ log(`⑫ Face ${i+1} gallery`,`dot(face, each of ${GAL.length} stored embeddings)\nbest ${GAL[best]} = ${L.cos[best].toFixed(2)}`,c);
+ st(k('L4'),'done');await travel(k('L4'),k('L5'),c,400);
+ // L5 decision
+ st(k('L5'),'act');if(i==0)follow(Y.L5);await sleep(450);
+ const pass=L.acc==='gallery';NODES[k('L5')].t.textContent=pass?`${L.cos[best].toFixed(2)} ≥ 0.55 ✓`:`${L.cos[best].toFixed(2)} < 0.55`;
+ st(k('L5'),pass?'done':'fail');
+ log(`Face ${i+1} decision`,pass?`${L.cos[best].toFixed(2)} ≥ 0.55 → accepted by gallery`:`${L.cos[best].toFixed(2)} < 0.55 → send crop to our trained ResNet-50`,c);
+ let res;
+ if(pass){st(k('L6'),'skip');NODES[k('L6')].s.textContent='skipped · gallery accepted';
+  await travel(k('L5'),k('L7'),c,700);res={id:L.id,conf:L.conf,by:'gallery'};}
+ else{await travel(k('L5'),k('L6'),c,450);
+  // L6 our model
+  st(k('L6'),'act');if(i==1)follow(Y.L6);
+  const im=el('image',{href:CROP[i],x:x-92,y:Y.L6-10,width:0,height:0},NODES[k('L6')].ct);
+  await tween(400,q=>{im.setAttribute('width',36*q);im.setAttribute('height',36*q)});
+  txt(k('L6'),x-92,Y.L6+38,'112×112','s',{style:'font-size:9px'});
+  L.top.forEach(([n,p],j)=>{txt(k('L6'),x-50,Y.L6-1+j*17,n,'s',{style:'font-size:10px;fill:#c8d1e6'});
+   const r=el('rect',{x:x-8,y:Y.L6-10+j*17,width:0,height:11,rx:2,fill:j==0?(p>=.6?'#2ecc9a':'#ffb84d'):'#3a4565'},NODES[k('L6')].ct);r.dataset.w=p*80;
+   const v=txt(k('L6'),x+76,Y.L6-1+j*17,'','s',{style:'font-size:10px'});v.textContent=p.toFixed(2)});
+  await tween(800,q=>NODES[k('L6')].ct.querySelectorAll('rect[data-w]').forEach(r=>r.setAttribute('width',r.dataset.w*q)));
+  const ok=L.top[0][1]>=.6;
+  log(`⑬ Face ${i+1} our ResNet-50`,`crop bbox → resize 112×112 → normalise(0.5, 0.5)\nsoftmax over 29 classes: ${L.top.map(t=>`${t[0]} ${t[1]}`).join(', ')}\n${L.top[0][1]} ${ok?'≥':'<'} 0.60 → ${ok?`accept ${L.top[0][0]} (decided_by = classifier)`:'reject (student_id = None)'}`,c);
+  await sleep(500);st(k('L6'),ok?'done':'fail');
+  await travel(k('L6'),k('L7'),c,450);
+  res=ok?{id:L.id,conf:L.conf,by:'classifier'}:{id:null,conf:L.conf,by:null};}
+ // L7
+ st(k('L7'),res.id?'done':'fail');
+ NODES[k('L7')].t.textContent=res.id?`✓ ${res.id}`:'? unrecognized';NODES[k('L7')].t.setAttribute('fill',res.id?'#bff0dc':'#ffd79a');
+ NODES[k('L7')].s.textContent=res.id?`${res.by} · ${res.conf.toFixed(2)}`:`best ${res.conf.toFixed(2)} · for review`;
+ await sleep(300);await travel(k('L7'),'dd',c,800);
+ return res;
+}
+
+async function finale(out,J){
+ const f=$('#final');f.classList.add('on');setTimeout(()=>f.scrollIntoView({behavior:'smooth',block:'start'}),50);
+ const a=$('#ann').getContext('2d');a.drawImage(scene,0,0);
+ for(let i=0;i<4;i++){const b=BB[i],o=out[i],col=o.id?(o.by==='classifier'?'#ff5a3c':'#2ecc9a'):'#ffb84d';
+  await tween(350,q=>{a.drawImage(scene,0,0);for(let j=0;j<i;j++)drawLab(a,j,out[j]);a.globalAlpha=q;drawLab(a,i,o);a.globalAlpha=1});}
+ const n=[['#k1',4],['#k2',3],['#k3',out.filter(o=>o.by==='classifier').length],['#k4',out.filter(o=>!o.id).length]];
+ n.forEach(([s,v])=>count($(s),v,700,x=>Math.round(x)));
+ $('#json').textContent=JSON.stringify(J,null,2);
+}
+function drawLab(a,i,o){const b=BB[i],col=o.id?(o.by==='classifier'?'#ff5a3c':'#2ecc9a'):'#ffb84d';
+ a.strokeStyle=col;a.lineWidth=3;a.strokeRect(b[0],b[1],b[2]-b[0],b[3]-b[1]);
+ const lab=o.id?`${o.id} · ${o.by==='classifier'?'our model':'gallery'} ${o.conf.toFixed(2)}`:`unrecognized ${o.conf.toFixed(2)}`;
+ a.font='bold 12px sans-serif';const w=a.measureText(lab).width+10;a.fillStyle=col;a.fillRect(b[0],b[3]+4,w,20);a.fillStyle='#0b0e15';a.fillText(lab,b[0]+5,b[3]+18)}
+
+$('#go').onclick=()=>{if(!running)play()};
+$('#replay').onclick=()=>{tok++;paused=false;$('#pause').textContent='❚❚ Pause';running=false;build();$('#log').innerHTML='';$('#final').classList.remove('on');$('#go').disabled=false;$('#pause').disabled=true;$('#treeBox').scrollTo({top:0,behavior:'smooth'})};
+$('#pause').onclick=()=>{paused=!paused;$('#pause').textContent=paused?'▶ Resume':'❚❚ Pause'};
+build();
+if(location.hash==='#auto'){$('#spd').value='4';play()}
+</script></body></html>

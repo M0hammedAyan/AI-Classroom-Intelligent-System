@@ -4,44 +4,60 @@
   "face": 0,
   "expected": "1DA23AI001",
   "gallery": {
-   "student_id": "1DA23AI001",
-   "confidence": 0.7183768153190613,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA23AI001",
+   "confidence": 0.8882208466529846
+  },
+  "decider": "classifier"
  },
  {
   "case": "original 1DA24AI403",
   "face": 0,
   "expected": "1DA24AI403",
   "gallery": {
-   "student_id": "1DA24AI403",
-   "confidence": 0.7278665900230408,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA24AI403",
+   "confidence": 0.9220951795578003
+  },
+  "decider": "classifier"
  },
  {
   "case": "new 1DA25AI003",
   "face": 0,
   "expected": "1DA25AI003",
   "gallery": {
-   "student_id": "1DA25AI003",
-   "confidence": 0.894099771976471,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA25AI003",
+   "confidence": 0.9293273687362671
+  },
+  "decider": "classifier"
  },
  {
   "case": "new 1DA25AI010",
   "face": 0,
   "expected": "1DA25AI010",
   "gallery": {
-   "student_id": "1DA25AI010",
-   "confidence": 0.9015190601348877,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA25AI010",
+   "confidence": 0.9258096814155579
+  },
+  "decider": "classifier"
  },
  {
   "case": "new 1DA25AI010",
@@ -49,7 +65,7 @@
   "expected": "1DA25AI010",
   "gallery": {
    "student_id": null,
-   "confidence": 0.1896524727344513,
+   "confidence": 0.0,
    "matched": false
   },
   "classifier": {
@@ -63,66 +79,90 @@
   "face": 0,
   "expected": "1DA24AI404",
   "gallery": {
-   "student_id": "1DA24AI404",
-   "confidence": 0.6977069973945618,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA24AI404",
+   "confidence": 0.915928065776825
+  },
+  "decider": "classifier"
  },
  {
   "case": "404 test photo 1",
   "face": 0,
   "expected": "1DA24AI404",
   "gallery": {
-   "student_id": "1DA24AI404",
-   "confidence": 0.6485272645950317,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": null,
+   "confidence": 0.20280440151691437
+  },
+  "decider": "none (rejected)"
  },
  {
   "case": "404 test photo 2",
   "face": 0,
   "expected": "1DA24AI404",
   "gallery": {
-   "student_id": "1DA24AI404",
-   "confidence": 0.7485638856887817,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA24AI404",
+   "confidence": 0.929112434387207
+  },
+  "decider": "classifier"
  },
  {
   "case": "404 test photo 3",
   "face": 0,
   "expected": "1DA24AI404",
   "gallery": {
-   "student_id": "1DA24AI404",
-   "confidence": 0.7393372654914856,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA24AI404",
+   "confidence": 0.9304633140563965
+  },
+  "decider": "classifier"
  },
  {
   "case": "group collage (404-free: AI004+25AI005+AI403)",
   "face": 0,
   "expected": "multi",
   "gallery": {
-   "student_id": "1DA24AI403",
-   "confidence": 0.775672972202301,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA24AI403",
+   "confidence": 0.9161192178726196
+  },
+  "decider": "classifier"
  },
  {
   "case": "group collage (404-free: AI004+25AI005+AI403)",
   "face": 1,
   "expected": "multi",
   "gallery": {
-   "student_id": "1DA23AI004",
-   "confidence": 0.7172105312347412,
-   "matched": true
+   "student_id": null,
+   "confidence": 0.0,
+   "matched": false
   },
-  "decider": "gallery"
+  "classifier": {
+   "student_id": "1DA23AI004",
+   "confidence": 0.8971821069717407
+  },
+  "decider": "classifier"
  },
  {
   "case": "group collage (404-free: AI004+25AI005+AI403)",
@@ -130,7 +170,7 @@
   "expected": "multi",
   "gallery": {
    "student_id": null,
-   "confidence": 0.4894544184207916,
+   "confidence": 0.0,
    "matched": false
   },
   "classifier": {
