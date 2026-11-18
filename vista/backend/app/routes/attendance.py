@@ -773,7 +773,7 @@ def _call_vision(image_path: str, skip_liveness: bool = False) -> dict | None:
         return {"student_id": None, "confidence": 0.0, "liveness_passed": False}
 
 
-def _call_vision_all(image_path: str, skip_liveness: bool = False) -> list[dict]:
+def _call_vision_all(image_path: str, skip_liveness: bool = False, dedupe: bool = True) -> list[dict]:
     """
     Call vision.recognize_all(image_path) for multi-face detection + recognition.
 
@@ -788,7 +788,7 @@ def _call_vision_all(image_path: str, skip_liveness: bool = False) -> list[dict]
 
     try:
         from vista.vision.recognize import recognize_all
-        results = recognize_all(image_path, skip_liveness=skip_liveness)
+        results = recognize_all(image_path, skip_liveness=skip_liveness, dedupe=dedupe)
         return results
 
     except ImportError:

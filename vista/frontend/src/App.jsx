@@ -34,6 +34,8 @@ import {
   getStudentMarks,
   getStudentAttendanceHistory,
   markAttendanceBatch,
+  getDevStatus,
+  devRecognize,
   getAttendanceLog,
   patchAttendance,
   createManualAttendance,
@@ -143,6 +145,95 @@ SURESH|1DA25AI010
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+// Developer mode: only available when the server runs with VISTA_DEV_MODE=1.
+let devAvailableCache = null;
+const readDevOn = () => localStorage.getItem('vista_dev_mode') === '1';
+
+function useDevMode(role) {
+  const [available, setAvailable] = useState(devAvailableCache === true);
+  const [on, setOn] = useState(readDevOn);
+  useEffect(() => {
+    if (devAvailableCache === null) {
+      getDevStatus()
+        .then((s) => { devAvailableCache = !!s.enabled; setAvailable(devAvailableCache); })
+        .catch(() => { devAvailableCache = false; });
+    }
+    const sync = () => setOn(readDevOn());
+    window.addEventListener('vista-dev-mode', sync);
+    return () => window.removeEventListener('vista-dev-mode', sync);
+  }, []);
+  const roleOk = !role || role === 'admin' || role === 'teacher';
+  const visible = available && roleOk;
+  const set = (value) => {
+    localStorage.setItem('vista_dev_mode', value ? '1' : '0');
+    window.dispatchEvent(new Event('vista-dev-mode'));
+  };
+  return { visible, enabled: visible && on, set };
+}
+
+function DevModeToggle({ role }) {
+  const dev = useDevMode(role);
+  if (!dev.visible) return null;
+  return <label className="dev-toggle">
+    <input type="checkbox" checked={dev.enabled} onChange={(e) => dev.set(e.target.checked)} /> Developer mode
+  </label>;
+}
+
+function DevBanner({ role }) {
+  const dev = useDevMode(role);
+  if (!dev.enabled) return null;
+  return <div className="dev-banner">Developer mode ON - security checks disabled, nothing is saved</div>;
+}
+
+function DevResults({ results }) {
+  return <div className="detection-results">
+    <p className="eyebrow">Recognition result (dry run)</p>
+    {results.length === 0 && <div className="detection-result"><span>No faces detected</span></div>}
+    {results.map((item, index) => (
+      <div className="detection-result" key={`${item.student_id || 'unknown'}-${index}`}>
+        <span>{item.student_name || item.student_id || 'Unknown face'}</span>
+        <small>
+          {item.student_id
+            ? `${item.student_id}  ·  ${Math.round((item.confidence || 0) * 100)}% confidence  ·  ${item.decided_by || 'n/a'}`
+            : `Not recognised  ·  ${Math.round((item.confidence || 0) * 100)}% similarity`}
+        </small>
+      </div>
+    ))}
+  </div>;
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function DevRecognizePanel() {
+  const [file, setFile] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [results, setResults] = useState(null);
+  const run = async () => {
+    if (!file) return setNotice('Choose an image first.');
+    setBusy(true); setNotice('');
+    try {
+      const data = await devRecognize(await fileToBase64(file));
+      setResults(data.results || []);
+      setNotice(`${data.faces_detected} face(s) detected. Nothing was saved.`);
+    } catch (err) { setNotice(err.message); setResults(null); } finally { setBusy(false); }
+  };
+  return <section className="card">
+    <div className="card-title"><div><p className="eyebrow">Developer mode</p><h2>Test face recognition</h2></div></div>
+    <label className="secondary file-button">Upload image<input type="file" accept="image/jpeg,image/png" onChange={(e) => setFile(e.target.files[0] || null)} /></label>
+    <button className="primary wide" onClick={run} disabled={busy}>{busy ? 'Recognising...' : 'Recognise (dry run)'}</button>
+    {notice && <p className="notice">{notice}</p>}
+    {results && <DevResults results={results} />}
+  </section>;
+}
+
 function Login({ onLogin }) {
   const [email, setEmail] = useState('rajeshwari@vista.local');
   const [password, setPassword] = useState('rajeshwari123');
@@ -157,6 +248,8 @@ function Login({ onLogin }) {
     } catch (err) { setError(err.message); }
   };
   return <main className="login-screen">
+    <div className="dev-login-corner"><DevModeToggle /></div>
+    <DevBanner />
     <section className="login-panel"><div className="brand-mark">V</div><p className="eyebrow">VISTA / ATTENDANCE</p>
       <h1>Attendance,<br /><em>without the guesswork.</em></h1>
       <p className="login-copy">Recognise the room in seconds, then keep the teacher in control when AI needs a human correction.</p>
@@ -1420,6 +1513,7 @@ function StudentDetail({ studentId, onBack, auth }) {
 }
 
 function AdminWorkspace({ auth, onLogout }) {
+  const devOn = useDevMode(auth.role).enabled;
   const [adminTab, setAdminTab] = useState('directory');
   const [users, setUsers] = useState([]);
   const [showComposeNotif, setShowComposeNotif] = useState(false);
@@ -1578,12 +1672,15 @@ function AdminWorkspace({ auth, onLogout }) {
           <span>VISTA <b>Admin / HOD</b></span>
         </div>
         <div className="top-actions">
+          <DevModeToggle role={auth.role} />
           <NotificationCenter user={auth} onOpenCompose={() => setShowComposeNotif(true)} />
           <span>{auth.name}</span>
           <button type="button" className="ghost" onClick={onLogout}>Sign out</button>
         </div>
       </header>
+      <DevBanner role={auth.role} />
       <main className="workspace">
+        {devOn && <DevRecognizePanel />}
         <div className="page-heading">
           <div>
             <p className="eyebrow">Administrator / full access</p>
@@ -1890,6 +1987,7 @@ function AdminWorkspace({ auth, onLogout }) {
 }
 
 function AttendanceWorkspace({ auth, onLogout }) {
+  const devOn = useDevMode(auth.role).enabled;
   const [teacherTab, setTeacherTab] = useState('attendance');
   const [assignments, setAssignments] = useState([]);
   const [students, setStudents] = useState(ROSTER);
@@ -1900,6 +1998,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
   const [preview, setPreview] = useState('');
   const [records, setRecords] = useState([]);
   const [detectionResults, setDetectionResults] = useState([]);
+  const [devResults, setDevResults] = useState(null);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [cameraOn, setCameraOn] = useState(false);
@@ -1988,6 +2087,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
     setPreview(URL.createObjectURL(file));
     setNotice('');
     setDetectionResults([]);
+    setDevResults(null);
   };
 
   const startCamera = async () => {
@@ -2030,6 +2130,13 @@ function AttendanceWorkspace({ auth, onLogout }) {
         reader.onerror = reject;
         reader.readAsDataURL(image);
       });
+      if (devOn) {
+        const dev = await devRecognize(encoded);
+        setDetectionResults([]);
+        setDevResults(dev.results || []);
+        setNotice(`${dev.faces_detected} face(s) detected. Nothing was saved.`);
+        return;
+      }
       const result = await markAttendanceBatch(encoded, classroom, date, subject);
       const log = await getAttendanceLog(classroom, date);
       const logRecords = log.records || [];
@@ -2092,11 +2199,13 @@ function AttendanceWorkspace({ auth, onLogout }) {
           <span>VISTA <b>Attendance</b></span>
         </div>
         <div className="top-actions">
+          <DevModeToggle role={auth.role} />
           <NotificationCenter user={auth} onOpenCompose={() => setShowComposeNotif(true)} />
           <span>{auth?.name || auth?.email || 'Teacher'}</span>
           <button className="ghost" onClick={onLogout}>Sign out</button>
         </div>
       </header>
+      <DevBanner role={auth.role} />
       <main className="workspace">
         <div className="page-heading">
           <div>
@@ -2182,9 +2291,10 @@ function AttendanceWorkspace({ auth, onLogout }) {
               <label className="secondary file-button">Upload image<input type="file" accept="image/jpeg,image/png" onChange={(e) => setImageFile(e.target.files[0])} /></label>
             </div>
             {cameraOn && <button className="text-button" onClick={() => { streamRef.current?.getTracks().forEach((track) => track.stop()); setCameraOn(false); }}>Close camera</button>}
-            <button className="primary wide" onClick={submitImage} disabled={busy}>{busy ? 'Detecting faces...' : 'Detect and mark attendance'}</button>
+            <button className="primary wide" onClick={submitImage} disabled={busy}>{busy ? 'Detecting faces...' : devOn ? 'Recognise (dry run)' : 'Detect and mark attendance'}</button>
             {notice && <p className="notice">{notice}</p>}
-            {detectionResults.length > 0 && (
+            {devOn && devResults && <DevResults results={devResults} />}
+            {!devOn && detectionResults.length > 0 && (
               <div className="detection-results">
                 <p className="eyebrow">Recognition result</p>
                 {detectionResults.map((item, index) => (
@@ -2201,7 +2311,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
             )}
           </section>
 
-          <section className="card session-card">
+          {!devOn && <section className="card session-card">
             <div className="card-title"><div><p className="eyebrow">Session details</p><h2>What are we marking?</h2></div></div>
             <label>Class
               <select value={classroom} onChange={(e) => setClassroom(e.target.value)}>
@@ -2231,7 +2341,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
                 </div>
               ))}
             </div>
-          </section>
+          </section>}
         </div>
 
         <section className="card roster-card">

@@ -87,11 +87,22 @@ Note: without `VISTA_FACE_MODEL`, the backend loads the older 20-class checkpoin
 | `VISTA_FACE_MODEL_THRESHOLD` | Classifier acceptance confidence (0.60 in `start_vista.ps1`) |
 | `VISTA_FACE_MATCH_THRESHOLD` | ArcFace gallery cosine threshold (default 0.55) |
 | `VISTA_FACE_MODEL_DEVICE` | Set to `cuda` to run the classifier on GPU; CPU otherwise |
+| `VISTA_DEV_MODE` | Set to `1` to allow developer mode (default off; see below) |
 | `VISTA_JWT_SECRET` | JWT signing secret. Set it outside development. |
 | `LLM_USE_API`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OPENROUTER_BASE_URL` | Study coach through OpenRouter |
 | `LLM_USE_OLLAMA`, `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | Study coach through a local Ollama server |
 
 Set exactly one of `LLM_USE_API` or `LLM_USE_OLLAMA` to true. Otherwise the rule-based coach is used. API keys belong in `.env` and must never be committed.
+
+## Developer mode
+
+Developer mode lets you test face recognition by uploading or capturing a photo without choosing a class, subject, period or date.
+
+- **Start it:** run `.\start_vista_dev.ps1`. This is `start_vista.ps1 -Dev`, which sets `VISTA_DEV_MODE=1` for the backend. `.\start_vista.ps1` keeps developer mode off, so use it for demos. With the flag off, the toggle is hidden and the server refuses developer requests.
+- **Who can use it:** admin and teacher accounts. Students never see the toggle and the server returns 403 to them.
+- **Use it:** switch on the "Developer mode" toggle (top right of the login page and of the admin and teacher workspaces). A banner shows while it is on. The setting is stored in the browser and switching it off restores normal behaviour at once.
+- **What it disables:** class, subject, timetable period and session date/time checks, the teacher subject-scope check, the liveness check and duplicate filtering.
+- **What it saves:** nothing. It is a dry run through `POST /api/v1/dev/recognize`. No attendance rows, capture events or score and risk changes are written. The request is logged to the server log only. Each detected face is returned with student ID, name, confidence and whether the gallery or the classifier decided.
 
 ## Demo logins
 

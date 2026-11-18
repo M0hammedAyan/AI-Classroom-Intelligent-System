@@ -1,6 +1,9 @@
 # VISTA - Startup Script (PowerShell)
 # Starts Backend (:8002) and Frontend (:5173) in separate windows.
 # Works from any current directory; the backend runs on the project .venv.
+# -Dev starts the backend with VISTA_DEV_MODE=1 (developer mode; use start_vista_dev.ps1).
+# Without -Dev developer mode is off and the server refuses developer requests.
+param([switch]$Dev)
 
 Write-Host "=====================================================================" -ForegroundColor Cyan
 Write-Host " Starting VISTA Platform (Backend + Frontend)" -ForegroundColor Cyan
@@ -24,6 +27,12 @@ $env:VISTA_DB_URL = "sqlite:///$($PSScriptRoot -replace '\\','/')/vista/backend/
 # Rollback: point to training_results\best_model_npz_splitB.pth
 $env:VISTA_FACE_MODEL = Join-Path $PSScriptRoot "training_results\expanded_v3\best_model_expanded_v3_splitB.pth"
 $env:VISTA_FACE_MODEL_THRESHOLD = "0.60"
+if ($Dev) {
+    $env:VISTA_DEV_MODE = "1"
+    Write-Host "DEVELOPER MODE ENABLED (VISTA_DEV_MODE=1): security checks can be bypassed, nothing is saved in that mode." -ForegroundColor Yellow
+} else {
+    Remove-Item Env:VISTA_DEV_MODE -ErrorAction SilentlyContinue
+}
 if (-not (Test-Path $env:VISTA_FACE_MODEL)) {
     Write-Host "WARNING: face model not found at $($env:VISTA_FACE_MODEL); face recognition will not work." -ForegroundColor Yellow
 }

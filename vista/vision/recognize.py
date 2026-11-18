@@ -104,6 +104,7 @@ def _classify_detected_face(image_path: str, face: dict) -> dict:
         return {
             "student_id": gallery_match["student_id"],
             "confidence": gallery_match["confidence"],
+            "decided_by": "gallery",
         }
 
     crop = _crop_face(image_path, face["bbox"])
@@ -112,7 +113,7 @@ def _classify_detected_face(image_path: str, face: dict) -> dict:
 
     classifier_result = classify_face(crop)
     if classifier_result.get("student_id") is not None:
-        return classifier_result
+        return {**classifier_result, "decided_by": "classifier"}
 
     return {
         "student_id": None,
@@ -120,7 +121,7 @@ def _classify_detected_face(image_path: str, face: dict) -> dict:
     }
 
 
-def recognize_all(image_path: str, skip_liveness: bool = False) -> list[dict]:
+def recognize_all(image_path: str, skip_liveness: bool = False, dedupe: bool = True) -> list[dict]:
     """
     Recognize ALL student faces in an image.
 
@@ -128,7 +129,7 @@ def recognize_all(image_path: str, skip_liveness: bool = False) -> list[dict]:
     but processes every detected face instead of just the first one.
 
     Deduplicates: if the same student_id is matched by multiple faces,
-    only the highest-confidence result is kept.
+    only the highest-confidence result is kept (unless dedupe=False).
 
     Args:
         image_path: Path to image file (JPEG/PNG).
@@ -167,8 +168,11 @@ def recognize_all(image_path: str, skip_liveness: bool = False) -> list[dict]:
             "student_id": classification["student_id"],
             "confidence": classification["confidence"],
             "liveness_passed": liveness_passed,
+            "decided_by": classification.get("decided_by"),
         })
 
+    if not dedupe:
+        return results
     # Deduplicate: keep highest-confidence result per student_id
     seen: dict[str, dict] = {}
     deduped: list[dict] = []

@@ -41,6 +41,8 @@ export const getStudentScores = () => request('/student-portal/scores');
 export const getStudentSubjectDetail = (subjectId) => request(`/student-portal/subjects/${encodeURIComponent(subjectId)}/detail`);
 export const getStudentMarks = (studentId, subject = '') => request(`/lms/student/${encodeURIComponent(studentId)}/marks${subject ? `?subject=${encodeURIComponent(subject)}` : ''}`);
 export const getStudentAttendanceHistory = (studentId, subjectId = '') => request(`/attendance/student/${encodeURIComponent(studentId)}${subjectId ? `?subject_id=${encodeURIComponent(subjectId)}` : ''}`);
+export const getDevStatus = () => request('/dev/status');
+export const devRecognize = (image) => request('/dev/recognize', { method: 'POST', body: JSON.stringify({ image }) });
 export const markAttendanceBatch = (image, classroomId, sessionDate, subjectId) => request('/attendance/mark-batch', { method: 'POST', body: JSON.stringify({ image, classroom_id: classroomId, session_date: sessionDate, subject_id: subjectId }) });
 export const getAttendanceLog = (classroomId, date) => request(`/attendance/log?classroom_id=${encodeURIComponent(classroomId)}&date=${date}`);
 export const patchAttendance = (id, status, note) => request(`/attendance/${id}`, { method: 'PATCH', body: JSON.stringify({ status, note }) });
