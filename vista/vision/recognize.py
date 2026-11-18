@@ -89,16 +89,44 @@ def _match_student_gallery(face: dict) -> dict:
             "student_id": result["student_id"],
             "confidence": float(result["similarity"]),
             "matched": True,
+            "candidate_id": result.get("candidate_id"),
         }
 
     return {
         "student_id": None,
         "confidence": float(result["similarity"]),
         "matched": False,
+        "candidate_id": result.get("candidate_id"),
     }
 
 
-def _classify_detected_face(image_path: str, face: dict) -> dict:
+def _best_rejected_candidate(gallery_match: dict, classifier_result: dict | None) -> dict:
+    """Pick the strongest rejected candidate (diagnostics only, never used to accept).
+
+    Gallery scores are compared with VISTA_FACE_MATCH_THRESHOLD and classifier
+    probabilities with VISTA_FACE_MODEL_THRESHOLD; the one closer to (or above)
+    its own threshold, as a ratio, wins.
+    """
+    from .personal_classifier import MODEL_THRESHOLD
+
+    gallery_threshold = float(os.getenv("VISTA_FACE_MATCH_THRESHOLD", "0.55"))
+    options = []
+    if gallery_match.get("candidate_id"):
+        score = float(gallery_match["confidence"])
+        options.append((score / gallery_threshold, gallery_match["candidate_id"], score, "gallery"))
+    if classifier_result and classifier_result.get("candidate_id"):
+        score = float(classifier_result.get("confidence", 0.0))
+        options.append((score / MODEL_THRESHOLD, classifier_result["candidate_id"], score, "classifier"))
+    if not options:
+        return {"candidate_id": None, "candidate_score": None, "candidate_source": None}
+    _, cid, score, source = max(options, key=lambda o: o[0])
+    return {"candidate_id": cid, "candidate_score": score, "candidate_source": source}
+
+
+def _classify_detected_face(image_path: str, face: dict, with_candidate: bool = False) -> dict:
+    """Classify one face. with_candidate=True adds the best rejected candidate
+    (candidate_id/candidate_score/candidate_source) to unaccepted results; the
+    accept/reject decision is identical either way."""
     gallery_match = _match_student_gallery(face)
     if gallery_match["matched"]:
         return {
@@ -109,19 +137,31 @@ def _classify_detected_face(image_path: str, face: dict) -> dict:
 
     crop = _crop_face(image_path, face["bbox"])
     if crop is None:
-        return {"student_id": None, "confidence": max(gallery_match["confidence"], 0.0)}
+        out = {"student_id": None, "confidence": max(gallery_match["confidence"], 0.0)}
+        if with_candidate:
+            out.update(_best_rejected_candidate(gallery_match, None))
+        return out
 
-    classifier_result = classify_face(crop)
+    classifier_result = classify_face(crop, with_candidate=True) if with_candidate else classify_face(crop)
     if classifier_result.get("student_id") is not None:
-        return {**classifier_result, "decided_by": "classifier"}
+        accepted = {k: v for k, v in classifier_result.items() if k != "candidate_id"}
+        return {**accepted, "decided_by": "classifier"}
 
-    return {
+    out = {
         "student_id": None,
         "confidence": max(classifier_result.get("confidence", 0.0), gallery_match["confidence"]),
     }
+    if with_candidate:
+        out.update(_best_rejected_candidate(gallery_match, classifier_result))
+    return out
 
 
-def recognize_all(image_path: str, skip_liveness: bool = False, dedupe: bool = True) -> list[dict]:
+def recognize_all(
+    image_path: str,
+    skip_liveness: bool = False,
+    dedupe: bool = True,
+    include_bbox: bool = False,
+) -> list[dict]:
     """
     Recognize ALL student faces in an image.
 
@@ -136,6 +176,10 @@ def recognize_all(image_path: str, skip_liveness: bool = False, dedupe: bool = T
         skip_liveness: If True, bypass the liveness check and treat every
             detected face as live. Use for uploaded/static images only —
             never for live webcam frames.
+        dedupe: Keep only the best result per student when True.
+        include_bbox: Developer mode only. Adds "bbox" ([x1, y1, x2, y2] in the
+            pixels of the image as OpenCV decodes it) and the best rejected
+            candidate to every result. Default False leaves results unchanged.
 
     Returns:
         List of dicts, each containing:
@@ -162,14 +206,22 @@ def recognize_all(image_path: str, skip_liveness: bool = False, dedupe: bool = T
             liveness = check_liveness(face, image_path)
             liveness_passed = liveness["liveness_passed"]
 
-        classification = _classify_detected_face(image_path, face)
+        if include_bbox:
+            classification = _classify_detected_face(image_path, face, with_candidate=True)
+        else:
+            classification = _classify_detected_face(image_path, face)
 
-        results.append({
+        entry = {
             "student_id": classification["student_id"],
             "confidence": classification["confidence"],
             "liveness_passed": liveness_passed,
             "decided_by": classification.get("decided_by"),
-        })
+        }
+        if include_bbox:  # developer mode only: box in image pixels + best rejected candidate
+            entry["bbox"] = [float(v) for v in face["bbox"][:4]]
+            for key in ("candidate_id", "candidate_score", "candidate_source"):
+                entry[key] = classification.get(key)
+        results.append(entry)
 
     if not dedupe:
         return results

@@ -103,6 +103,7 @@ Developer mode lets you test face recognition by uploading or capturing a photo 
 - **Use it:** switch on the "Developer mode" toggle (top right of the login page and of the admin and teacher workspaces). A banner shows while it is on. The setting is stored in the browser and switching it off restores normal behaviour at once.
 - **What it disables:** class, subject, timetable period and session date/time checks, the teacher subject-scope check, the liveness check and duplicate filtering.
 - **What it saves:** nothing. It is a dry run through `POST /api/v1/dev/recognize`. No attendance rows, capture events or score and risk changes are written. The request is logged to the server log only. Each detected face is returned with student ID, name, confidence and whether the gallery or the classifier decided.
+- **Face boxes:** after Recognise, the preview shows a numbered box on every detected face, and the results list uses the same numbers. Green is a recognised student ("Name · 0.72"), amber and dashed is a best guess rejected by the threshold ("? Name · 0.41", not accepted), red is unknown. Boxes appear only in developer mode and work for uploaded photos and camera captures. Photos with EXIF rotation are handled because the server and the browser both apply it.
 
 ## Demo logins
 

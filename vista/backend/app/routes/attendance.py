@@ -773,7 +773,7 @@ def _call_vision(image_path: str, skip_liveness: bool = False) -> dict | None:
         return {"student_id": None, "confidence": 0.0, "liveness_passed": False}
 
 
-def _call_vision_all(image_path: str, skip_liveness: bool = False, dedupe: bool = True) -> list[dict]:
+def _call_vision_all(image_path: str, skip_liveness: bool = False, dedupe: bool = True, include_bbox: bool = False) -> list[dict]:
     """
     Call vision.recognize_all(image_path) for multi-face detection + recognition.
 
@@ -788,8 +788,9 @@ def _call_vision_all(image_path: str, skip_liveness: bool = False, dedupe: bool 
 
     try:
         from vista.vision.recognize import recognize_all
-        results = recognize_all(image_path, skip_liveness=skip_liveness, dedupe=dedupe)
-        return results
+        if include_bbox:
+            return recognize_all(image_path, skip_liveness=skip_liveness, dedupe=dedupe, include_bbox=True)
+        return recognize_all(image_path, skip_liveness=skip_liveness, dedupe=dedupe)
 
     except ImportError:
         logger.warning("Vision module not available — using stub (no face recognition)")

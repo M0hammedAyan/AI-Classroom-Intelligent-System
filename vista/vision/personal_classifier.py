@@ -80,8 +80,12 @@ def _load_model() -> tuple[nn.Module, list[str], Any]:
     return model, class_names, preprocessing
 
 
-def classify_face(face_rgb: np.ndarray) -> dict[str, Any]:
-    """Classify one RGB face crop with the personal trained checkpoint."""
+def classify_face(face_rgb: np.ndarray, with_candidate: bool = False) -> dict[str, Any]:
+    """Classify one RGB face crop with the personal trained checkpoint.
+
+    with_candidate=True also returns the top class as "candidate_id" even when it
+    is below the acceptance threshold (diagnostics only; acceptance is unchanged).
+    """
     if face_rgb.size == 0:
         return {"student_id": None, "confidence": 0.0}
 
@@ -94,8 +98,12 @@ def classify_face(face_rgb: np.ndarray) -> dict[str, Any]:
         confidence, class_index = torch.max(probabilities, dim=0)
 
     score = float(confidence.item())
-    student_id = class_names[int(class_index.item())] if score >= MODEL_THRESHOLD else None
-    return {"student_id": student_id, "confidence": score}
+    top_id = class_names[int(class_index.item())]
+    student_id = top_id if score >= MODEL_THRESHOLD else None
+    result = {"student_id": student_id, "confidence": score}
+    if with_candidate:
+        result["candidate_id"] = top_id
+    return result
 
 
 def model_info() -> dict[str, Any]:

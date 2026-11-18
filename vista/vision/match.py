@@ -75,6 +75,7 @@ class FaceMatcher:
             "student_id": best_id if matched else None,
             "similarity": best_sim,
             "matched": matched,
+            "candidate_id": best_id,  # best-scoring student even when rejected (diagnostics only)
         }
 
     def match_all(

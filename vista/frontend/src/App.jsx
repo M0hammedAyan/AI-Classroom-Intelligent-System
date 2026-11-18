@@ -185,17 +185,57 @@ function DevBanner({ role }) {
   return <div className="dev-banner">Developer mode ON - security checks disabled, nothing is saved</div>;
 }
 
+const DOT = ' \u00b7 ';
+
+function devBoxLabel(item) {
+  if (item.status === 'recognized') return `${item.student_name || item.student_id}${DOT}${(item.confidence || 0).toFixed(2)}`;
+  if (item.status === 'below_threshold') return `? ${item.candidate_name || item.candidate_id}${DOT}${(item.candidate_score || 0).toFixed(2)}`;
+  return 'Unknown';
+}
+
+// Preview image with a numbered, colour-coded box per face. Boxes use percentages of the
+// image size the server processed, so they stay aligned when the image is resized.
+function DevOverlayImage({ src, data }) {
+  const [mismatch, setMismatch] = useState(false);
+  const w = data?.image_width;
+  const h = data?.image_height;
+  const onLoad = (e) => {
+    const { naturalWidth: nw, naturalHeight: nh } = e.target;
+    setMismatch(Boolean(w && h && nw && nh && Math.abs(nw / nh - w / h) > 0.02 * (w / h)));
+  };
+  return <div className="dev-overlay">
+    <img src={src} alt="Class capture preview" onLoad={onLoad} />
+    {w > 0 && h > 0 && (data.results || []).map((item) => item.bbox && (
+      <div
+        key={item.index}
+        className={`dev-box dev-box-${item.status}`}
+        style={{
+          left: `${(item.bbox[0] / w) * 100}%`,
+          top: `${(item.bbox[1] / h) * 100}%`,
+          width: `${((item.bbox[2] - item.bbox[0]) / w) * 100}%`,
+          height: `${((item.bbox[3] - item.bbox[1]) / h) * 100}%`,
+        }}
+      >
+        <span className="dev-box-label">{item.index} {devBoxLabel(item)}</span>
+      </div>
+    ))}
+    {mismatch && <p className="dev-overlay-warning">Image orientation differs from what the server analysed; boxes may be misplaced.</p>}
+  </div>;
+}
+
 function DevResults({ results }) {
   return <div className="detection-results">
     <p className="eyebrow">Recognition result (dry run)</p>
     {results.length === 0 && <div className="detection-result"><span>No faces detected</span></div>}
     {results.map((item, index) => (
-      <div className="detection-result" key={`${item.student_id || 'unknown'}-${index}`}>
-        <span>{item.student_name || item.student_id || 'Unknown face'}</span>
+      <div className={`detection-result dev-row dev-row-${item.status || 'unknown'}`} key={`${item.index || index}`}>
+        <span><b className="dev-num">{item.index || index + 1}</b>{item.status === 'recognized' ? (item.student_name || item.student_id) : item.status === 'below_threshold' ? `Rejected: ${item.candidate_name || item.candidate_id}` : 'Unknown face'}</span>
         <small>
-          {item.student_id
-            ? `${item.student_id}  ·  ${Math.round((item.confidence || 0) * 100)}% confidence  ·  ${item.decided_by || 'n/a'}`
-            : `Not recognised  ·  ${Math.round((item.confidence || 0) * 100)}% similarity`}
+          {item.status === 'recognized'
+            ? `${item.student_id}${DOT}${Math.round((item.confidence || 0) * 100)}% confidence${DOT}${item.decided_by || 'n/a'}`
+            : item.status === 'below_threshold'
+              ? `Below threshold${DOT}best candidate ${item.candidate_id}${DOT}score ${(item.candidate_score || 0).toFixed(2)}${DOT}${item.candidate_source || 'n/a'}`
+              : `Not recognised${DOT}${Math.round((item.confidence || 0) * 100)}% similarity`}
         </small>
       </div>
     ))}
@@ -215,22 +255,30 @@ function DevRecognizePanel() {
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
-  const [results, setResults] = useState(null);
+  const [data, setData] = useState(null);
+  const [preview, setPreview] = useState('');
+  const choose = (picked) => {
+    setFile(picked);
+    setData(null);
+    setNotice('');
+    setPreview((old) => { if (old) URL.revokeObjectURL(old); return picked ? URL.createObjectURL(picked) : ''; });
+  };
   const run = async () => {
     if (!file) return setNotice('Choose an image first.');
     setBusy(true); setNotice('');
     try {
-      const data = await devRecognize(await fileToBase64(file));
-      setResults(data.results || []);
-      setNotice(`${data.faces_detected} face(s) detected. Nothing was saved.`);
-    } catch (err) { setNotice(err.message); setResults(null); } finally { setBusy(false); }
+      const res = await devRecognize(await fileToBase64(file));
+      setData(res);
+      setNotice(`${res.faces_detected} face(s) detected. Nothing was saved.`);
+    } catch (err) { setNotice(err.message); setData(null); } finally { setBusy(false); }
   };
   return <section className="card">
     <div className="card-title"><div><p className="eyebrow">Developer mode</p><h2>Test face recognition</h2></div></div>
-    <label className="secondary file-button">Upload image<input type="file" accept="image/jpeg,image/png" onChange={(e) => setFile(e.target.files[0] || null)} /></label>
+    <label className="secondary file-button">Upload image<input type="file" accept="image/jpeg,image/png" onChange={(e) => choose(e.target.files[0] || null)} /></label>
+    {preview && <div className="dev-panel-preview"><DevOverlayImage src={preview} data={data} /></div>}
     <button className="primary wide" onClick={run} disabled={busy}>{busy ? 'Recognising...' : 'Recognise (dry run)'}</button>
     {notice && <p className="notice">{notice}</p>}
-    {results && <DevResults results={results} />}
+    {data && <DevResults results={data.results || []} />}
   </section>;
 }
 
@@ -2133,7 +2181,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
       if (devOn) {
         const dev = await devRecognize(encoded);
         setDetectionResults([]);
-        setDevResults(dev.results || []);
+        setDevResults(dev);
         setNotice(`${dev.faces_detected} face(s) detected. Nothing was saved.`);
         return;
       }
@@ -2274,7 +2322,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
             <div className="card-title"><div><p className="eyebrow">01 / Capture</p><h2>Class image</h2></div><span className="live-dot">● Ready</span></div>
             <div className={`camera-frame ${preview ? 'has-preview' : ''}`}>
               {preview ? (
-                <img src={preview} alt="Class capture preview" />
+                devOn && devResults ? <DevOverlayImage src={preview} data={devResults} /> : <img src={preview} alt="Class capture preview" />
               ) : (
                 <>
                   <video ref={videoRef} className="camera-video" muted playsInline />
@@ -2293,7 +2341,7 @@ function AttendanceWorkspace({ auth, onLogout }) {
             {cameraOn && <button className="text-button" onClick={() => { streamRef.current?.getTracks().forEach((track) => track.stop()); setCameraOn(false); }}>Close camera</button>}
             <button className="primary wide" onClick={submitImage} disabled={busy}>{busy ? 'Detecting faces...' : devOn ? 'Recognise (dry run)' : 'Detect and mark attendance'}</button>
             {notice && <p className="notice">{notice}</p>}
-            {devOn && devResults && <DevResults results={devResults} />}
+            {devOn && devResults && <DevResults results={devResults.results || []} />}
             {!devOn && detectionResults.length > 0 && (
               <div className="detection-results">
                 <p className="eyebrow">Recognition result</p>
